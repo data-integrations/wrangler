@@ -1,19 +1,3 @@
-/*
- *  Copyright © 2017-2019 Cask Data, Inc.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may not
- *  use this file except in compliance with the License. You may obtain a copy of
- *  the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
- */
-
 package io.cdap.wrangler.test;
 
 import io.cdap.cdap.api.annotation.Description;
@@ -25,6 +9,7 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
+import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
@@ -32,17 +17,88 @@ import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
 import io.cdap.wrangler.registry.SystemDirectiveRegistry;
 import io.cdap.wrangler.test.api.TestRecipe;
+import io.cdap.wrangler.test.api.TestRows;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * Utilities for testing.
- */
 public final class TestingRig {
 
-  private TestingRig() {
-    // Avoid creation of this object.
+  private TestingRig() { }
+
+  public static void main(String[] args) throws Exception {
+    List<String> directives = Arrays.asList(
+      "aggregate-stats :size_col :duration_col total_size_mb total_time_sec"
+    );
+
+    List<String> input = Arrays.asList(
+      "size_col,duration_col",
+      "10MB,1s",
+      "512KB,500ms",
+      "2MB,2.5s"
+    );
+
+    List<String> output = execute(directives, input);
+
+    for (String line : output) {
+      System.out.println(line);
+    }
+  }
+
+  public static List<String> execute(List<String> directives, List<String> inputLines) throws Exception {
+    // Build TestRecipe
+    TestRecipe recipe = new TestRecipe();
+    for (String directive : directives) {
+      recipe.add(directive);
+    }
+
+    // Parse header and rows
+    String headerLine = inputLines.get(0);
+    String[] headers = headerLine.split(",");
+    TestRows testRows = new TestRows();
+
+    for (int i = 1; i < inputLines.size(); i++) {
+      String[] values = inputLines.get(i).split(",");
+      Row row = new Row();
+      for (int j = 0; j < headers.length; j++) {
+        row.add(headers[j].trim(), values[j].trim());
+      }
+      testRows.add(row);
+    }
+
+    // Run through pipeline
+    RecipePipeline pipeline = pipeline(io.cdap.directives.aggregates.AggregateStats.class, recipe);
+    List<Row> outputRows = pipeline.execute(testRows.toList());
+
+    // Convert output to CSV lines
+    List<String> output = new ArrayList<>();
+    if (!outputRows.isEmpty()) {
+      // Add header
+// Use the first row to get column names
+Row first = outputRows.get(0);
+int colCount = first.width();
+List<String> columnNames = new ArrayList<>();
+for (int i = 0; i < colCount; i++) {
+  columnNames.add(first.getColumn(i));
+}
+
+// Add header
+output.add(String.join(",", columnNames));
+
+// Add each row’s values
+for (Row row : outputRows) {
+  List<String> values = new ArrayList<>();
+  for (String col : columnNames) {
+    values.add(String.valueOf(row.getValue(col)));
+  }
+  output.add(String.join(",", values));
+}
+
+      
+    }
+
+    return output;
   }
 
   public static RecipePipeline pipeline(Class<? extends Directive> directive, TestRecipe recipe)
@@ -50,6 +106,7 @@ public final class TestingRig {
     verify(directive);
     List<String> packages = new ArrayList<>();
     packages.add(directive.getPackage().getName());
+
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       new SystemDirectiveRegistry(packages)
     );
@@ -59,43 +116,27 @@ public final class TestingRig {
     return new RecipePipelineExecutor(parser, null);
   }
 
-  public static RecipeParser parser(Class<? extends Directive> directive, String[] recipe)
-    throws DirectiveParseException, DirectiveLoadException {
-    verify(directive);
-    List<String> packages = new ArrayList<>();
-    packages.add(directive.getCanonicalName());
-    CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE
-    );
-
-    String migrate = new MigrateToV2(recipe).migrate();
-    return new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
-  }
-
   private static void verify(Class<? extends Directive> directive) {
     String classz = directive.getCanonicalName();
     Plugin plugin = directive.getAnnotation(Plugin.class);
     if (plugin == null || !plugin.type().equalsIgnoreCase(Directive.TYPE)) {
       throw new IllegalArgumentException(
-        String.format("Class '%s' @Plugin annotation is not of type '%s', Set it as @Plugin(type=UDD.Type)",
-                      classz, Directive.TYPE)
+        String.format("Class '%s' @Plugin annotation is not of type '%s'", classz, Directive.TYPE)
       );
     }
 
     Name name = directive.getAnnotation(Name.class);
     if (name == null) {
       throw new IllegalArgumentException(
-        String.format("Class '%s' is missing @Name annotation. E.g. @Name(\"directive-name\")", classz)
+        String.format("Class '%s' is missing @Name annotation.", classz)
       );
     }
 
     Description description = directive.getAnnotation(Description.class);
     if (description == null) {
       throw new IllegalArgumentException(
-        String.format("Class '%s' is missing @Description annotation. " +
-                        "E.g. @Description(\"this is what my directive does\")", classz)
+        String.format("Class '%s' is missing @Description annotation.", classz)
       );
     }
   }
-
 }
