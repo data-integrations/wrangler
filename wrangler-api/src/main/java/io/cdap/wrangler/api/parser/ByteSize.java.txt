@@ -1,0 +1,27 @@
+package io.cdap.wrangler.api.parser;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class ByteSize {
+  private static final Pattern PATTERN = Pattern.compile("(?i)^(\\d+(?:\\.\\d+)?)([KMGT]?B)$");
+
+  public static long parse(String input) {
+    Matcher matcher = PATTERN.matcher(input.trim());
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException("Invalid byte size format: " + input);
+    }
+
+    double number = Double.parseDouble(matcher.group(1));
+    String unit = matcher.group(2).toUpperCase();
+
+    switch (unit) {
+      case "KB": return (long) (number * 1024);
+      case "MB": return (long) (number * 1024 * 1024);
+      case "GB": return (long) (number * 1024 * 1024 * 1024);
+      case "TB": return (long) (number * 1024L * 1024 * 1024 * 1024);
+      case "B":
+      default: return (long) number;
+    }
+  }
+}

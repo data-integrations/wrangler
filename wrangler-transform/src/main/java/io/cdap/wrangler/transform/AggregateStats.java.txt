@@ -1,0 +1,54 @@
+package io.cdap.wrangler.transform;
+
+import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveContext;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.api.annotation.Description;
+import io.cdap.wrangler.api.annotation.Name;
+import io.cdap.wrangler.api.annotation.Plugin;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
+
+import java.util.List;
+
+/**
+ * Directive that demonstrates parsing of ByteSize and TimeDuration from rows.
+ */
+@Plugin(type = Directive.Type.TRANSFORM)
+@Name("aggregate-stats")
+@Description("Parses byte size and time duration fields and adds converted values to the row.")
+public class AggregateStats implements Directive {
+
+  @Override
+  public void initialize(DirectiveContext context) {
+    // You can initialize parameters from context.getArguments() if needed
+  }
+
+  @Override
+  public List<Row> execute(List<Row> rows) {
+    for (Row row : rows) {
+      Object byteField = row.getValue("data_transfer_size");
+      Object timeField = row.getValue("response_time");
+
+      long bytes = 0;
+      long timeMs = 0;
+
+      try {
+        if (byteField instanceof String) {
+          bytes = ByteSize.parse((String) byteField);
+        }
+        if (timeField instanceof String) {
+          timeMs = TimeDuration.parse((String) timeField);
+        }
+      } catch (Exception e) {
+        // Handle invalid values (optional)
+        e.printStackTrace();
+      }
+
+      row.add("parsed_bytes", bytes);
+      row.add("parsed_time_ms", timeMs);
+    }
+
+    return rows;
+  }
+}
