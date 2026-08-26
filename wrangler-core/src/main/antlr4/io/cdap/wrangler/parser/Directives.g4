@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -31,8 +31,8 @@ options {
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | BYTE_SIZE
+    | TIME_DURATION
   )*?
   ;
 
@@ -140,8 +142,9 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
+
 
 ecommand
  : '!' Identifier
@@ -195,7 +198,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -247,7 +249,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -275,22 +276,22 @@ String
  ;
 
 EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
-   ;
+    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+    |   UnicodeEscape
+    |   OctalEscape
+    ;
 
 fragment
 OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
-   ;
+    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7') ('0'..'7')
+    |   '\\' ('0'..'7')
+    ;
 
 fragment
 UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
-   ;
+    :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
+    ;
 
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;

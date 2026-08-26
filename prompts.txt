@@ -1,0 +1,11 @@
+AI PROMPTS USED
+ 1. "Explain the modular architecture of the Wrangler project and how it supports scalability."
+ 2. "How can we optimize the performance of the data transformation logic in the Wrangler Core  module?"
+ 3. How to integrate a new directive called AggregateStats into an existing directive parser?
+ 4. Identify and fix Checkstyle violations for method documentation and import order in Java.
+ 5. Rewrite Directives.g4 to support TIME_DURATION and BYTE_SIZE tokens without breaking other  rules.
+6.” How can I ensure complete code coverage while writing unit tests for a modular codebase?"
+7. "How can I identify flaky tests and make them more stable in a CI/CD pipeline?"
+8. "What tools can help diagnose performance bottlenecks during a stress test?"
+9. "How do I test edge cases effectively to ensure robust error handling?"
+10. "How can I reproduce a bug reported in production to write a regression test for it?"
