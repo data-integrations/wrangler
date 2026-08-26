@@ -1,0 +1,27 @@
+AI Prompts Used in Wrangler Enhancement Project
+
+1. Implementation of ByteSize and TimeDuration parsers
+- How to implement byte size parsing in Java
+- How to handle different byte units (KB, MB, GB, TB)
+- How to implement time duration parsing
+- How to convert between different time units
+
+2. Token Interface Implementation
+- How to properly implement the Token interface
+- How to handle JSON serialization
+- How to implement type-safe value conversion
+
+3. Testing Implementation
+- How to write comprehensive unit tests
+- How to test edge cases and error conditions
+- How to test with various units and formats
+
+4. Documentation
+- How to document new features in README
+- How to write clear API documentation
+- How to provide usage examples
+
+5. Build and Integration
+- How to integrate new features with existing codebase
+- How to handle compilation errors
+- How to ensure backward compatibility 
