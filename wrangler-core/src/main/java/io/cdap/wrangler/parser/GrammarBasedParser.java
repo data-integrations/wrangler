@@ -84,7 +84,7 @@ public class GrammarBasedParser implements RecipeParser {
         try {
           Directive directive = info.instance();
           UsageDefinition definition = directive.define();
-          Arguments arguments = new MapArguments(definition, tokenGroup);
+          Arguments arguments = new MapArgumentsWithContext(definition, tokenGroup, context);
           directive.initialize(arguments);
           result.add(directive);
 

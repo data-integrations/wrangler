@@ -40,9 +40,9 @@ import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
-import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.DataType;
 import io.cdap.wrangler.dataset.workspace.Workspace;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
@@ -108,7 +108,11 @@ import javax.ws.rs.QueryParam;
 public class DirectivesHandler extends AbstractDirectiveHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DirectivesHandler.class);
   private static final Gson GSON =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+    new GsonBuilder()
+      .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
+      .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfig.DirectiveConfigDeserializer())
+      .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlist.JexlAllowlistDeserializer())
+      .create();
 
   private static final String DATA_MODEL_PROPERTY = "dataModel";
   private static final String DATA_MODEL_REVISION_PROPERTY = "dataModelRevision";
@@ -997,6 +1001,24 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       if (config == null) {
         throw new BadRequestException("Config is empty. Please check if the request is sent as HTTP POST body.");
       }
+
+      List<JexlAllowlist> userAllowlist = config.getJexlAllowlist();
+      if (jexlAllowlistEnabled && userAllowlist == null) {
+        throw new BadRequestException("JEXL allowlist cannot be null. Please provide a valid JEXL allowlist.");
+      }
+      if (!jexlAllowlistEnabled && userAllowlist != null) {
+        throw new BadRequestException("Updates to JEXL allowlist in the wrangler directives config is disabled by administrator.");
+      }
+      // No updates to JexlAllowlist when JEXL Allowlist feature is disabled
+      if (!jexlAllowlistEnabled) {
+        DirectiveConfig existingConfig = configStore.getConfig();
+        JsonObject existingJson = existingConfig.toJson().getAsJsonObject();
+        JsonObject newJson = config.toJson().getAsJsonObject();
+        existingJson.add("exclusions", newJson.get("exclusions"));
+        existingJson.add("aliases", newJson.get("aliases"));
+        config = new Gson().fromJson(existingJson, DirectiveConfig.class);
+      }
+
       configStore.updateConfig(config);
       return new ServiceResponse<Void>("Successfully updated configuration.");
     });
@@ -1012,7 +1034,15 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("config")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> new ServiceResponse<>(configStore.getConfig()));
+    respond(request, responder, () -> {
+      DirectiveConfig config = configStore.getConfig();
+      if (!jexlAllowlistEnabled) {
+        JsonObject configJson = config.toJson().getAsJsonObject();
+        configJson.remove(DirectiveConfig.JEXL_ALLOWLIST_KEY);
+        return new ServiceResponse<>(configJson);
+      }
+      return new ServiceResponse<>(config);
+    });
   }
 
   /**

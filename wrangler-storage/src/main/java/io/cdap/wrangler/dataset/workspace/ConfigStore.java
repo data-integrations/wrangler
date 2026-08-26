@@ -17,6 +17,8 @@
 package io.cdap.wrangler.dataset.workspace;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
 import io.cdap.cdap.spi.data.table.StructuredTableId;
@@ -26,7 +28,11 @@ import io.cdap.cdap.spi.data.table.field.FieldType;
 import io.cdap.cdap.spi.data.table.field.Fields;
 import io.cdap.cdap.spi.data.transaction.TransactionRunner;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
 import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.JexlAllowlist;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +50,11 @@ import java.util.Optional;
  */
 @Deprecated
 public class ConfigStore {
-  private static final Gson GSON = new Gson();
+  private static final Logger LOG = LoggerFactory.getLogger(ConfigStore.class);
+  private static final Gson GSON = new GsonBuilder()
+    .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlist.JexlAllowlistDeserializer())
+    .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfig.DirectiveConfigDeserializer())
+    .create();
   private static final String KEY_COL = "key";
   private static final String VAL_COL = "value";
   private static final Field<String> keyField = Fields.stringField(KEY_COL, "directives");
@@ -58,6 +68,21 @@ public class ConfigStore {
 
   public ConfigStore(TransactionRunner transactionRunner) {
     this.transactionRunner = transactionRunner;
+  }
+
+  // This is one time bootstrap of ConfigStore to initialize default directive config
+  public void initialize() throws IOException {
+    DirectiveConfig config = getConfig();
+
+    if (config != null) {
+      LOG.info("Directive config already exists", (Throwable) null);
+      return;
+    }
+
+    LOG.info("Initializing Directive config with default values", (Throwable) null);
+    JsonObject configJson = new JsonObject();
+    configJson.add(DirectiveConfig.JEXL_ALLOWLIST_KEY, GSON.toJsonTree(DefaultJexlAllowlist.get()));
+    updateConfig(GSON.fromJson(configJson, DirectiveConfig.class));
   }
 
   public void updateConfig(DirectiveConfig config) throws IOException {
@@ -74,7 +99,10 @@ public class ConfigStore {
     return TransactionRunners.run(transactionRunner, context -> {
       StructuredTable table = context.getTable(TABLE_ID);
       Optional<StructuredRow> row = table.read(Collections.singletonList(keyField));
-      String configStr = row.map(r -> r.getString(VAL_COL)).orElse("{}");
+      String configStr = row.map(r -> r.getString(VAL_COL)).orElse(null);
+      if (configStr == null) {
+        return null;
+      }
       return GSON.fromJson(configStr, DirectiveConfig.class);
     }, IOException.class);
   }

@@ -240,7 +240,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
             // service/arguments are not yet available. DirectiveConfig.EMPTY is used for
             // compile-time
             // grammar validation.
-            DirectiveContext directiveContext = new ConfigDirectiveContext(DirectiveConfig.EMPTY);
+            DirectiveContext directiveContext = new ConfigDirectiveContext(DirectiveConfig.EMPTY, false);
             GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), directiveContext);
             walker.walk(new MigrateToV2(directives).migrate(), (command, tokenGroup) -> {
               DirectiveInfo directiveInfo = registry.get("", command);
@@ -624,7 +624,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
 
     DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
-    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig);
+    boolean jexlAllowlistEnabled = context != null && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
+    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig, jexlAllowlistEnabled);
 
     try {
       return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
