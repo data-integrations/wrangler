@@ -75,4 +75,21 @@ public class GrammarBasedParserTest {
     Assert.assertEquals(0, directives.size());
   }
 
+  
+
+  @Test
+public void testByteSizeParsingInRecipe() throws Exception {
+  String recipe = "set-column :size 10MB;";
+  RecipeParser parser = new GrammarBasedParser("default", recipe, registry);
+  List<Directive> directives = parser.parse();
+  Assert.assertEquals("set-column", directives.get(0).getName());
+}
+
+@Test(expected = RecipeException.class)
+public void testInvalidByteSizeFails() throws Exception {
+  String recipe = "set-column :size 10XB;";
+  RecipeParser parser = new GrammarBasedParser("default", recipe, registry);
+  parser.parse(); // should throw
+}
+
 }
