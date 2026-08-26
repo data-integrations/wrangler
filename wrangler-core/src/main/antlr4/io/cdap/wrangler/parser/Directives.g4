@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | BYTE_SIZE
+    | TIME_DURATION
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -294,6 +296,12 @@ UnicodeEscape
 
 fragment
    HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+
+BYTE_SIZE     : Digit+ ('.' Digit+)? BYTE_UNIT;
+TIME_DURATION : Digit+ ('.' Digit+)? TIME_UNIT;
+
+fragment BYTE_UNIT : [Kk][Bb]? | [Mm][Bb]? | [Gg][Bb]? | [Tt][Bb]? ;
+fragment TIME_UNIT : 'ms' | 's' | 'sec' | 'm' | 'min' ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
