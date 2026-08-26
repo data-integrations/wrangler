@@ -23,7 +23,8 @@ import java.io.Serializable;
 import javax.annotation.Nullable;
 
 /**
- * A interface defining the wrangle Executor in the wrangling {@link RecipePipeline}.
+ * A interface defining the wrangle Executor in the wrangling
+ * {@link RecipePipeline}.
  *
  * @param <I> type of input object
  * @param <O> type of output object
@@ -31,17 +32,22 @@ import javax.annotation.Nullable;
 @PublicEvolving
 public interface Executor<I, O> extends Serializable {
   /**
-   * This method provides a way for the custom directive writer the ability to access
+   * This method provides a way for the custom directive writer the ability to
+   * access
    * the arguments passed by the users.
    *
-   * <p>This method is invoked only once during the initialization phase of the {@code Executor}
-   * object. The arguments are constructed based on the definition as provided by the user in
-   * the method above {@code define}.</p>
+   * <p>
+   * This method is invoked only once during the initialization phase of the
+   * {@code Executor}
+   * object. The arguments are constructed based on the definition as provided by
+   * the user in
+   * the method above {@code define}.
+   * </p>
    *
    * <p>
-   *   Following is an example of how {@code initialize} could be used to accept the
-   *   arguments that are tokenized and parsed by the framework.
-   *   <code>
+   * Following is an example of how {@code initialize} could be used to accept the
+   * arguments that are tokenized and parsed by the framework.
+   * <code>
    *     public void initialize(Arguments args) throws DirectiveParseException {
    *       ColumnName column = args.value("column");
    *       if (args.contains("number") {
@@ -55,26 +61,30 @@ public interface Executor<I, O> extends Serializable {
    * </p>
    *
    * @param args Tokenized and parsed arguments.
-   * @throws DirectiveParseException thrown by the user in case of any issues with validation or
-   * ensuring the argument values are as expected.
+   * @throws DirectiveParseException thrown by the user in case of any issues with
+   *                                 validation or
+   *                                 ensuring the argument values are as expected.
    */
   void initialize(Arguments args) throws DirectiveParseException;
 
   /**
-   * Executes a wrangle step on single {@link Row} and return an array of wrangled {@link Row}.
+   * Executes a wrangle step on single {@link Row} and return an array of wrangled
+   * {@link Row}.
    *
-   * @param rows List of input {@link Row} to be wrangled by this step.
+   * @param rows    List of input {@link Row} to be wrangled by this step.
    * @param context {@link ExecutorContext} passed to each step.
    * @return Wrangled List of {@link Row}.
    */
   O execute(I rows, ExecutorContext context)
-    throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed;
+      throws DirectiveExecutionException, ErrorRowException, ReportErrorAndProceed;
 
   /**
    * This method provides a way for the directive to de-initialize or destroy the
    * resources that were acquired during the initialization phase. This method is
-   * called from the <code>Transform#destroy()</code> when the directive is invoked
-   * within a plugin or when during <code>Service#destroy()</code> when invoked in the
+   * called from the <code>Transform#destroy()</code> when the directive is
+   * invoked
+   * within a plugin or when during <code>Service#destroy()</code> when invoked in
+   * the
    * service.
    *
    * This method is specifically designed not to thrown any exceptions. So, if the
@@ -84,13 +94,19 @@ public interface Executor<I, O> extends Serializable {
   void destroy();
 
   /**
-   * This method is used to get the updated schema of the data after the directive's transformation has been applied.
+   * This method is used to get the updated schema of the data after the
+   * directive's transformation has been applied.
    *
-   * @param schemaResolutionContext context containing necessary information for getting output schema
+   * @param schemaResolutionContext context containing necessary information for
+   *                                getting output schema
    * @return output {@link Schema} of the transformed data
-   * @implNote By default, returns a null and the schema is inferred from the data when necessary.
-   * <p>For consistent handling, override for directives that perform column renames,
-   * column data type changes or column additions with specific schemas.</p>
+   * @implNote By default, returns a null and the schema is inferred from the data
+   *           when necessary.
+   *           <p>
+   *           For consistent handling, override for directives that perform
+   *           column renames,
+   *           column data type changes or column additions with specific schemas.
+   *           </p>
    */
   @Nullable
   default Schema getOutputSchema(SchemaResolutionContext schemaResolutionContext) {

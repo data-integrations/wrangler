@@ -216,3 +216,34 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+## Byte Size and Time Duration Parsers
+
+This enhancement adds native support for parsing and utilizing byte size and time duration units within Wrangler recipes.
+
+### Byte Size Parser
+
+The Byte Size Parser allows working with data size values with units like KB, MB, GB, etc.
+
+**Supported Units:**
+- B (Bytes)
+- KB (Kilobytes)
+- MB (Megabytes)
+- GB (Gigabytes)
+- TB (Terabytes)
+
+### Time Duration Parser
+
+The Time Duration Parser allows working with time intervals with units like ms, s, min, etc.
+
+**Supported Units:**
+- ns (Nanoseconds)
+- ms (Milliseconds)
+- s (Seconds)
+- min (Minutes)
+- h (Hours)
+
+### Aggregate-Stats Directive
+
+The new `aggregate-stats` directive allows for aggregation of byte size and time duration values
+This directive will aggregate the values in the specified columns and output the results in the target columns.

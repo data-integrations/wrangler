@@ -56,13 +56,13 @@ public final class TestingRig {
 
   /**
    *
-   * @param recipe directives to be executed.
-   * @param rows input data
+   * @param recipe      directives to be executed.
+   * @param rows        input data
    * @param inputSchema {@link Schema} of the input data
    * @return {@link Schema} of output after transformation
    */
   public static Schema executeAndGetSchema(String[] recipe, List<Row> rows, Schema inputSchema)
-    throws DirectiveParseException, DirectiveLoadException, RecipeException {
+      throws DirectiveParseException, DirectiveLoadException, RecipeException {
     ExecutorContext context = new TestingPipelineContext().setSchemaManagementEnabled();
     context.getTransientStore().set(TransientVariableScope.GLOBAL, TransientStoreKeys.INPUT_SCHEMA, inputSchema);
     execute(recipe, rows, context);
@@ -73,19 +73,18 @@ public final class TestingRig {
    * Executes the directives on the record specified.
    *
    * @param recipe to be executed.
-   * @param rows to be executed on directives.
+   * @param rows   to be executed on directives.
    * @return transformed directives.
    */
   public static List<Row> execute(String[] recipe, List<Row> rows)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException {
+      throws RecipeException, DirectiveParseException, DirectiveLoadException {
     return execute(recipe, rows, new TestingPipelineContext());
   }
 
   public static List<Row> execute(String[] recipe, List<Row> rows, ExecutorContext context)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException {
+      throws RecipeException, DirectiveParseException, DirectiveLoadException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE
-    );
+        SystemDirectiveRegistry.INSTANCE);
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
@@ -93,22 +92,22 @@ public final class TestingRig {
   }
 
   /**
-   * Executes the directives on the record specified and returns the results as well as the errors.
+   * Executes the directives on the record specified and returns the results as
+   * well as the errors.
    *
    * @param recipe to be executed.
-   * @param rows to be executed on directives.
+   * @param rows   to be executed on directives.
    * @return transformed directives and errors.
    */
   public static Pair<List<Row>, List<Row>> executeWithErrors(String[] recipe, List<Row> rows)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+      throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
     return executeWithErrors(recipe, rows, new TestingPipelineContext());
   }
 
   public static Pair<List<Row>, List<Row>> executeWithErrors(String[] recipe, List<Row> rows, ExecutorContext context)
-    throws RecipeException, DirectiveParseException {
+      throws RecipeException, DirectiveParseException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE
-    );
+        SystemDirectiveRegistry.INSTANCE);
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
@@ -119,10 +118,9 @@ public final class TestingRig {
   }
 
   public static RecipePipeline execute(String[] recipe)
-    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+      throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE
-    );
+        SystemDirectiveRegistry.INSTANCE);
 
     String migrate = new MigrateToV2(recipe).migrate();
     RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
@@ -131,8 +129,7 @@ public final class TestingRig {
 
   public static RecipeParser parse(String[] recipe) throws DirectiveParseException, DirectiveLoadException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE
-    );
+        SystemDirectiveRegistry.INSTANCE);
 
     String migrate = new MigrateToV2(recipe).migrate();
     return new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
@@ -160,4 +157,3 @@ public final class TestingRig {
     Assert.assertFalse(status.isSuccess());
   }
 }
-

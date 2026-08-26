@@ -17,8 +17,6 @@
 package io.cdap.wrangler.api;
 
 import io.cdap.wrangler.api.annotations.Public;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Specifies the structure for Error records.
