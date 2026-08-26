@@ -38,7 +38,7 @@ public final class SyntaxErrorListener extends BaseErrorListener {
 
   @Override
   public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
-                          String msg, RecognitionException e) {
+      String msg, RecognitionException e) {
 
     Parser parser = (Parser) recognizer;
     String name = parser.getSourceName();
@@ -60,7 +60,7 @@ public final class SyntaxErrorListener extends BaseErrorListener {
           msg = "unexpected token found '" + ((NoViableAltException) e).getStartToken().getText() + "'";
         }
       }
-      String message = "At line " + line + ":" + charPositionInLine +  ": " + msg;
+      String message = "At line " + line + ":" + charPositionInLine + ": " + msg;
       errors.add(new SyntaxError(line, charPositionInLine, message, source));
       return;
     }
@@ -68,15 +68,15 @@ public final class SyntaxErrorListener extends BaseErrorListener {
     String offSymName = DirectivesLexer.VOCABULARY.getDisplayName(offSymbol.getType());
     String message = "At line " + line + ":" + charPositionInLine + " at " + offSymName.toLowerCase() + ": " + msg;
 
-//    StringBuilder sb = new StringBuilder(message);
-//    sb.append(", alternatives = {");
-//    for (int idx = lastError + 1; idx <= thisError; idx++) {
-//      Token token = tokens.get(idx);
-//      if (token.getChannel() != Token.HIDDEN_CHANNEL) {
-//        sb.append(token.getText()).append(",");
-//      }
-//    }
-//    sb.append("}");
+    // StringBuilder sb = new StringBuilder(message);
+    // sb.append(", alternatives = {");
+    // for (int idx = lastError + 1; idx <= thisError; idx++) {
+    // Token token = tokens.get(idx);
+    // if (token.getChannel() != Token.HIDDEN_CHANNEL) {
+    // sb.append(token.getText()).append(",");
+    // }
+    // }
+    // sb.append("}");
     lastError = thisError;
     errors.add(new SyntaxError(line, charPositionInLine, message, source));
   }
