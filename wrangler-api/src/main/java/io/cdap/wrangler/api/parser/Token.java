@@ -15,7 +15,11 @@
  */
 
 package io.cdap.wrangler.api.parser;
+<<<<<<< HEAD
 
+=======
+import com.google.gson.JsonElement;
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 import com.google.gson.JsonElement;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 

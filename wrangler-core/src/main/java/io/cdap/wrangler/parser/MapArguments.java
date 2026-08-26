@@ -215,6 +215,14 @@ public class MapArguments implements Arguments {
     return source;
   }
 
+<<<<<<< HEAD
+=======
+  @Override
+  public boolean has(String name) {
+    return tokens.containsKey(name);
+  }
+
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
   /**
    * Returns <code>JsonElement</code> representation of this object.
    *

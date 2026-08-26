@@ -140,7 +140,11 @@ numberRange
  ;
 
 value
+<<<<<<< HEAD
  : String | Number | Column | Bool
+=======
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
  ;
 
 ecommand
@@ -247,6 +251,18 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+<<<<<<< HEAD
+=======
+byteSizeArg
+ : BYTE_SIZE
+ | Column
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ | Column
+ ;
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 
 Bool
  : 'true'
@@ -280,6 +296,18 @@ EscapeSequence
    |   OctalEscape
    ;
 
+<<<<<<< HEAD
+=======
+// Add new lexer rules for byte sizes and time durations
+BYTE_SIZE
+ : Number ('B'|'b'|'KB'|'kb'|'MB'|'mb'|'GB'|'gb'|'TB'|'tb')
+ ;
+
+TIME_DURATION
+ : Number ('ns'|'NS'|'us'|'US'|'ms'|'MS'|'s'|'S'|'min'|'MIN'|'h'|'H')
+ ;
+
+>>>>>>> 373b7dd7 (bytesize and timeduration implementaion)
 fragment
 OctalEscape
    :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
