@@ -126,4 +126,9 @@ public class TestingPipelineContext implements ExecutorContext {
   public boolean isSchemaManagementEnabled() {
     return schemaManagementEnabled;
   }
+
+  @Override
+  public boolean isLast() {
+    throw new UnsupportedOperationException("Unimplemented method 'isLast'");
+  }
 }

@@ -117,4 +117,10 @@ class WranglerPipelineContext implements ExecutorContext {
   public <T> Lookup<T> provide(String s, Map<String, String> map) {
     return context.provide(s, map);
   }
+
+  @Override
+  public boolean isLast() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'isLast'");
+  }
 }

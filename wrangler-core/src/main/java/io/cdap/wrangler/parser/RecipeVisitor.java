@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -34,6 +34,8 @@ import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -315,6 +317,31 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     }
     builder.addToken(new TextList(strs));
     return builder;
+  }
+
+  /**
+   * A Directive can specify a value which could be various types including BYTE_SIZE and TIME_DURATION.
+   * This visitor method extracts the appropriate token based on the type of value encountered.
+   */
+  @Override
+  public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
+    if (ctx.BYTE_SIZE() != null) {
+      try {
+        builder.addToken(new ByteSize(ctx.BYTE_SIZE().getText()));
+      } catch (Exception e) {
+        // If we can't parse it as a ByteSize, we'll fall back to treating it as text
+        builder.addToken(new Text(ctx.BYTE_SIZE().getText()));
+      }
+    } else if (ctx.TIME_DURATION() != null) {
+      try {
+        builder.addToken(new TimeDuration(ctx.TIME_DURATION().getText()));
+      } catch (Exception e) {
+        // If we can't parse it as a TimeDuration, we'll fall back to treating it as text
+        builder.addToken(new Text(ctx.TIME_DURATION().getText()));
+      }
+    }
+    // Let other value types be handled by their respective visit methods
+    return super.visitValue(ctx);
   }
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {

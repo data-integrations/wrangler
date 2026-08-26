@@ -108,12 +108,30 @@ public class SetTransientVariableTest {
           public Set<String> getVariables() {
             return s.keySet();
           }
+
+          @Override
+          public boolean has(TransientVariableScope directive, String dataSizeKey) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'has'");
+          }
+
+          @Override
+          public long get(TransientVariableScope directive, String dataSizeKey) {
+            // TODO Auto-generated method stub
+            throw new UnsupportedOperationException("Unimplemented method 'get'");
+          }
         };
       }
 
       @Override
       public <T> Lookup<T> provide(String s, Map<String, String> map) {
         return null;
+      }
+
+      @Override
+      public boolean isLast() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isLast'");
       }
     });
     Assert.assertEquals(2, rows.size());

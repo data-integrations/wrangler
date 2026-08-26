@@ -28,14 +28,18 @@ import java.util.Objects;
  */
 @PublicEvolving
 public final class Row implements Serializable {
+  /** Serialization ID. */
   private static final long serialVersionUID = -7505703059736709602L;
 
-  // Name of the columns held by the row.
+  /** Name of the columns held by the row. */
   private List<String> columns = new ArrayList<>();
 
-  // Values held by the row.
+  /** Values held by the row. */
   private List<Object> values = new ArrayList<>();
 
+  /**
+   * Creates a new empty row.
+   */
   public Row() {
   }
 
@@ -44,7 +48,7 @@ public final class Row implements Serializable {
    *
    * @param row to be copied to 'this' object.
    */
-  public Row(Row row) {
+  public Row(final Row row) {
     this.values = new ArrayList<>(row.values);
     this.columns = new ArrayList<>(row.columns);
   }
@@ -54,7 +58,7 @@ public final class Row implements Serializable {
    *
    * @param columns to set in the row.
    */
-  public Row(List<String> columns) {
+  public Row(final List<String> columns) {
     this.columns = new ArrayList<>(columns);
     this.values = new ArrayList<>(columns.size());
   }
@@ -65,7 +69,7 @@ public final class Row implements Serializable {
    * @param name of the column to be added to the row.
    * @param value for the column defined above.
    */
-  public Row(String name, Object value) {
+  public Row(final String name, final Object value) {
     this.columns = new ArrayList<>(1);
     this.values = new ArrayList<>(1);
     this.columns.add(name);
@@ -78,7 +82,7 @@ public final class Row implements Serializable {
    * @param idx to retrieve the name of the column.
    * @return name of the column.
    */
-  public String getColumn(int idx) {
+  public String getColumn(final int idx) {
     return columns.get(idx);
   }
 
@@ -88,7 +92,7 @@ public final class Row implements Serializable {
    * @param idx at which the new name to be set.
    * @param name of the column to be set at idx.
    */
-  public void setColumn(int idx, String name) {
+  public void setColumn(final int idx, final String name) {
     columns.set(idx, name);
   }
 
@@ -98,7 +102,7 @@ public final class Row implements Serializable {
    * @param idx from where the value should be retrieved.
    * @return value at index (idx).
    */
-  public Object getValue(int idx) {
+  public Object getValue(final int idx) {
     return values.get(idx);
   }
 
@@ -108,7 +112,7 @@ public final class Row implements Serializable {
    * @param col name of the column for which the value is retrieved.
    * @return value associated with column.
    */
-  public Object getValue(String col) {
+  public Object getValue(final String col) {
     if (col != null && !col.isEmpty()) {
       int idx = find(col);
       if (idx != -1) {
@@ -123,8 +127,9 @@ public final class Row implements Serializable {
    *
    * @param idx index at which the value needs to be updated.
    * @param value value to be updated at index (idx).
+   * @return this row instance for method chaining
    */
-  public Row setValue(int idx, Object value) {
+  public Row setValue(final int idx, final Object value) {
     values.set(idx, value);
     return this;
   }
@@ -134,8 +139,9 @@ public final class Row implements Serializable {
    *
    * @param name of the value to be added to row.
    * @param value to be added to row.
+   * @return this row instance for method chaining
    */
-  public Row add(String name, Object value) {
+  public Row add(final String name, final Object value) {
     columns.add(name);
     values.add(value);
     return this;
@@ -145,8 +151,9 @@ public final class Row implements Serializable {
    * Removes the column and value at given index.
    *
    * @param idx for which the value and column are removed.
+   * @return this row instance for method chaining
    */
-  public Row remove(int idx) {
+  public Row remove(final int idx) {
     columns.remove(idx);
     values.remove(idx);
     return this;
@@ -158,7 +165,7 @@ public final class Row implements Serializable {
    * @param col to be searched within the row.
    * @return -1 if not present, else the index at which the column is found.
    */
-  public int find(String col) {
+  public int find(final String col) {
     return find(col, 0);
   }
 
@@ -170,7 +177,7 @@ public final class Row implements Serializable {
    * @param firstIdx first index to check
    * @return -1 if not present, else the index at which the column is found.
    */
-  public int find(String col, int firstIdx) {
+  public int find(final String col, final int firstIdx) {
     for (int i = firstIdx, columnsSize = columns.size(); i < columnsSize; i++) {
       String name = columns.get(i);
       if (col.equalsIgnoreCase(name)) {
@@ -181,7 +188,9 @@ public final class Row implements Serializable {
   }
 
   /**
-   * @return  width of the row.
+   * Returns the width of the row.
+   *
+   * @return width of the row.
    */
   @Deprecated
   public int length() {
@@ -189,13 +198,17 @@ public final class Row implements Serializable {
   }
 
   /**
-   * @return  width of the row.
+   * Returns the width of the row.
+   *
+   * @return width of the row.
    */
   public int width() {
     return columns.size();
   }
 
   /**
+   * Returns list of fields of record.
+   *
    * @return List of fields of record.
    */
   public List<Pair<String, Object>> getFields() {
@@ -214,7 +227,7 @@ public final class Row implements Serializable {
    * @param name of the field to be either set or added to record.
    * @param value to be added.
    */
-  public void addOrSet(String name, Object value) {
+  public void addOrSet(final String name, final Object value) {
     int idx = find(name);
     if (idx != -1) {
       setValue(idx, value);
@@ -230,7 +243,7 @@ public final class Row implements Serializable {
    * @param name of the field to be either set or added to record.
    * @param value to be added.
    */
-  public void addOrSetAtIndex(int index, String name, Object value) {
+  public void addOrSetAtIndex(final int index, final String name, final Object value) {
     int idx = find(name);
     if (idx != -1) {
       setValue(idx, value);
@@ -243,7 +256,7 @@ public final class Row implements Serializable {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (this == o) {
       return true;
     }
@@ -252,8 +265,8 @@ public final class Row implements Serializable {
     }
 
     Row row = (Row) o;
-    return Objects.equals(columns, row.columns) &&
-        Objects.equals(values, row.values);
+    return Objects.equals(columns, row.columns)
+        && Objects.equals(values, row.values);
   }
 
   @Override
