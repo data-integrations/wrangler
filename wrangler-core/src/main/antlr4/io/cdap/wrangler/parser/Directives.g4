@@ -46,49 +46,49 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ :  ( Comment | macro | directive ';' | pragma ';' | ifStatement | forStatement)* // Added forStatement
  ;
 
 directive
  : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
+   ( codeblock
+   | identifier
+   | macro
+   | text
+   | number
+   | bool
+   | column
+   | colList
+   | numberList
+   | boolList
+   | stringList
+   | numberRanges
+   | properties
+   )*?
+ ;
 
 ifStatement
-  : ifStat elseIfStat* elseStat? '}'
-  ;
+ : ifStat elseIfStat* elseStat? '}'
+ ;
 
 ifStat
-  : 'if' expression '{' statements
-  ;
+ : 'if' expression '{' statements
+ ;
 
 elseIfStat
-  : '}' 'else' 'if' expression '{' statements
-  ;
+ : '}' 'else' 'if' expression '{' statements
+ ;
 
 elseStat
-  : '}' 'else' '{' statements
-  ;
-
-expression
-  : '(' (~'(' | expression)* ')'
-  ;
+ : '}' 'else' '{' statements
+ ;
 
 forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{' statements '}'
+ ;
+
+expression
+ : '(' (~'(' | expression)* ')'
  ;
 
 macro
@@ -116,11 +116,11 @@ identifier
  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
+ : 'prop' ':' OBrace (propertyList)+ CBrace
  | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
  | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
  | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ | 'prop' ':' OBrace (propertyList)+ { notifyErrorListeners("Missing closing brace"); }
  ;
 
 propertyList
@@ -132,7 +132,7 @@ property
  ;
 
 numberRanges
- : numberRange ( ',' numberRange)*
+ : numberRange (',' numberRange)*
  ;
 
 numberRange
@@ -176,7 +176,7 @@ command
  ;
 
 colList
- : Column (','  Column)+
+ : Column (',' Column)+
  ;
 
 numberList
@@ -194,7 +194,6 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
-
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -247,7 +246,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -270,30 +268,29 @@ Column
  ;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+ : '\'' ( EscapeSequence | ~('\''))* '\''
+ | '"' ( EscapeSequence | ~('"'))* '"'
  ;
 
 EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
-   ;
+ : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+ | UnicodeEscape
+ | OctalEscape
+ ;
 
-fragment
-OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
-   ;
+fragment OctalEscape
+ : '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+ | '\\' ('0'..'7') ('0'..'7')
+ | '\\' ('0'..'7')
+ ;
 
-fragment
-UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
-   ;
+fragment UnicodeEscape
+ : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
+ ;
 
-fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+fragment HexDigit
+ : ('0'..'9'|'a'..'f'|'A'..'F')
+ ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
