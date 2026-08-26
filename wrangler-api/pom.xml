@@ -40,5 +40,17 @@
       <scope>provided</scope>
     </dependency>
 
+  
+    <dependency>
+      <groupId>uk.laxd</groupId>
+      <artifactId>bytesize</artifactId>
+      <version>0.1</version>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy</artifactId>
+      <version>2.5.8</version>
+    </dependency>
   </dependencies>
 </project>
