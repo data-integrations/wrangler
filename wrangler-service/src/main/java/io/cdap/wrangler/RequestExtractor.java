@@ -20,6 +20,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
+import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveConfigDeserializer;
+import io.cdap.wrangler.api.JexlAllowlist;
+import io.cdap.wrangler.api.JexlAllowlistDeserializer;
 import io.cdap.wrangler.dataset.workspace.RequestDeserializer;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.Request;
@@ -38,6 +42,8 @@ import javax.annotation.Nullable;
 public final class RequestExtractor {
   private static final Gson GSON = new GsonBuilder()
     .registerTypeAdapter(Request.class, new RequestDeserializer())
+    .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
+    .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
     .create();
   private final HttpServiceRequest request;
   public static final String CONTENT_TYPE_HEADER = PropertyIds.CONTENT_TYPE;

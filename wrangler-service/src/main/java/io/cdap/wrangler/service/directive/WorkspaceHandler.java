@@ -660,7 +660,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
     // Gather system directives and call additional visitor.
     DirectiveConfig config = getDirectiveConfig();
-    GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(config));
+    GrammarWalker walker = new GrammarWalker(new RecipeCompiler(),
+        new ConfigDirectiveContext(config, jexlAllowlistEnabled));
     AtomicBoolean hasDirectives = new AtomicBoolean();
     walker.walk(recipe, (command, tokenGroup) -> {
       DirectiveInfo info = SystemDirectiveRegistry.INSTANCE.get(command);

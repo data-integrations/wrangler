@@ -47,6 +47,7 @@ import io.cdap.wrangler.store.workspace.WorkspaceStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -92,11 +93,13 @@ public class DataPrepService extends AbstractSystemService {
   }
 
   @Override
-  public void initialize(SystemServiceContext context) {
+  public void initialize(SystemServiceContext context) throws IOException {
     // only do the upgrade on first instance to avoid transaction conflict
     if (context.getInstanceId() != 0) {
       return;
     }
+
+    new ConfigStore(context).initialize();
 
     UpgradeStore upgradeStore = new UpgradeStore(context);
     WorkspaceStore wsStore = new WorkspaceStore(context);
