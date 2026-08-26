@@ -69,6 +69,15 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
    * </code>
    */
   String TYPE = "directive";
+  /**
+   * Represents a directive used for data transformation.
+  */
+
+  enum Type {
+    TRANSFORM,
+    VALIDATE,
+    PARSE
+  }
 
   /**
    * This method provides a way for the developer to provide information
@@ -127,3 +136,4 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
     return null;
   }
 }
+

@@ -14,35 +14,39 @@
  * the License.
  */
 
-package io.cdap.wrangler.parser;
+ package io.cdap.wrangler.parser;
 
-import io.cdap.wrangler.api.LazyNumber;
-import io.cdap.wrangler.api.RecipeSymbol;
-import io.cdap.wrangler.api.SourceInfo;
-import io.cdap.wrangler.api.Triplet;
-import io.cdap.wrangler.api.parser.Bool;
-import io.cdap.wrangler.api.parser.BoolList;
-import io.cdap.wrangler.api.parser.ColumnName;
-import io.cdap.wrangler.api.parser.ColumnNameList;
-import io.cdap.wrangler.api.parser.DirectiveName;
-import io.cdap.wrangler.api.parser.Expression;
-import io.cdap.wrangler.api.parser.Identifier;
-import io.cdap.wrangler.api.parser.Numeric;
-import io.cdap.wrangler.api.parser.NumericList;
-import io.cdap.wrangler.api.parser.Properties;
-import io.cdap.wrangler.api.parser.Ranges;
-import io.cdap.wrangler.api.parser.Text;
-import io.cdap.wrangler.api.parser.TextList;
-import io.cdap.wrangler.api.parser.Token;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+ import io.cdap.wrangler.api.LazyNumber;
+ import io.cdap.wrangler.api.RecipeSymbol;
+ import io.cdap.wrangler.api.SourceInfo;
+ import io.cdap.wrangler.api.Triplet;
+ import io.cdap.wrangler.api.parser.Bool;
+ import io.cdap.wrangler.api.parser.BoolList;
+ import io.cdap.wrangler.api.parser.ColumnName;
+ import io.cdap.wrangler.api.parser.ColumnNameList;
+ import io.cdap.wrangler.api.parser.DirectiveName;
+ import io.cdap.wrangler.api.parser.Expression;
+ import io.cdap.wrangler.api.parser.Identifier;
+ import io.cdap.wrangler.api.parser.Numeric;
+ import io.cdap.wrangler.api.parser.NumericList;
+ import io.cdap.wrangler.api.parser.Properties;
+ import io.cdap.wrangler.api.parser.Ranges;
+ import io.cdap.wrangler.api.parser.Text;
+ import io.cdap.wrangler.api.parser.TextList;
+ import io.cdap.wrangler.api.parser.Token;
+ import io.cdap.wrangler.grammar.token.ByteSizeToken;
+ import io.cdap.wrangler.grammar.token.Duration;
+ 
+ import org.antlr.v4.runtime.ParserRuleContext;
+ import org.antlr.v4.runtime.misc.Interval;
+ import org.antlr.v4.runtime.tree.ParseTree;
+ import org.antlr.v4.runtime.tree.TerminalNode;
+ 
+ import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
 
 /**
  * This class <code>RecipeVisitor</code> implements the visitor pattern
@@ -326,4 +330,23 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
   }
+
+  // Custom visitor for byte size token
+  @Override
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext context) {
+      String byteText = context.getText();
+      ByteSizeToken byteToken = new ByteSizeToken(byteText);
+      builder.addToken(byteToken);
+      return builder;
+  }
+
+  // Custom visitor for time duration token
+  @Override
+  public RecipeSymbol.Builder visitDuration(DirectivesParser.DurationContext context) {
+      String timeText = context.getText();
+      Duration durationToken = new Duration(timeText);
+      builder.addToken(durationToken);
+      return builder;
+  }
+
 }
