@@ -36,13 +36,14 @@ import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Directive to format a datetime column as a string in the specified format
  */
 @Plugin(type = Directive.TYPE)
 @Name("format-datetime")
-@Categories(categories = {"format", "datetime"})
+@Categories(categories = { "format", "datetime" })
 @Description("Formats a datetime value to a string using the given format")
 public class FormatDateTime implements Directive, Lineage {
 
@@ -66,10 +67,10 @@ public class FormatDateTime implements Directive, Lineage {
     this.column = ((ColumnName) args.value(COLUMN)).value();
     this.format = args.value(FORMAT).value().toString();
     try {
-      this.formatter = DateTimeFormatter.ofPattern(this.format);
+      this.formatter = DateTimeFormatter.ofPattern(this.format, Locale.US);
     } catch (IllegalArgumentException exception) {
       throw new DirectiveParseException(NAME, String.format("Datetime format '%s' is invalid.", this.format),
-                                        exception);
+          exception);
     }
   }
 
@@ -88,7 +89,7 @@ public class FormatDateTime implements Directive, Lineage {
 
       if (!(value instanceof LocalDateTime)) {
         throw new ErrorRowException(NAME, String.format("Value %s for column %s expected to be datetime but found %s",
-                                                        value.toString(), column, value.getClass().getSimpleName()), 2);
+            value.toString(), column, value.getClass().getSimpleName()), 2);
       }
 
       try {
@@ -96,7 +97,7 @@ public class FormatDateTime implements Directive, Lineage {
         row.setValue(idx, localDateTime.format(formatter));
       } catch (DateTimeException exception) {
         throw new ErrorRowException(NAME, String.format("Error converting datetime %s to string with format %s",
-                                                        value.toString(), format), 2, exception);
+            value.toString(), format), 2, exception);
       }
     }
     return rows;
@@ -104,14 +105,14 @@ public class FormatDateTime implements Directive, Lineage {
 
   @Override
   public void destroy() {
-    //no op
+    // no op
   }
 
   @Override
   public Mutation lineage() {
     return Mutation.builder()
-      .readable("Datetime column '%s' converted to string with format '%s'", column, format)
-      .relation(column, column)
-      .build();
+        .readable("Datetime column '%s' converted to string with format '%s'", column, format)
+        .relation(column, column)
+        .build();
   }
 }
