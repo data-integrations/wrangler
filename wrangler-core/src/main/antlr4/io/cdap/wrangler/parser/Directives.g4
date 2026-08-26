@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg  // Added byteSizeArg
+    | timeDurationArg // Added timeDurationArg
   )*?
   ;
 
@@ -195,6 +197,12 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+byteSizeArg: BYTE_SIZE; // Added byteSizeArg rule
+timeDurationArg: TIME_DURATION; // Added timeDurationArg rule
+
+// Lexer rules for BYTE_SIZE and TIME_DURATION
+BYTE_SIZE: [0-9]+ ( 'KB' | 'MB' | 'GB' );
+TIME_DURATION: [0-9]+ ( 'ms' | 's' | 'minutes' );
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -246,7 +254,6 @@ Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
-
 
 Bool
  : 'true'
