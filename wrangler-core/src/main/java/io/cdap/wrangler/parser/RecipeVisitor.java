@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.parser;
 
+
 import io.cdap.wrangler.api.LazyNumber;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.SourceInfo;
@@ -34,16 +35,15 @@ import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
 import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 /**
  * This class <code>RecipeVisitor</code> implements the visitor pattern
  * used during traversal of the AST tree. The <code>ParserTree#Walker</code>
@@ -65,7 +65,6 @@ import java.util.Map;
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Builder> {
   private RecipeSymbol.Builder builder = new RecipeSymbol.Builder();
-
   /**
    * Returns a <code>RecipeSymbol</code> for the recipe being parsed. This
    * object has all the tokens that were successfully parsed along with source
@@ -76,7 +75,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   public RecipeSymbol getCompiledUnit() {
     return builder.build();
   }
-
   /**
    * A Recipe is made up of Directives and Directives is made up of each individual
    * Directive. This method is invoked on every visit to a new directive in the recipe.
@@ -86,7 +84,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.createTokenGroup(getOriginalSource(ctx));
     return super.visitDirective(ctx);
   }
-
   /**
    * A Directive can include identifiers, this method extracts that token that is being
    * identified as token of type <code>Identifier</code>.
@@ -96,7 +93,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Identifier(ctx.Identifier().getText()));
     return super.visitIdentifier(ctx);
   }
-
   /**
    * A Directive can include properties (which are a collection of key and value pairs),
    * this method extracts that token that is being identified as token of type <code>Properties</code>.
@@ -121,7 +117,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Properties(props));
     return builder;
   }
-
   /**
    * A Pragma is an instruction to the compiler to dynamically load the directives being specified
    * from the <code>DirectiveRegistry</code>. These do not affect the data flow.
@@ -137,7 +132,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     }
     return builder;
   }
-
   /**
    * A Pragma version is a informational directive to notify compiler about the grammar that is should
    * be using to parse the directives below.
@@ -147,7 +141,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addVersion(ctx.Number().getText());
     return builder;
   }
-
   /**
    * A Directive can include number ranges like start:end=value[,start:end=value]*. This
    * visitor method allows you to collect all the number ranges and create a token type
@@ -173,7 +166,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Ranges(output));
     return builder;
   }
-
   /**
    * This visitor method extracts the custom directive name specified. The custom
    * directives are specified with a bang (!) at the start.
@@ -183,7 +175,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new DirectiveName(ctx.Identifier().getText()));
     return builder;
   }
-
   /**
    * A Directive can consist of column specifiers. These are columns that the directive
    * would operate on. When a token of type column is visited, it would generate a token
@@ -194,7 +185,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new ColumnName(ctx.Column().getText().substring(1)));
     return builder;
   }
-
   /**
    * A Directive can consist of text field. These type of fields are enclosed within
    * a single-quote or a double-quote. This visitor method extracts the string value
@@ -206,7 +196,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Text(value.substring(1, value.length() - 1)));
     return builder;
   }
-
   /**
    * A Directive can consist of numeric field. This visitor method extracts the
    * numeric value <code>Numeric</code>.
@@ -217,7 +206,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Numeric(number));
     return builder;
   }
-
   /**
    * A Directive can consist of Bool field. The Bool field is represented as
    * either true or false. This visitor method extract the bool value into a
@@ -228,7 +216,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Bool(Boolean.valueOf(ctx.Bool().getText())));
     return builder;
   }
-
   /**
    * A Directive can include a expression or a condition to be evaluated. When
    * such a token type is found, the visitor extracts the expression and generates
@@ -245,7 +232,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new Expression(sb.toString()));
     return builder;
   }
-
   /**
    * A Directive has name and in the parsing context it's called a command.
    * This visitor methods extracts the command and creates a toke type <code>DirectiveName</code>
@@ -255,7 +241,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new DirectiveName(ctx.Identifier().getText()));
     return builder;
   }
-
   /**
    * This visitor methods extracts the list of columns specified. It creates a token
    * type <code>ColumnNameList</code> to be added to <code>TokenGroup</code>.
@@ -270,7 +255,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new ColumnNameList(names));
     return builder;
   }
-
   /**
    * This visitor methods extracts the list of numeric specified. It creates a token
    * type <code>NumericList</code> to be added to <code>TokenGroup</code>.
@@ -285,7 +269,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new NumericList(numerics));
     return builder;
   }
-
   /**
    * This visitor methods extracts the list of booleans specified. It creates a token
    * type <code>BoolList</code> to be added to <code>TokenGroup</code>.
@@ -300,7 +283,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new BoolList(booleans));
     return builder;
   }
-
   /**
    * This visitor methods extracts the list of strings specified. It creates a token
    * type <code>StringList</code> to be added to <code>TokenGroup</code>.
@@ -316,7 +298,6 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
-
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
     int b = ctx.getStop().getStopIndex();
@@ -325,5 +306,21 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     int lineno = ctx.getStart().getLine();
     int column = ctx.getStart().getCharPositionInLine();
     return new SourceInfo(lineno, column, text);
+  }
+  @Override
+  public TokenGroup visitByteSizeArg(WranglerParser.ByteSizeArgContext ctx) {
+    String text = ctx.getText(); // e.g., "10KB"
+    ByteSize byteSize = new ByteSize(text);
+    TokenGroup group = new TokenGroup();
+    group.addToken(byteSize);
+    return group;
+  }
+  @Override
+  public TokenGroup visitTimeDurationArg(WranglerParser.TimeDurationArgContext ctx) {
+    String text = ctx.getText(); // e.g., "150ms"
+    TimeDuration duration = new TimeDuration(text);
+    TokenGroup group = new TokenGroup();
+    group.addToken(duration);
+    return group;
   }
 }
