@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -274,6 +274,14 @@ String
  | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
 
+BYTE_SIZE
+ : Int ('.' Digit+)? ('B' | 'KB' | 'MB' | 'GB' | 'TB')
+ ;
+
+TIME_DURATION
+ : Int ('.' Digit+)? ('ns' | 'ms' | 's' | 'm' | 'h')
+ ;
+
 EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
    |   UnicodeEscape
@@ -311,3 +319,4 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+ 
