@@ -1,0 +1,72 @@
+/*
+ * Copyright © 2017-2019 Cask Data, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ */
+Prompt 1:  
+How do I add BYTE_SIZE and TIME_DURATION support in CDAP Wrangler?
+
+Prompt 2:  
+How to update the ANTLR grammar file Directives.g4 to support BYTE_SIZE and TIME_DURATION?
+
+Prompt 3:  
+What should the ByteSize.java class look like with parsing for inputs like '10MB', '1.5 GB'?
+
+Prompt 4:  
+Create a TimeDuration.java utility class that supports parsing strings like '2h', '45m', '30s'.
+
+Prompt 5:  
+How do I update Token.java and RecipeVisitor.java to recognize BYTE_SIZE and TIME_DURATION types?
+
+Prompt 6:  
+How to implement a new directive called AggregateStats to calculate total size and total time?
+
+Prompt 7:  
+Where should I place the test file ByteSizeTest.java inside the Wrangler project?
+
+Prompt 8:  
+How do I test BYTE_SIZE and TIME_DURATION parsing in RecipeCompilerTest.java?
+
+Prompt 9:  
+Why am I getting “Recipe cannot be resolved to a type” in RecipeCompilerTest?
+
+Prompt 10:  
+What is the correct usage of RecipeCompiler.compile() — does it return Recipe or CompileStatus?
+
+Prompt 11:  
+What is the file location for CompileStatus.java?
+
+Prompt 12:  
+How can I resolve the error “The method getRecipe() is undefined for the type CompileStatus”?
+
+Prompt 13:  
+Where should AggregateStatsTest.java go in the Wrangler test structure?
+
+Prompt 14:  
+Can I place directive tests under io/cdap/wrangler/parser?
+
+Prompt 15:  
+What is the correct syntax for asserting a directive was parsed in RecipeCompilerTest?
+
+Prompt 16:  
+How do I fix Git warning about LF will be replaced by CRLF?
+
+Prompt 17:  
+How do I check which Git branch I’m currently on?
+
+Prompt 18:  
+How do I push my changes to the remote GitHub repository?
+
+Prompt 19:  
+Which is the base and head branch when opening a pull request?
+
+Prompt 20:  
+What should I include in the PDF report and prompts.txt to complete the assignment?

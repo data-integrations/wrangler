@@ -87,6 +87,18 @@ public enum TokenType implements Serializable {
   COLUMN_NAME_LIST,
 
   /**
+   * Represents the enumerated type for the object of {@code ByteSize} type.
+   * This type is associated with the token representing a byte size value.
+   */
+  BYTESIZE,
+
+  /**
+   * Represents the enumerated type for the object of {@code TimeDuration} type.
+   * This type is associated with the token representing a time duration value.
+   */
+  TIMEDURATION,
+
+  /**
    * Represents the enumerated type for the object of type {@code TextList} type.
    * This type is associated with the comma separated text represented were each text
    * is enclosed within a single quote (') or double quote (") and each text is separated

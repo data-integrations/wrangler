@@ -15,6 +15,12 @@
  */
 
 package io.cdap.wrangler.parser;
+import io.cdap.wrangler.parser.Recipe;
+import io.cdap.wrangler.parser.RecipeCompiler;
+import io.cdap.wrangler.parser.Directive;
+
+
+
 
 import io.cdap.wrangler.TestingRig;
 import io.cdap.wrangler.api.CompileException;
@@ -22,6 +28,7 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import org.junit.Assert;
 import org.junit.Test;
+import java.util.List;
 
 import java.util.Set;
 
@@ -204,7 +211,18 @@ public class RecipeCompilerTest {
     CompileStatus compile = TestingRig.compile(recipe);
     Assert.assertTrue(true);
   }
+  @Test
+public void testByteSizeAndTimeDurationParsing() throws Exception {
+  String[] recipe = {
+    "aggregate-stats :data_transfer :duration total_size_mb total_time_sec"
+  };
 
+  CompileStatus status = TestingRig.compile(recipe);
+  Assert.assertTrue(status.isSuccess());
+}
+
+
+  
   @Test
   public void testRecipePragmaWithCompiler() throws Exception {
     String[] recipe = new String[] {
