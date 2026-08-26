@@ -22,13 +22,13 @@ are manually created.
 
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
-  * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
+  * *User Defined Directives, also known as UDD*, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
-    * Various `TokenType` supported by system [here](../api/src/main/java/io/cdap/wrangler/api/parser/TokenType.java)
+    * Various TokenType supported by system [here](../api/src/main/java/io/cdap/wrangler/api/parser/TokenType.java)
     * Custom Directive Implementation Internals [here](wrangler-docs/udd-internal.md)
 
-  * A new capability that allows CDAP Administrators to **restrict the directives** that are accessible to their users.
+  * A new capability that allows CDAP Administrators to *restrict the directives* that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
 
 ## Demo Videos and Recipes
@@ -67,7 +67,7 @@ These directives are currently available:
 
 | Directive                                                              | Description                                                      |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **Parsers**                                                            |                                                                  |
+| *Parsers*                                                            |                                                                  |
 | [JSON Path](wrangler-docs/directives/json-path.md)                              | Uses a DSL (a JSON path expression) for parsing JSON records     |
 | [Parse as AVRO](wrangler-docs/directives/parse-as-avro.md)                      | Parsing an AVRO encoded message - either as binary or json       |
 | [Parse as AVRO File](wrangler-docs/directives/parse-as-avro-file.md)            | Parsing an AVRO data file                                        |
@@ -83,18 +83,20 @@ These directives are currently available:
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
 | [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)              | Parses a string representation of currency into a number.        |
 | [Parse as Datetime](wrangler-docs/directives/parse-as-datetime.md)              | Parses strings with datetime values to CDAP datetime type        |
-| **Output Formatters**                                                  |                                                                  |
+| [Parse as ByteSize](wrangler-docs/directives/parse-as-bytesize.md)              | Parses a string representation of byte size into a numeric value |
+| [Parse as TimeDuration](wrangler-docs/directives/parse-as-timeduration.md)      | Parses a string representation of time duration into a numeric value |
+| *Output Formatters*                                                  |                                                                  |
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
 | [Write JSON Object](wrangler-docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
 | [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.             |
-| **Transformations**                                                    |                                                                  |
+| *Transformations*                                                    |                                                                  |
 | [Changing Case](wrangler-docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](wrangler-docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
 | [Set Column](wrangler-docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
 | [Find and Replace](wrangler-docs/directives/find-and-replace.md)                | Transforms string column values using a "sed"-like expression    |
-| [Index Split](wrangler-docs/directives/index-split.md)                          | (_Deprecated_)                                                   |
-| [Invoke HTTP](wrangler-docs/directives/invoke-http.md)                          | Invokes an HTTP Service (_Experimental_, potentially slow)       |
+| [Index Split](wrangler-docs/directives/index-split.md)                          | (Deprecated)                                                   |
+| [Invoke HTTP](wrangler-docs/directives/invoke-http.md)                          | Invokes an HTTP Service (Experimental, potentially slow)       |
 | [Quantization](wrangler-docs/directives/quantize.md)                            | Quantizes a column based on specified ranges                     |
 | [Regex Group Extractor](wrangler-docs/directives/extract-regex-groups.md)       | Extracts the data from a regex group into its own column         |
 | [Setting Character Set](wrangler-docs/directives/set-charset.md)                | Sets the encoding and then converts the data to a UTF-8 String   |
@@ -104,31 +106,31 @@ These directives are currently available:
 | [Split URL](wrangler-docs/directives/split-url.md)                              | Splits a URL into its constituents                               |
 | [Text Distance (Fuzzy String Match)](wrangler-docs/directives/text-distance.md) | Measures the difference between two sequences of characters      |
 | [Text Metric (Fuzzy String Match)](wrangler-docs/directives/text-metric.md)     | Measures the difference between two sequences of characters      |
-| [URL Decode](wrangler-docs/directives/url-decode.md)                            | Decodes from the `application/x-www-form-urlencoded` MIME format |
-| [URL Encode](wrangler-docs/directives/url-encode.md)                            | Encodes to the `application/x-www-form-urlencoded` MIME format   |
+| [URL Decode](wrangler-docs/directives/url-decode.md)                            | Decodes from the application/x-www-form-urlencoded MIME format |
+| [URL Encode](wrangler-docs/directives/url-encode.md)                            | Encodes to the application/x-www-form-urlencoded MIME format   |
 | [Trim](wrangler-docs/directives/trim.md)                                        | Functions for trimming white spaces around string data           |
-| **Encoders and Decoders**                                              |                                                                  |
-| [Decode](wrangler-docs/directives/decode.md)                                    | Decodes a column value as one of `base32`, `base64`, or `hex`    |
-| [Encode](wrangler-docs/directives/encode.md)                                    | Encodes a column value as one of `base32`, `base64`, or `hex`    |
-| **Unique ID**                                                          |                                                                  |
+| *Encoders and Decoders*                                              |                                                                  |
+| [Decode](wrangler-docs/directives/decode.md)                                    | Decodes a column value as one of base32, base64, or hex    |
+| [Encode](wrangler-docs/directives/encode.md)                                    | Encodes a column value as one of base32, base64, or hex    |
+| *Unique ID*                                                          |                                                                  |
 | [UUID Generation](wrangler-docs/directives/generate-uuid.md)                    | Generates a universally unique identifier (UUID) .Recommended to use with Wrangler version 4.4.0 and above due to an important bug fix [CDAP-17732](https://cdap.atlassian.net/browse/CDAP-17732)             |
-| **Date Transformations**                                               |                                                                  |
+| *Date Transformations*                                               |                                                                  |
 | [Diff Date](wrangler-docs/directives/diff-date.md)                              | Calculates the difference between two dates                      |
 | [Format Date](wrangler-docs/directives/format-date.md)                          | Custom patterns for date-time formatting                         |
 | [Format Unix Timestamp](wrangler-docs/directives/format-unix-timestamp.md)      | Formats a UNIX timestamp as a date                               |
-| **DateTime Transformations**                                                    |                                                                  |
+| *DateTime Transformations*                                                    |                                                                  |
 | [Current DateTime](wrangler-docs/directives/current-datetime.md)                | Generates the current datetime using the given zone or UTC by default|
 | [Datetime To Timestamp](wrangler-docs/directives/datetime-to-timestamp.md)      | Converts a datetime value to timestamp with the given zone       |
 | [Format Datetime](wrangler-docs/directives/format-datetime.md)                  | Formats a datetime value to custom date time pattern strings     |
 | [Timestamp To Datetime](wrangler-docs/directives/timestamp-to-datetime.md)      | Converts a timestamp value to datetime                           |
-| **Lookups**                                                            |                                                                  |
+| *Lookups*                                                            |                                                                  |
 | [Catalog Lookup](wrangler-docs/directives/catalog-lookup.md)                    | Static catalog lookup of ICD-9, ICD-10-2016, ICD-10-2017 codes   |
 | [Table Lookup](wrangler-docs/directives/table-lookup.md)                        | Performs lookups into Table datasets                             |
-| **Hashing & Masking**                                                  |                                                                  |
+| *Hashing & Masking*                                                  |                                                                  |
 | [Message Digest or Hash](wrangler-docs/directives/hash.md)                      | Generates a message digest                                       |
 | [Mask Number](wrangler-docs/directives/mask-number.md)                          | Applies substitution masking on the column values                |
 | [Mask Shuffle](wrangler-docs/directives/mask-shuffle.md)                        | Applies shuffle masking on the column values                     |
-| **Row Operations**                                                     |                                                                  |
+| *Row Operations*                                                     |                                                                  |
 | [Filter Row if Matched](wrangler-docs/directives/filter-row-if-matched.md)      | Filters rows that match a pattern for a column                                         |
 | [Filter Row if True](wrangler-docs/directives/filter-row-if-true.md)            | Filters rows if the condition is true.                                                  |
 | [Filter Row Empty of Null](wrangler-docs/directives/filter-empty-or-null.md)    | Filters rows that are empty of null.                    |
@@ -137,7 +139,7 @@ These directives are currently available:
 | [Send to Error](wrangler-docs/directives/send-to-error.md)                      | Filtering of records to an error collector                       |
 | [Send to Error And Continue](wrangler-docs/directives/send-to-error-and-continue.md) | Filtering of records to an error collector and continues processing                      |
 | [Split to Rows](wrangler-docs/directives/split-to-rows.md)                      | Splits based on a separator into multiple records                |
-| **Column Operations**                                                  |                                                                  |
+| *Column Operations*                                                  |                                                                  |
 | [Change Column Case](wrangler-docs/directives/change-column-case.md)            | Changes column names to either lowercase or uppercase            |
 | [Changing Case](wrangler-docs/directives/changing-case.md)                      | Change the case of column values                                 |
 | [Cleanse Column Names](wrangler-docs/directives/cleanse-column-names.md)        | Sanatizes column names, following specific rules                 |
@@ -152,12 +154,12 @@ These directives are currently available:
 | [Split to Columns](wrangler-docs/directives/split-to-columns.md)                | Splits a column based on a separator into multiple columns       |
 | [Swap Columns](wrangler-docs/directives/swap.md)                                | Swaps column names of two columns                                |
 | [Set Column Data Type](wrangler-docs/directives/set-type.md)                    | Convert data type of a column                                    |
-| **NLP**                                                                |                                                                  |
+| *NLP*                                                                |                                                                  |
 | [Stemming Tokenized Words](wrangler-docs/directives/stemming.md)                | Applies the Porter stemmer algorithm for English words           |
-| **Transient Aggregators & Setters**                                    |                                                                  |
+| *Transient Aggregators & Setters*                                    |                                                                  |
 | [Increment Variable](wrangler-docs/directives/increment-variable.md)            | Increments a transient variable with a record of processing.     |
 | [Set Variable](wrangler-docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.     |
-| **Functions**                                                          |                                                                  |
+| *Functions*                                                          |                                                                  |
 | [Data Quality](wrangler-docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
 | [Date Manipulations](wrangler-docs/functions/date-functions.md)                 | Functions that can manipulate date                               |
 | [DDL](wrangler-docs/functions/ddl-functions.md)                                 | Functions that can manipulate definition of data                 |
@@ -167,8 +169,8 @@ These directives are currently available:
 ## Performance
 
 Initial performance tests show that with a set of directives of high complexity for
-transforming data, *DataPrep* is able to process at about ~106K records per second. The
-rates below are specified as *records/second*. 
+transforming data, DataPrep is able to process at about ~106K records per second. The
+rates below are specified as records/second.
 
 | Directive Complexity | Column Count |    Records |           Size | Mean Rate |
 | -------------------- | :----------: | ---------: | -------------: | --------: |
@@ -184,7 +186,7 @@ CDAP User Group and Development Discussions:
 
 * [cdap-user@googlegroups.com](https://groups.google.com/d/forum/cdap-user)
 
-The *cdap-user* mailing list is primarily for users using the product to develop
+The cdap-user mailing list is primarily for users using the product to develop
 applications or building plugins for appplications. You can expect questions from
 users, release announcements, and any other discussions that we think will be helpful
 to the users.
