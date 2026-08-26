@@ -215,4 +215,5 @@ public class RecipeCompilerTest {
     Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
     Assert.assertEquals(4, loadableDirectives.size());
   }
+
 }
