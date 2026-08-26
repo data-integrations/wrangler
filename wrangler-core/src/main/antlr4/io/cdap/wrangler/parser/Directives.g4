@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | byteSizeArg | timeDurationArg |
  ;
 
 ecommand
@@ -311,3 +311,19 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+BYTE_SIZE
+    : DIGITS (('K'|'k') 'B'? | ('M'|'m') 'B'? | ('G'|'g') 'B'? | 'B')
+    { setText(getText().toUpperCase()); }
+    ;
+
+TIME_DURATION
+    : DIGITS (('ms'|'MS') | 's' | 'S' | ('m'|'M') 'in'? | ('h'|'H') 'r'?)
+    { setText(getText().toLowerCase()); }
+    ;
+
+fragment DIGITS : [0-9]+ ('.' [0-9]+)?;
+
+
+byteSizeArg : BYTE_SIZE;        
+timeDurationArg : TIME_DURATION; 
