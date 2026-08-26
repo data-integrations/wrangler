@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import io.cdap.cdap.etl.api.StageContext;
 import io.cdap.wrangler.api.DirectiveConfig;
@@ -51,7 +52,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class DataPrepServiceClient {
   private static final Logger LOG = LoggerFactory.getLogger(DataPrepServiceClient.class);
-  private static final Gson GSON = new Gson();
+  private static final Gson GSON = new GsonBuilder()
+      .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfig.DirectiveConfigDeserializer())
+      .create();
 
   private static final String SYSTEM_NAMESPACE = "system";
   private static final String APPLICATION_NAME = "dataprep";

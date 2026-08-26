@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler.expression;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.functions.DDL;
@@ -28,6 +27,7 @@ import io.cdap.functions.Global;
 import io.cdap.functions.JsonFunctions;
 import io.cdap.functions.Logical;
 import io.cdap.functions.NumberFunctions;
+import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.utils.ArithmeticOperations;
 import io.cdap.wrangler.utils.DecimalTransform;
 import org.apache.commons.jexl3.JexlBuilder;
@@ -35,6 +35,7 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlInfo;
 import org.apache.commons.jexl3.JexlScript;
+import org.apache.commons.jexl3.introspection.JexlSandbox;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
@@ -42,10 +43,11 @@ import org.apache.commons.logging.Log;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * This class <code>EL</code> is a Expression Language Handler.
@@ -65,23 +67,44 @@ public final class EL {
   }
 
   /**
-   * Same as calling {@link #compile(ELRegistration, String)} using {@link DefaultFunctions}.
+   * Same as calling {@link #compile(ELRegistration, String, CompileOptions)}
+   * using
+   * {@link DefaultFunctions}.
+   * Note: This defaults to allowlist disabled.
    */
   public static EL compile(String expression) throws ELException {
-    return compile(new DefaultFunctions(), expression);
+    return compile(new DefaultFunctions(), expression, CompileOptions.getDefaultCompileOptions());
   }
 
   /**
-   * Compiles the given expressions and return an {@link EL} for script execution.
+   * Compiles with specific JEXL allowlist settings.
    *
-   * @param registration extra objects available for the script to use
-   * @param expression the JEXL expresion
-   * @return an {@link EL} instance
-   * @throws ELException if failed to compile the expression
+   * @param expression the JEXL expression
+   * @param options    the compilation options
+   * @return the compiled EL
+   * @throws ELException if failed to compile
    */
-  public static EL compile(ELRegistration registration, String expression) throws ELException {
+  public static EL compile(final String expression, final CompileOptions options) throws ELException {
+    return compile(new DefaultFunctions(), expression, options);
+  }
+
+  /**
+   * Compiles the expression and returns a executable expression.
+   *
+   * @param registration to be registered with the JEXL context.
+   * @param expression   to be compiled.
+   * @param options      the compilation options
+   * @return a compiled {@link EL} object
+   * @throws ELException if failed to compile
+   */
+  public static EL compile(final ELRegistration registration,
+      final String expression,
+      final CompileOptions options)
+      throws ELException {
     used = true;
+    JexlSandbox sandbox = createSandbox(options.getJexlAllowlist(), options.isAllowlistEnabled());
     JexlEngine engine = new JexlBuilder()
+      .sandbox(sandbox)
       .namespaces(registration.functions())
       .silent(false)
       .cache(1024)
@@ -90,28 +113,102 @@ public final class EL {
       .create();
 
     try {
-      Set<String> variables = new HashSet<>();
       JexlScript script = engine.createScript(expression);
-      Set<List<String>> varSet = script.getVariables();
-      for (List<String> vars : varSet) {
-        variables.add(Joiner.on(".").join(vars));
-      }
-
+      Set<String> variables = extractVariables(script);
       return new EL(script, variables);
-    } catch (JexlException e) {
-      // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
-      // So instead use info object to get information about error message and create custom error message.
-      JexlInfo info = e.getInfo();
-      throw new ELException(
-        String.format("Error encountered while compiling '%s' at line '%d' and column '%d'. " +
-                        "Make sure a valid jexl transformation is provided.",
-                      // here the detail can be null since there are multiple subclasses which extends this
-                      // JexlException, not all of them has this detail information
-                      info.getDetail() == null ? expression : info.getDetail(), info.getLine(), info.getColumn()), e);
     } catch (Exception e) {
-      throw new ELException(e);
+      throw handleException(e, expression);
+    }
+  }
+
+  /**
+   * Extracts variables from the script.
+   *
+   * @param script the script
+   * @return the variables
+   */
+  private static Set<String> extractVariables(final JexlScript script) {
+    return script.getVariables().stream()
+        .map(vars -> String.join(".", vars))
+        .collect(Collectors.toSet());
+  }
+
+  private static ELException handleException(Exception e, String expression) {
+    if (e instanceof JexlException) {
+      JexlException jexlException = (JexlException) e;
+      JexlInfo info = jexlException.getInfo();
+      return new ELException(
+          String.format("Error encountered while evaluating '%s', at line '%d' and column '%d'. " +
+              "Make sure the JEXL transformation is valid and uses only allowlisted classes, methods, and properties.",
+              info == null || info.getDetail() == null ? expression : info.getDetail(),
+              info == null ? 0 : info.getLine(), info == null ? 0 : info.getColumn()),
+          e);
+    } else if (e instanceof NumberFormatException) {
+      return new ELException("Type mismatch. Change type of constant " +
+                              "or convert to right data type using conversion functions available. Reason : "
+                              + e.getMessage(), e);
+    } else {
+      if (e.getCause() != null) {
+        return new ELException(e.getCause().getMessage(), e);
+      } else {
+        return new ELException(e);
+      }
+    }
+  }
+
+  /**
+   * Creates a JEXL sandbox.
+   *
+   * @param allowlist       the allowlist
+   * @return the sandbox
+   */
+  public static JexlSandbox createSandbox(
+      @Nullable List<JexlAllowlist> allowlist, boolean allowlistEnabled) {
+    if (!allowlistEnabled) {
+      return null;
     }
 
+    JexlSandbox sandbox = new JexlSandbox(false);
+    if (allowlist != null && !allowlist.isEmpty()) {
+      allowlist.forEach(rule -> applyAllowlistRule(sandbox, rule));
+    }
+
+    return sandbox;
+  }
+
+  /**
+   * Applies an allowlist rule to the sandbox.
+   *
+   * @param sandbox the sandbox
+   * @param rule    the rule
+   */
+  private static void applyAllowlistRule(JexlSandbox sandbox, JexlAllowlist rule) {
+    String className = rule.getClassName();
+
+    if (rule.isAllMethods() && rule.isAllProperties()) {
+      sandbox.white(className);
+    } else {
+      JexlSandbox.Permissions permissions = sandbox.permissions(className,
+          rule.isAllProperties(), rule.isAllProperties(), rule.isAllMethods());
+
+      applyMethodPermissions(rule, permissions);
+      applyPropertyPermissions(rule, permissions);
+    }
+  }
+
+  private static void applyMethodPermissions(JexlAllowlist rule, JexlSandbox.Permissions permissions) {
+    if (!rule.isAllMethods()) {
+      rule.getMethods().forEach(method -> permissions.execute(method));
+    }
+  }
+
+  private static void applyPropertyPermissions(JexlAllowlist rule, JexlSandbox.Permissions permissions) {
+    if (!rule.isAllProperties()) {
+      rule.getProperties().forEach(property -> {
+        permissions.read(property);
+        permissions.write(property);
+      });
+    }
   }
 
   private EL(JexlScript script, Set<String> variables) {
@@ -137,27 +234,8 @@ public final class EL {
       }
       Object value = script.execute(context);
       return new ELResult(value);
-    } catch (JexlException e) {
-      // JexlException.getMessage() uses 'io.cdap.wrangler.expression.EL' class name in the error message.
-      // So instead use info object to get information about error message and create custom error message.
-      JexlInfo info = e.getInfo();
-      throw new ELException(
-        String.format("Error encountered while executing '%s', at line '%d' and column '%d'. " +
-                        "Make sure a valid jexl transformation is provided.",
-                      // here the detail can be null since there are multiple subclasses which extends this
-                      // JexlException, not all of them has this detail information
-                      info.getDetail() == null ? script.getSourceText() : info.getDetail(),
-                      info.getLine(), info.getColumn()), e);
-    } catch (NumberFormatException e) {
-      throw new ELException("Type mismatch. Change type of constant " +
-                              "or convert to right data type using conversion functions available. Reason : "
-                              + e.getMessage(), e);
     } catch (Exception e) {
-      if (e.getCause() != null) {
-        throw new ELException(e.getCause().getMessage(), e);
-      } else {
-        throw new ELException(e);
-      }
+      throw handleException(e, script.getSourceText());
     }
   }
 

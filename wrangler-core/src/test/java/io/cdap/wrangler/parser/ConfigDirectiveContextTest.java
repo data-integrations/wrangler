@@ -17,6 +17,7 @@
 package io.cdap.wrangler.parser;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.RecipeException;
@@ -51,18 +52,21 @@ public class ConfigDirectiveContextTest {
 
   private static final String EMPTY = "{}";
 
+  private static final Gson GSON = new GsonBuilder()
+      .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfig.DirectiveConfigDeserializer())
+      .create();
+
   @Test(expected = RecipeException.class)
   public void testBasicExclude() throws Exception {
     String[] text = new String[] {
       "parse-as-csv body , true"
     };
 
-    Gson gson = new Gson();
-    DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(CONFIG, DirectiveConfig.class);
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     directives.parse();
   }
 
@@ -72,12 +76,11 @@ public class ConfigDirectiveContextTest {
       "js-parser body"
     };
 
-    Gson gson = new Gson();
-    DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(CONFIG, DirectiveConfig.class);
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     directives.parse();
   }
 
@@ -87,12 +90,11 @@ public class ConfigDirectiveContextTest {
       "json-parser :body;"
     };
 
-    Gson gson = new Gson();
-    DirectiveConfig config = gson.fromJson(CONFIG, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(CONFIG, DirectiveConfig.class);
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
@@ -103,12 +105,11 @@ public class ConfigDirectiveContextTest {
       "json-parser :body;"
     };
 
-    Gson gson = new Gson();
-    DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(EMPTY, DirectiveConfig.class);
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
@@ -119,12 +120,11 @@ public class ConfigDirectiveContextTest {
       "parse-as-json :body;"
     };
 
-    Gson gson = new Gson();
-    DirectiveConfig config = gson.fromJson(EMPTY, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(EMPTY, DirectiveConfig.class);
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }

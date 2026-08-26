@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2026 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,9 +16,25 @@
 
 package io.cdap.wrangler.api;
 
+import java.util.List;
+
 /**
- * {@link DirectiveContext} provides the context object to the processing of
- * directives.
+ * This interface {@link DirectiveJexlAllowlist} provides a way to get JEXL
+ * configuration.
  */
-public interface DirectiveContext extends DirectiveEnforcer, DirectiveAlias, DirectiveJexlAllowlist {
+public interface DirectiveJexlAllowlist {
+
+  /**
+   * Gets the list of JEXL inclusions.
+   *
+   * @return the list of JEXL inclusions
+   */
+  List<JexlAllowlist> getJexlAllowlist();
+
+  /**
+   * Checks if JEXL allowlisting is enabled.
+   *
+   * @return true if JEXL allowlisting is enabled, false otherwise.
+   */
+  boolean isJexlAllowlistEnabled();
 }
