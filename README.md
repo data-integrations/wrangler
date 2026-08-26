@@ -216,3 +216,48 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+### Regenerating Grammar Code after Grammar Modifications
+
+If you make changes to `Directives.g4` (such as adding new lexer/parser rules like `BYTE_SIZE` or `TIME_DURATION`), you must regenerate the ANTLR Java classes.
+
+To do this, run:
+
+```bash
+mvn clean compile
+
+
+New Directive: aggregate-stats
+This update introduces a new aggregate-stats directive to the wrangler-core module that performs aggregation on byte sizes and time durations with support for unit conversion and aggregation types.
+
+🔧 Features Added
+✅ New Directive: aggregate-stats
+
+✅ New Parser Rules for:
+
+ByteSizeArg — parses strings like 10MB, 1.5GB, etc.
+
+TimeDurationArg — parses strings like 5s, 300ms, etc.
+
+✅ Visit Methods in the parser visitor:
+
+visitByteSizeArg(ctx)
+
+visitTimeDurationArg(ctx)
+
+Modified visitValue() to support canonical values
+
+✅ TokenGroup Enhancements: Added new token types to support parsing of sizes and durations
+
+✅ Core Classes Added:
+
+ByteSize — converts and stores canonical byte values
+
+TimeDuration — converts and stores canonical time duration values (nanoseconds)
+
+✅ Execution Context Usage: Accumulates values across rows using the ExecutorContext.getStore()
+
+✅ Unit Conversions: Converts final values to user-specified units before writing to output columns
+
+aggregate-stats input_size input_time total_size total_time MB seconds average
