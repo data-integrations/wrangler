@@ -247,6 +247,13 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+// --- Added new rules for Byte Size and Time Duration ---
+fragment BYTE_UNIT : ('B' | 'KB' | 'MB' | 'GB' | 'TB');
+fragment TIME_UNIT : ('ms' | 's' | 'm' | 'h');
+
+BYTE_SIZE     : [0-9]+ ('.' [0-9]+)? BYTE_UNIT;
+TIME_DURATION : [0-9]+ ('.' [0-9]+)? TIME_UNIT;
+
 
 Bool
  : 'true'
