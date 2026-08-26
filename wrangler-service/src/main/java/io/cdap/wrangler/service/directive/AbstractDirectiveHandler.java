@@ -25,6 +25,7 @@ import io.cdap.cdap.features.Feature;
 import io.cdap.directives.aggregates.DefaultTransientStore;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
@@ -90,6 +91,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
 
   protected DirectiveRegistry composite;
   protected boolean schemaManagementEnabled;
+  protected boolean jexlAllowlistEnabled;
   protected ConfigStore configStore;
 
   @Override
@@ -101,6 +103,7 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
       new UserDirectiveRegistry(context)
     );
     schemaManagementEnabled = Feature.WRANGLER_SCHEMA_MANAGEMENT.isEnabled(context);
+    jexlAllowlistEnabled = Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
   }
 
   /**
@@ -132,15 +135,16 @@ public class AbstractDirectiveHandler extends AbstractWranglerHandler {
 
     // Parse and call grammar visitor
     DirectiveConfig config = getDirectiveConfig();
+    DirectiveContext directiveContext = new ConfigDirectiveContext(config, jexlAllowlistEnabled);
     try {
-      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(config));
+      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), directiveContext);
       walker.walk(recipe, grammarVisitor);
     } catch (CompileException e) {
       throw new BadRequestException(e.getMessage(), e);
     }
 
     RecipeParser parser = new GrammarBasedParser(namespace, recipe, composite,
-                                                 new ConfigDirectiveContext(config));
+                                                 directiveContext);
     try (RecipePipelineExecutor executor = new RecipePipelineExecutor(parser,
                                                                       new ServicePipelineContext(
                                                                         namespace, ExecutorContext.Environment.SERVICE,
