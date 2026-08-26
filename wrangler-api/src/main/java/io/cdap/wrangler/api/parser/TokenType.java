@@ -14,12 +14,14 @@
  * the License.
  */
 
-package io.cdap.wrangler.api.parser;
+ package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
+ import io.cdap.wrangler.api.annotations.PublicEvolving;
 
-import java.io.Serializable;
-
+ import java.io.Serializable;
+ 
+ 
+ 
 /**
  * The TokenType class provides the enumerated types for different types of
  * tokens that are supported by the grammar.
@@ -152,5 +154,7 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+  BYTE_SIZE,
+  TIME_DURATION
 }

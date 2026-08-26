@@ -23,72 +23,58 @@ options {
 @lexer::header {
 /*
  * Copyright © 2017-2019 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Licensed under the Apache License, Version 2.0
  */
 }
 
-/**
- * Parser Grammar for recognizing tokens and constructs of the directives language.
- */
 recipe
  : statements EOF
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ : (Comment | macro | directive SColon | pragma SColon | ifStatement)*
  ;
 
 directive
  : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
+   ( codeblock
+   | identifier
+   | macro
+   | text
+   | number
+   | bool
+   | column
+   | colList
+   | numberList
+   | boolList
+   | stringList
+   | numberRanges
+   | properties
+   )*?
+ ;
 
 ifStatement
-  : ifStat elseIfStat* elseStat? '}'
+  : ifStat elseIfStat* elseStat? CBrace
   ;
 
 ifStat
-  : 'if' expression '{' statements
+  : IF expression OBrace statements
   ;
 
 elseIfStat
-  : '}' 'else' 'if' expression '{' statements
+  : CBrace ELSE IF expression OBrace statements
   ;
 
 elseStat
-  : '}' 'else' '{' statements
+  : CBrace ELSE OBrace statements
   ;
 
 expression
-  : '(' (~'(' | expression)* ')'
+  : OParen (~OParen | expression)* CParen
   ;
 
 forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ : FOR OParen Identifier Assign expression SColon expression SColon expression CParen OBrace statements CBrace
  ;
 
 macro
@@ -96,19 +82,19 @@ macro
  ;
 
 pragma
- : '#pragma' (pragmaLoadDirective | pragmaVersion)
+ : PRAGMA (pragmaLoadDirective | pragmaVersion)
  ;
 
 pragmaLoadDirective
- : 'load-directives' identifierList
+ : LOAD_DIRECTIVES identifierList
  ;
 
 pragmaVersion
- : 'version' Number
+ : VERSION Number
  ;
 
 codeblock
- : 'exp' Space* ':' condition
+ : EXP Space* Colon condition
  ;
 
 identifier
@@ -116,35 +102,50 @@ identifier
  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
- | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ : PROP Colon OBrace (propertyList)+ CBrace
+   | PROP Colon OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
+   | PROP Colon OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
+   | PROP Colon (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
+   | PROP Colon OBrace (propertyList)+ { notifyErrorListeners("Missing closing brace"); }
  ;
 
 propertyList
- : property (',' property)*
+ : property (Comma property)*
  ;
 
 property
- : Identifier '=' ( text | number | bool )
+ : Identifier (Assign | Colon) (text | number | bool)
  ;
 
+
 numberRanges
- : numberRange ( ',' numberRange)*
+ : numberRange (Comma numberRange)*
  ;
 
 numberRange
- : Number ':' Number '=' value
+ : Number Colon Number Assign value
  ;
 
 value
- : String | Number | Column | Bool
+ : STRING
+ | FLOAT
+ | INT
+ | BYTE_SIZE {
+     String text = $BYTE_SIZE.text.toLowerCase();
+     if (!text.matches("^-?\\d+(\\.\\d+)?(\\s)?(b|kb|mb|gb|tb)$")) {
+         notifyErrorListeners("Invalid BYTE_SIZE format: '" + $BYTE_SIZE.text + "'. Allowed units: B, KB, MB, GB, TB.");
+     }
+   }
+ | TIME_DURATION {
+     String text = $TIME_DURATION.text.toLowerCase();
+     if (!text.matches("^-?\\d+(\\.\\d+)?(\\s)?(ms|s|m|h)$")) {
+         notifyErrorListeners("Invalid TIME_DURATION format: '" + $TIME_DURATION.text + "'. Allowed units: ms, s, m, h.");
+     }
+   }
  ;
 
 ecommand
- : '!' Identifier
+ : External Identifier
  ;
 
 config
@@ -176,55 +177,55 @@ command
  ;
 
 colList
- : Column (','  Column)+
+ : Column (Comma Column)+
  ;
 
 numberList
- : Number (',' Number)+
+ : Number (Comma Number)+
  ;
 
 boolList
- : Bool (',' Bool)+
+ : Bool (Comma Bool)+
  ;
 
 stringList
- : String (',' String)+
+ : String (Comma String)+
  ;
 
 identifierList
- : Identifier (',' Identifier)*
+ : Identifier (Comma Identifier)*
  ;
 
+// Keyword tokens
+IF      : 'if';
+ELSE    : 'else';
+FOR     : 'for';
+VERSION : 'version';
+PRAGMA  : '#pragma';
+LOAD_DIRECTIVES : 'load-directives';
+PROP    : 'prop';
+EXP     : 'exp';
 
-/*
- * Following are the Lexer Rules used for tokenizing the recipe.
- */
+// Symbols
 OBrace   : '{';
 CBrace   : '}';
 SColon   : ';';
+Colon    : ':';
+Comma    : ',';
+Assign   : '=';
+OParen   : '(';
+CParen   : ')';
+External : '!';
+Dollar   : '$';
+Space    : [ \t]+ -> skip;
+
+// Operators
 Or       : '||';
 And      : '&&';
 Equals   : '==';
 NEquals  : '!=';
 GTEquals : '>=';
 LTEquals : '<=';
-Match    : '=~';
-NotMatch : '!~';
-QuestionColon : '?:';
-StartsWith : '=^';
-NotStartsWith : '!^';
-EndsWith : '=$';
-NotEndsWith : '!$';
-PlusEqual : '+=';
-SubEqual : '-=';
-MulEqual : '*=';
-DivEqual : '/=';
-PerEqual : '%=';
-AndEqual : '&=';
-OrEqual  : '|=';
-XOREqual : '^=';
-Pow      : '^';
-External : '!';
 GT       : '>';
 LT       : '<';
 Add      : '+';
@@ -232,82 +233,54 @@ Subtract : '-';
 Multiply : '*';
 Divide   : '/';
 Modulus  : '%';
-OBracket : '[';
-CBracket : ']';
-OParen   : '(';
-CParen   : ')';
-Assign   : '=';
-Comma    : ',';
-QMark    : '?';
-Colon    : ':';
-Dot      : '.';
-At       : '@';
-Pipe     : '|';
-BackSlash: '\\';
-Dollar   : '$';
-Tilde    : '~';
 
-
-Bool
- : 'true'
- | 'false'
- ;
-
-Number
- : Int ('.' Digit*)?
- ;
-
-Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
-
-Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
-
-Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
- ;
-
-String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
- ;
+// Types
+Bool     : 'true' | 'false';
+Number   : Int ('.' Digit*)?;
+Identifier : [a-zA-Z_\-] [a-zA-Z_0-9\-]*;
+Macro    : [a-zA-Z_] [a-zA-Z_0-9]*;
+Column   : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*;
+String   : '\'' ( EscapeSequence | ~('\'') )* '\''
+         | '"'  ( EscapeSequence | ~('"') )* '"';
 
 EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
-   ;
-
-fragment
-OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
-   ;
-
-fragment
-UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
-   ;
-
-fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
-
-Comment
- : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
+ : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+ | UnicodeEscape
+ | OctalEscape
  ;
 
-Space
- : [ \t\r\n\u000C]+ -> skip
+fragment OctalEscape
+ : '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+ | '\\' ('0'..'7') ('0'..'7')
+ | '\\' ('0'..'7')
  ;
 
-fragment Int
- : '-'? [1-9] Digit* [L]*
- | '0'
+fragment UnicodeEscape
+ : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
  ;
 
-fragment Digit
- : [0-9]
- ;
+fragment HexDigit : ('0'..'9'|'a'..'f'|'A'..'F');
+
+Comment : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]*) -> skip;
+
+fragment Int : '-'? [1-9] Digit* [L]* | '0';
+fragment Digit : [0-9];
+
+// Byte Size
+BYTE_SIZE: DIGIT+ ('.' DIGIT+)? BYTE_UNIT;
+fragment BYTE_UNIT: 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB';
+
+
+// Time Duration
+TIME_DURATION: DIGIT+ ('.' DIGIT+)? TIME_UNIT;
+fragment TIME_UNIT: 'ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd';
+
+
+// Digits (used in fragments)
+fragment DIGIT: [0-9];
+
+
+aggregate_stats:
+    'aggregate_stats' '(' ('byte_size' | 'time_duration') ')'
+;
+

@@ -16,7 +16,12 @@
 
 package io.cdap.wrangler.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import com.google.common.base.Joiner;
+
 import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveContext;
@@ -28,10 +33,6 @@ import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class <code>GrammarBasedParser</code> is an implementation of <code>RecipeParser</code>.
@@ -92,7 +93,9 @@ public class GrammarBasedParser implements RecipeParser {
           throw new DirectiveLoadException(e.getMessage(), e);
         }
       });
-
+      for (Directive d : result) {
+        System.out.println("Parsed Directives: " + d.getClass().getSimpleName());
+      }
       return result;
     } catch (DirectiveLoadException | DirectiveNotFoundException | DirectiveParseException e) {
       throw new RecipeException(e.getMessage(), e, directiveIndex.get());
