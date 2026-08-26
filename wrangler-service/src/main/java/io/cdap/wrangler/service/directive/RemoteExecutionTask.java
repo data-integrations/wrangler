@@ -28,10 +28,14 @@ import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveConfigDeserializer;
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.JexlAllowlist;
+import io.cdap.wrangler.api.JexlAllowlistDeserializer;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
@@ -43,7 +47,7 @@ import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.DirectiveClass;
 import io.cdap.wrangler.parser.GrammarWalker;
-import io.cdap.wrangler.parser.MapArguments;
+import io.cdap.wrangler.parser.MapArgumentsWithContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.ErrorRecordsException;
@@ -67,6 +71,8 @@ public class RemoteExecutionTask implements RunnableTask {
 
   private static final Gson GSON = new GsonBuilder()
           .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
+          .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
+          .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
           .create();
 
   @Override
@@ -83,7 +89,10 @@ public class RemoteExecutionTask implements RunnableTask {
     try (UserDirectiveRegistry userDirectiveRegistry = new UserDirectiveRegistry(systemAppContext)) {
       List<Directive> directives = new ArrayList<>();
       DirectiveConfig config = directiveRequest.getDirectiveConfig();
-      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(config));
+      boolean jexlAllowlistEnabled = systemAppContext != null 
+          && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(systemAppContext);
+      DirectiveContext directiveContext = new ConfigDirectiveContext(config, jexlAllowlistEnabled);
+      GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), directiveContext);
       walker.walk(directiveRequest.getRecipe(), (command, tokenGroup) -> {
         DirectiveInfo info;
         DirectiveClass directiveClass = systemDirectives.get(command);
@@ -101,7 +110,7 @@ public class RemoteExecutionTask implements RunnableTask {
 
         Directive directive = info.instance();
         UsageDefinition definition = directive.define();
-        Arguments arguments = new MapArguments(definition, tokenGroup);
+        Arguments arguments = new MapArgumentsWithContext(definition, tokenGroup, directiveContext);
         directive.initialize(arguments);
         directives.add(directive);
       });

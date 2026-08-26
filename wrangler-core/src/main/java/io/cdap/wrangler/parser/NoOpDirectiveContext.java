@@ -17,12 +17,24 @@
 package io.cdap.wrangler.parser;
 
 import io.cdap.wrangler.api.DirectiveContext;
+import io.cdap.wrangler.api.JexlAllowlist;
+import java.util.List;
 
 /**
  * This class {@link NoOpDirectiveContext} is a pass through implementation of
  * {@link DirectiveContext}.
  */
 public class NoOpDirectiveContext implements DirectiveContext {
+
+  @Override
+  public List<JexlAllowlist> getJexlAllowlist() {
+    return null;
+  }
+
+  @Override
+  public boolean isJexlAllowlistEnabled() {
+    return false;
+  }
 
   /**
    * Checks if the directive is aliased.
