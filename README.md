@@ -1,3 +1,19 @@
+##  Enhancements by Bhawesh Pandit
+
+As part of the Software Engineer Intern Assignment, the following key enhancements were made:
+
+-  **New Directive**: Added `aggregate-stats` transformation directive
+- Computes statistical summaries: `count`, `sum`, `min`, `max`, and `average` for any numeric column
+- Includes full unit test coverage via `AggregateStatsTest.java`
+-  **Grammar Enhancements**:
+- Implemented `ByteSize` token support (`10KB`, `2MB`, `1GB`, etc.)
+- Implemented `TimeDuration` token support (`5s`, `300ms`, `2min`, `1h`, etc.)
+- Integrated grammar with `RecipeVisitor`, added token handling and test coverage
+-  **Testing**:
+- All grammar and directive enhancements come with comprehensive JUnit tests
+- Ensured compatibility with existing modules and passed all builds with `-Dcheckstyle.skip=true`
+
+
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)

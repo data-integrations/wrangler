@@ -71,6 +71,15 @@ public interface Directive extends Executor<List<Row>, List<Row>>, EntityMetrics
   String TYPE = "directive";
 
   /**
+   * Added type of tokens
+   */
+  enum Type {
+    TRANSFORM,
+    VALIDATE,
+    PARSE
+  }
+
+  /**
    * This method provides a way for the developer to provide information
    * about the arguments expected by this directive. The definition of
    * arguments would provide information to the framework about how each
