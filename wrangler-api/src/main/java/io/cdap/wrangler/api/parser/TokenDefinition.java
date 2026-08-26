@@ -46,6 +46,7 @@ public final class TokenDefinition implements Serializable {
   private final TokenType type;
   private final String label;
 
+
   public TokenDefinition(String name, TokenType type, String label, int ordinal, boolean optional) {
     this.name = name;
     this.type = type;
