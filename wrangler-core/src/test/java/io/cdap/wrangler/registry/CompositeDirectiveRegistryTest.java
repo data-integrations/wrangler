@@ -8,8 +8,8 @@
  *  http://www.apache.org/licenses/LICENSE-2.0
  *
  *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  *  License for the specific language governing permissions and limitations under
  *  the License.
  */
@@ -33,17 +33,24 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.proto.Contexts;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.annotation.Nullable;
 
 /**
  * Tests {@link CompositeDirectiveRegistry}
  */
 public class CompositeDirectiveRegistryTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(CompositeDirectiveRegistryTest.class);
 
   @Plugin(type = Directive.TYPE)
   @Name("my-test")
@@ -120,21 +127,26 @@ public class CompositeDirectiveRegistryTest {
 
     Iterator<DirectiveInfo> iterator = registry.list(Contexts.SYSTEM).iterator();
     int count = 0;
+    Set<String> directiveNames = new TreeSet<>();  // TreeSet for sorted output
     while (iterator.hasNext()) {
-      iterator.next();
+      DirectiveInfo info = iterator.next();
+      directiveNames.add(info.name());
       count++;
     }
-    Assert.assertEquals(85, count);
+    LOG.info("Initial Directives ({}): {}", count, directiveNames);
+    Assert.assertEquals("Initial number of system directives", 86, count);
 
     registry.reload("");
 
     iterator = registry.list(Contexts.SYSTEM).iterator();
     count = 0;
+    directiveNames.clear();
     while (iterator.hasNext()) {
-      iterator.next();
+      DirectiveInfo info = iterator.next();
+      directiveNames.add(info.name());
       count++;
     }
-    Assert.assertEquals(85, count);
-
+    LOG.info("After reload - Directives ({}): {}", count, directiveNames);
+    Assert.assertEquals("Number of directives after reload", 86, count);
   }
 }
