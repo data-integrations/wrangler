@@ -1,0 +1,32 @@
+Prompts Used During the Assignment
+
+1. Understanding the Assignment:
+   - What are we doing in the Software Engineer Intern Assignment and what are lexer tokens?
+   - Am I expected to explain the vague process of completing the assignment?
+
+2. Technical Environment & Build:
+   - I am not familiar with Java; how can I complete this assignment?
+   - What is the output of `mvn clean compile` in this project?
+   - What is the next step after compiling the Wrangler project?
+   - `mvn clean compile` is taking time — is that normal?
+
+3. ByteSize & TimeDuration Tokens:
+   - guide me how to complete the logical writing od  ByteSize.java.
+   - How to  Refactor the ByteSize logic using SOLID principles ?
+   - I have completed TimeDuration.java — how do I compile and test it manually?
+   - How to run TimeDurationTest.java from the terminal if it’s in my home directory?
+
+4. Grammar Integration:
+   - How do I integrate BYTE_SIZE and TIME_DURATION as new lexer tokens in the Wrangler grammar?
+   - What file should I modify to support visit logic for BYTE_SIZE and TIME_DURATION?
+   - I have updated the grammar.g4 file — what do I do next?
+   - Where exactly in the file structure should I implement `visitValue()` or `visitByteSizeArg()`?
+
+5. Compilation & Build Troubleshooting:
+   - Facing errors in `wrangler-service` — incompatible types and class not found. How do I fix them?
+   - Maven build failed due to Checkstyle. How do I view and fix the violations?
+   - After running `mvn checkstyle:checkstyle`, I see 900+ errors — how do I clean them efficiently?
+
+6. Finalization:
+   - What is the next step after completing ByteSize and TimeDuration token support?
+   - Generate a full project summary and structure.

@@ -23,8 +23,13 @@ import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
 import org.junit.Assert;
 import org.junit.Test;
+import io.cdap.wrangler.parser.DirectivesParser;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests {@link GrammarBasedParser}
@@ -73,6 +78,40 @@ public class GrammarBasedParserTest {
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
+  }
+
+  @Test
+  public void testValidByteSizeSyntax() {
+    String recipe = "aggregate :sourceSizeColumn :sourceTimeColumn :totalSizeMB :totalTimeSec sizeUnit='MB' timeUnit='s';";
+    DirectivesParser parser = createParser(recipe);
+    assertNotNull(parser.recipe());
+  }
+
+  @Test
+  public void testValidTimeDurationSyntax() {
+    String recipe = "aggregate :sourceSizeColumn :sourceTimeColumn :totalSize :totalTime timeUnit='ms';";
+    DirectivesParser parser = createParser(recipe);
+    assertNotNull(parser.recipe());
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testInvalidByteSizeSyntax() {
+    String recipe = "aggregate :sourceSizeColumn :sourceTimeColumn :totalSize :totalTime sizeUnit='INVALID';";
+    DirectivesParser parser = createParser(recipe);
+    parser.recipe();
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void testInvalidTimeDurationSyntax() {
+    String recipe = "aggregate :sourceSizeColumn :sourceTimeColumn :totalSize :totalTime timeUnit='INVALID';";
+    DirectivesParser parser = createParser(recipe);
+    parser.recipe();
+  }
+
+  private DirectivesParser createParser(String recipe) {
+    DirectivesLexer lexer = new DirectivesLexer(CharStreams.fromString(recipe));
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    return new DirectivesParser(tokens);
   }
 
 }
