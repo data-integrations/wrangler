@@ -84,8 +84,8 @@ public class MaskNumber implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.mask = ((Text) args.value("mask")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.mask = ((Text) args.value("mask", "MB")).value();
   }
 
   @Override

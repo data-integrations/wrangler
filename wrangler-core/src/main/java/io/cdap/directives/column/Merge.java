@@ -71,10 +71,10 @@ public class Merge implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.col1 = ((ColumnName) args.value("column1")).value();
-    this.col2 = ((ColumnName) args.value("column2")).value();
-    this.dest = ((ColumnName) args.value("destination")).value();
-    this.delimiter = ((Text) args.value("separator")).value();
+    this.col1 = ((ColumnName) args.value("column1", "MB")).value();
+    this.col2 = ((ColumnName) args.value("column2", "MB")).value();
+    this.dest = ((ColumnName) args.value("destination", "MB")).value();
+    this.delimiter = ((Text) args.value("separator", "MB")).value();
     delimiter = StringEscapeUtils.unescapeJava(delimiter);
   }
 

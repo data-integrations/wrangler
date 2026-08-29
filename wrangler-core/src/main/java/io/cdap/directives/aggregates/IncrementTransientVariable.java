@@ -67,9 +67,9 @@ public class IncrementTransientVariable implements Directive {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.variable = ((Identifier) args.value("variable")).value();
-    this.incrementBy = ((Numeric) args.value("value")).value().longValue();
-    String expression = ((Expression) args.value("condition")).value();
+    this.variable = ((Identifier) args.value("variable", "MB")).value();
+    this.incrementBy = ((Numeric) args.value("value", "MB")).value().longValue();
+    String expression = ((Expression) args.value("condition", "MB")).value();
     try {
       el = EL.compile(expression);
     } catch (ELException e) {

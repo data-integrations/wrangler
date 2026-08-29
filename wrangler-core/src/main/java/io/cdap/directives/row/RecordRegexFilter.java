@@ -65,7 +65,7 @@ public class RecordRegexFilter implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    String matchType = ((Identifier) args.value("match-type")).value();
+    String matchType = ((Identifier) args.value("match-type", "MB")).value();
     if (matchType.equalsIgnoreCase("if-matched")) {
       matched = true;
     } else if (matchType.equalsIgnoreCase("if-not-matched")) {
@@ -74,8 +74,8 @@ public class RecordRegexFilter implements Directive, Lineage {
       throw new DirectiveParseException(
         NAME, "Match type specified is not 'if-matched' or 'if-not-matched'");
     }
-    column = ((ColumnName) args.value("column")).value();
-    String regex = ((Text) args.value("regex")).value();
+    column = ((ColumnName) args.value("column", "MB")).value();
+    String regex = ((Text) args.value("regex", "MB")).value();
     if (!regex.equalsIgnoreCase("null") && !regex.isEmpty()) {
       pattern = Pattern.compile(regex);
     } else {

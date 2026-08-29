@@ -62,10 +62,10 @@ public class Copy implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.source = args.value("source");
-    this.destination = args.value("destination");
+    this.source = args.value("source", "MB");
+    this.destination = args.value("destination", "MB");
     if (args.contains("force")) {
-      force = (boolean) args.value("force").value();
+      force = (boolean) args.value("force", "MB").value();
     }
   }
 

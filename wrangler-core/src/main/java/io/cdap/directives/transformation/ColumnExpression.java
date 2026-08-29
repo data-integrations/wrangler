@@ -78,8 +78,8 @@ public class ColumnExpression implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.expression = ((Expression) args.value("expression")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.expression = ((Expression) args.value("expression", "MB")).value();
     try {
       el = EL.compile(expression);
     } catch (ELException e) {

@@ -81,14 +81,14 @@ public class ParseExcel implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
     if (args.contains("sheet")) {
-      this.sheet = ((Text) args.value("sheet")).value();
+      this.sheet = ((Text) args.value("sheet", "MB")).value();
     } else {
       this.sheet = "0";
     }
     if (args.contains("first-row-as-header")) {
-      this.firstRowAsHeader = ((Boolean) args.value("first-row-as-header").value());
+      this.firstRowAsHeader = ((Boolean) args.value("first-row-as-header", "MB").value());
     }
   }
 

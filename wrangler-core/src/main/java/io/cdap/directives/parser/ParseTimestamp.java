@@ -68,11 +68,11 @@ public class ParseTimestamp implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
     this.timeUnit = TimeUnit.MILLISECONDS;
 
     if (args.contains("timeunit")) {
-      String unitValue = ((Text) args.value("timeunit")).value();
+      String unitValue = ((Text) args.value("timeunit", "MB")).value();
       this.timeUnit = getTimeUnit(unitValue);
     }
   }

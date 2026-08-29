@@ -61,8 +61,8 @@ public class FindAndReplace implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.columns = ((ColumnNameList) args.value("column")).value();
-    this.pattern = ((Text) args.value("pattern")).value();
+    this.columns = ((ColumnNameList) args.value("column", "MB")).value();
+    this.pattern = ((Text) args.value("pattern", "MB")).value();
   }
 
   @Override

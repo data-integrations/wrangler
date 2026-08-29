@@ -64,8 +64,8 @@ public class WriteAsJsonObject implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.columns = ((ColumnNameList) args.value("col")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.columns = ((ColumnNameList) args.value("col", "MB")).value();
     this.gson = new Gson();
   }
 
