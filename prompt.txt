@@ -1,0 +1,27 @@
+Prompts which were used by me for better understanding of the code
+
+Prompt 1:
+Hey, I’ve been assigned to add native support for Byte Size and Time Duration parsing in Wrangler. I’ve looked into the grammar file but I’m a bit unsure about how the .g4 grammar and Wrangler’s transformation logic are connected. Can you explain how the flow works from parsing to evaluation?
+
+Prompt 2:
+I think I’ve figured out the basic structure and added grammar rules for things like 10 MB and 5 mins in Directives.g4. Now I’m updating the API. Do I also need to modify the transformation visitor or will the new types just work if the grammar is correct?
+
+Prompt 3:
+I tested a few strings like 15 KB and 2h, but Wrangler is throwing an error — it seems like the new grammar rules aren’t being picked up. Can you help me figure out how to verify if my grammar changes are actually getting applied?
+
+Prompt 4:
+Okay, I made sure the grammar changes are compiling and updating properly. Now I'm trying to implement the logic that converts values like 5 GB into actual numbers in the evaluator. Can you guide me on how to correctly plug this into the transformation flow?
+
+Prompt 5:
+I'm stuck at Step 3 now. After updating the evaluation logic to convert parsed byte sizes, I’m getting a null pointer error during execution. I think the evaluator isn't receiving the parsed value correctly. Could you help me debug what's going wrong here?
+
+Prompt 6:
+I don’t want to just patch this up — I’m trying to understand why the evaluator isn’t triggering for these new types. Is there a common pattern in Wrangler for linking grammar tokens to evaluation logic that I might be missing?
+
+Prompt 7:
+Could you maybe show an example of how a similar transformation works — like for dates or durations already in Wrangler? I want to compare it with what I’ve written to make sure my logic is consistent.
+
+Prompt 8:
+So far I’ve done grammar changes and updated the API, and I'm halfway through the evaluator. Once I get this bug fixed, do I also need to register these new types anywhere globally, or is Wrangler's transformation type inference automatic?
+
+
