@@ -140,8 +140,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION  
  ;
+byteSize
+  : BYTE_SIZE;
+
+timeDuration: TIME_DURATION;
 
 ecommand
  : '!' Identifier
@@ -182,6 +186,7 @@ colList
 numberList
  : Number (',' Number)+
  ;
+
 
 boolList
  : Bool (',' Bool)+
@@ -246,6 +251,12 @@ Pipe     : '|';
 BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
+BYTE_SIZE: DIGIT+ ('.' DIGIT+)? BYTE_UNIT;
+TIME_DURATION: DIGIT+ ('.' DIGIT+)? TIME_UNIT;
+
+fragment BYTE_UNIT: [KkMmGgTt][Bb];
+fragment TIME_UNIT: 'ms' | 's' | 'm' | 'h';
+
 
 
 Bool
