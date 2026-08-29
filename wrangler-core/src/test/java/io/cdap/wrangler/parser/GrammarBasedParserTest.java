@@ -21,6 +21,7 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.steps.AggregateStatsDirective;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -73,6 +74,26 @@ public class GrammarBasedParserTest {
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
+  }
+  
+ @Test
+  public void testAggregateStatsDirective() throws Exception {
+    String[] recipe = new String[] {
+      "aggregate-stats :data_size :response_time :total_size :total_time MB s total"
+    };
+
+    RecipeParser parser = TestingRig.parse(recipe);
+    List<Directive> directives = parser.parse();
+    Assert.assertEquals(1, directives.size());
+    Assert.assertTrue(directives.get(0) instanceof AggregateStatsDirective);
+
+    // Test with missing optional arguments
+    recipe = new String[] {
+      "aggregate-stats :data_size :response_time :total_size :total_time"
+    };
+    parser = TestingRig.parse(recipe);
+    directives = parser.parse();
+    Assert.assertEquals(1, directives.size());
   }
 
 }

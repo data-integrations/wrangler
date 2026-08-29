@@ -1,0 +1,46 @@
+📘 AI Prompts for Wrangler Enhancement Assignment
+
+🔹 Initial Planning & Breakdown
+
+Decompose the task described in the assignment PDF into manageable subtasks with clear descriptions.
+
+Create a progress tracker (progress.md) listing each subtask with checkboxes, and update it regularly after completing steps.
+
+🔹 Grammar Enhancements (ANTLR)
+ 3. Extend Directives.g4 by defining new lexer tokens for BYTE_SIZE and TIME_DURATION, and add parser rules like byteSizeArg, timeDurationArg.
+4. Regenerate ANTLR-generated Java code by running the Maven compile command: mvn compile.
+
+🔹 Visitor Logic & Token Registration
+ 5. Add corresponding visit methods (visitByteSizeArg, visitTimeDurationArg) in the ANTLR visitor class.
+6. Modify TokenGroup to recognize and register the new token types. 7. In visit methods, use ctx.getText() to extract token strings and instantiate ByteSize or TimeDuration objects.
+
+🔹 API Token Classes
+ 8. Create ByteSize and TimeDuration classes in the wrangler-api module, extending the base Token class.
+9. Implement parsing logic to handle strings like "1.5GB" or "250ms", and expose conversion methods like getBytes() and getNanoseconds().
+10. Use only existing utility methods for parsing—avoid adding new dependencies.
+
+🔹 Directive Creation and Logic 
+11. Implement a new directive AggregateStatsDirective that conforms to the Directive interface.
+12. Accept parameters such as source size/time columns and optional unit or aggregation types for output.
+13. Use ExecutorContext.getStore() to track and accumulate size/time values per row.
+14. Normalize units (to bytes and nanoseconds) during accumulation, and apply output unit conversion at the final step.
+15. Output a summary row (e.g., total_size_mb, total_time_sec) containing the computed aggregates.
+
+🔹 Testing & Coverage 
+16. Write JUnit tests for ByteSize and TimeDuration, covering valid cases like "1KB", "3.5MB", "5ms", "1.2h" and invalid edge cases.
+17. Add parser rule tests in files like GrammarBasedParserTest.java to ensure new syntax is parsed correctly.
+18. Implement functional/integration tests for AggregateStatsDirective using realistic recipes and expected outputs.
+19. Ensure proper failure handling using annotations like @Test(expected = ...) to validate error conditions.
+
+🔹 Ongoing Progress Management 
+20. Keep updating the progress.md file after major tasks like parser changes, directive logic, or test writing.
+
+🔹 General Guidelines
+21. Check for existing files before creating new ones to avoid redundancy.
+22. Stick to the project's existing dependencies—no external libraries should be introduced.
+23. Run all tests (mvn test), especially AggregateStatsDirectiveTest, and resolve any failures.
+24. Perform a full Maven build (mvn clean install) to ensure the entire project compiles and all modules pass tests.
+
+🔹 Final Checks & Documentation 
+25. Cross-check the assignment goals to confirm everything is addressed and functional.
+26. Update the README.md with usage instructions and examples for the BYTE_SIZE and TIME_DURATION token parsers.
