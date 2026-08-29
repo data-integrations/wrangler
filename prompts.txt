@@ -1,0 +1,55 @@
+Prompts Used for Zeotap Software Engineer Intern Assignment
+
+Directive Implementation:
+
+Requested guidance to implement a new aggregate directive in the Wrangler framework (wrangler-core module) for byte size and time duration aggregation.
+
+Asked for explanation of ExecutorContext and TransientStore and whether the provided Java class (AggregateStats.java) was final.
+
+Java Compilation Errors:
+
+Reported a series of Java compilation errors related to method signatures and requested help fixing them:
+
+Incorrect usage of get method in TransientStore with scope and key.
+
+Attempted use of nonexistent remove method in TransientStore.
+
+Build and Compile:
+
+What is the output of mvn clean compile in this project?
+
+What is the next step after compiling the Wrangler project?
+
+mvn clean compile is taking time — is that normal?
+
+ByteSize & TimeDuration Tokens:
+
+Guide me how to complete the logical writing of ByteSize.java.
+
+How to refactor the ByteSize logic using SOLID principles?
+
+I have completed TimeDuration.java — how do I compile and test it manually?
+
+How to run TimeDurationTest.java from the terminal if it’s in my home directory?
+
+Grammar Integration:
+
+How do I integrate BYTE_SIZE and TIME_DURATION as new lexer tokens in the Wrangler grammar?
+
+What file should I modify to support visit logic for BYTE_SIZE and TIME_DURATION?
+
+I have updated the grammar.g4 file — what do I do next?
+
+Where exactly in the file structure should I implement visitValue() or visitByteSizeArg()?
+
+Compilation & Build Troubleshooting:
+
+Facing errors in wrangler-service — incompatible types and class not found. How do I fix them?
+
+Maven build failed due to Checkstyle. How do I view and fix the violations?
+
+After running mvn checkstyle:checkstyle, I see 900+ errors — how do I clean them efficiently?
+
+Finalization:
+
+What is the next step after completing ByteSize and TimeDuration token support?
