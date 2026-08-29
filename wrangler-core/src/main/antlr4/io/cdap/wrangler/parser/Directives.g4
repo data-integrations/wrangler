@@ -41,6 +41,22 @@ options {
 /**
  * Parser Grammar for recognizing tokens and constructs of the directives language.
  */
+BYTE_SIZE
+ : [0-9]+ ('.' [0-9]+)? BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : [0-9]+ ('.' [0-9]+)? TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'b' | 'kb' | 'mb' | 'gb' | 'tb')
+ ;
+
+fragment TIME_UNIT
+ : ('ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd')
+ ;
+
 recipe
  : statements EOF
  ;
@@ -140,8 +156,14 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
  ;
+
 
 ecommand
  : '!' Identifier
@@ -154,6 +176,14 @@ config
 column
  : Column
  ;
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
 
 text
  : String
