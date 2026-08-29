@@ -1,0 +1,13 @@
+Below are some simple, plain-English prompts that a human might have used during this process:
+
+"How can I add support for byte size (like KB, MB) and time duration (like ms, s) into the Wrangler grammar?"
+
+"What do I need to do in Java to create classes that convert strings like '10KB' or '150ms' into standard units?"
+
+"How should I update the core parser to recognize the new byte size and time duration tokens?"
+
+"How can I implement an aggregate directive that sums up data sizes and response times from different rows?"
+
+"What tests should I write to ensure the new ByteSize and TimeDuration parsers work correctly and that the aggregation directive calculates the right totals?"
+
+"Given the build issues in wrangler-core, how can I make sure everything passes by testing the implementation in wrangler-api?"
