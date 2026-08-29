@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -298,6 +300,28 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
       booleans.add(Boolean.parseBoolean(bool.getText()));
     }
     builder.addToken(new BoolList(booleans));
+    return builder;
+  }
+
+  /**
+   Visits the byteSizeArg rule and creates a ByteSize token.
+   * It extracts the byte size value from the parse tree context and wraps it into
+   * a <code>ByteSize</code> token to be added to the <code>TokenGroup</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    builder.addToken(new ByteSize(ctx.getText()));
+    return builder;
+  }
+
+  /**
+   * Visits the timeDurationArg rule and creates a TimeDuration token.
+   * It extracts the time duration value from the parse tree context and wraps it into
+   * a <code>TimeDuration</code> token to be added to the <code>TokenGroup</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    builder.addToken(new TimeDuration(ctx.getText()));
     return builder;
   }
 

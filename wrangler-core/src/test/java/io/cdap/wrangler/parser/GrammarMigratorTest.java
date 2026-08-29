@@ -19,6 +19,8 @@ package io.cdap.wrangler.parser;
 import com.google.common.base.Joiner;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import io.cdap.wrangler.api.GrammarMigrator;
+import io.cdap.wrangler.api.RecipeParser;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -191,4 +193,11 @@ public class GrammarMigratorTest {
     String actual = migrator.migrate();
     Assert.assertEquals(Joiner.on('\n').join(expected), actual);
   }
+
+  @Test
+    public void testAggregateStatsParsing() throws Exception {
+        String recipe = "aggregate-stats :size :time total_size total_time MB seconds";
+        RecipeParser parser = new GrammarBasedParser("test", recipe, registry);
+        parser.parse();
+    }
 }

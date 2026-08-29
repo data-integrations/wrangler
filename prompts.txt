@@ -1,0 +1,20 @@
+1. General: Explain the purpose of the CDAP Wrangler library and how its recipe-based data transformation works.
+   - Used to understand Wrangler’s role in data pipelines and the concept of directives and recipes.
+
+2. General: How does ANTLR grammar (e.g., Directives.g4) integrate with Java code in a project like CDAP Wrangler?
+   - Helped clarify the relationship between grammar rules, lexer/parser generation, and Java parsing logic.
+
+3. General: What is the role of the Directive interface in CDAP Wrangler, and how are directives executed in a recipe pipeline?
+   - Provided insight into directive implementation and execution flow for custom directives.
+
+4. ByteSize Approach: Outline the steps to implement a ByteSize parser in CDAP Wrangler that handles units like KB, MB, and GB, including grammar changes and Java class design.
+   - Guided the addition of BYTE_SIZE token in Directives.g4, creation of ByteSize.java, and parsing logic for canonical bytes.
+
+5. AggregateStatsDirective Approach: Describe how to design an aggregate-stats directive in CDAP Wrangler that sums byte sizes and time durations, including argument handling and transient store usage.
+   - Directed the implementation of AggregateStatsDirective.java, focusing on UsageDefinition, TransientStore for aggregation, and unit conversion.
+
+6. Testing Approach: How should I write unit tests for ByteSize, TimeDuration, and AggregateStatsDirective in CDAP Wrangler, including parser tests, using TestingRig?
+   - Informed the creation of ByteSizeTest.java, TimeDurationTest.java, AggregateStatsDirectiveTest.java, and updates to GrammarBasedParserTest.java, following MigrateToV2Test.java format.
+
+7. Error Fix: Fix a Checkstyle error in ByteSize.java reporting missing Javadoc for a public method in the wrangler-api module.
+   - Resolved Checkstyle violation by adding Javadoc to ByteSize.java methods, ensuring compliance with checkstyle.xml.

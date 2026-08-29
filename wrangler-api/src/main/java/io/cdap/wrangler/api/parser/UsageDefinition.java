@@ -47,11 +47,15 @@ public final class UsageDefinition implements Serializable {
   private final transient int optionalCnt;
   private final String directive;
   private final List<TokenDefinition> tokens;
+  private final int byteSize;
+  private final int timeDuration;
 
   private UsageDefinition(String directive, int optionalCnt, List<TokenDefinition> tokens) {
     this.directive = directive;
     this.tokens = tokens;
     this.optionalCnt = optionalCnt;
+    this.byteSize = 0;
+    this.timeDuration = 0;
   }
 
   /**
