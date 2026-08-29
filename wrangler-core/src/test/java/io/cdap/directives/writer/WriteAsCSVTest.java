@@ -44,8 +44,8 @@ public class WriteAsCSVTest {
     List<Row> rows = Arrays.asList(
       new Row("url", "http://www.yahoo.com?a=b c&b=ab&xyz=1")
         .add("o", o)
-        .add("i1", new Integer(1))
-        .add("i2", new Double(1.8f))
+        .add("i1", Integer.valueOf(1))
+        .add("i2", Double.valueOf(1.8f))
     );
     rows = TestingRig.execute(directives, rows);
 

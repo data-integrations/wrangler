@@ -51,21 +51,23 @@ statements
 
 directive
  : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
+   (   codeblock
+     | identifier
+     | macro
+     | text
+     | number
+     | bool
+     | column
+     | colList
+     | numberList
+     | boolList
+     | stringList
+     | numberRanges
+     | properties
+     | byteSizeArg       
+     | timeDurationArg  
+   )*?
+ ;
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -136,12 +138,12 @@ numberRanges
  ;
 
 numberRange
- : Number ':' Number '=' value
- ;
+: Number ':' Number '=' value
+; 
 
 value
- : String | Number | Column | Bool
- ;
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
+ ;  
 
 ecommand
  : '!' Identifier
@@ -193,6 +195,15 @@ stringList
 
 identifierList
  : Identifier (',' Identifier)*
+ ;
+
+ /* NEW: Rules for byte size and time duration arguments */
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
  ;
 
 
@@ -311,3 +322,23 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+/* New lexer rules for byte size and time duration */
+
+fragment BYTE_UNIT
+    : 'B' | 'KB' | 'MB' | 'GB' | 'TB'
+    | 'b' | 'kb' | 'mb' | 'gb' | 'tb'
+    ;
+
+fragment TIME_UNIT
+    : 'ns' | 'ms' | 's' | 'm' | 'h' | 'd'
+    | 'NS' | 'MS' | 'S' | 'M' | 'H' | 'D'
+    ;
+
+BYTE_SIZE
+    : Number BYTE_UNIT
+    ;
+
+TIME_DURATION
+    : Number TIME_UNIT
+    ;

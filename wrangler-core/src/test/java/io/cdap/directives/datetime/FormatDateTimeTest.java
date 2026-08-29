@@ -34,7 +34,7 @@ public class FormatDateTimeTest {
     String[] colNames = new String[]{"col1", "col2", "col3", "col4", "col5"};
     LocalDateTime localDateTime = LocalDateTime.of(2000, 8, 22, 20, 36, 45, 1234);
     String[] dateTimes = new String[]{"08/22/2000 20:36", "2000-08-22T20:36:45", "2000-08-22T20:36:45",
-      "20000822 8:36 PM"};
+      "20000822 8:36 pm"};
     String[] directives = new String[testPatterns.length];
     Row row = new Row();
     for (int i = 0; i < testPatterns.length; i++) {
