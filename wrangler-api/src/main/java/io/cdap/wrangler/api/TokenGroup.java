@@ -41,7 +41,7 @@ public final class TokenGroup {
 
   public void add(Token token) {
     tokens.add(token);
-  }
+}
 
   public int size() {
     return tokens.size();
@@ -57,5 +57,10 @@ public final class TokenGroup {
 
   public SourceInfo getSourceInfo() {
     return info;
+  }
+
+  public void add(String string, String string2) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'add'");
   }
 }
