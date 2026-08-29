@@ -14,6 +14,9 @@
  * the License.
  */
 
+
+
+
 grammar Directives;
 
 options {
@@ -311,3 +314,12 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+ // Add lexer rules for BYTE_SIZE and TIME_DURATION
+BYTE : [0-9]+ ('KB'|'MB'|'GB'|'B');
+TIME_DURATION : [0-9]+ ('ms'|'s'|'m'|'h'|'d');
+
+// parser rules
+byteSizeArg : BYTE;
+timeDurationArg : TIME;
