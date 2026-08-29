@@ -21,9 +21,14 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
+import io.cdap.wrangler.api.TokenGroup;
+
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
+
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -74,5 +79,21 @@ public class GrammarBasedParserTest {
     List<Directive> directives = parser.parse();
     Assert.assertEquals(0, directives.size());
   }
+
+  @Test
+    public void testValidRecipeParsing() {
+        String recipe = "aggregate-bytes-time :size :duration :total_size :total_time --sizeUnit=MB --timeUnit=s --aggregationType=total;";
+        GrammarBasedParser parser = new GrammarBasedParser(recipe, recipe, null);
+        List<Directive> tokenGroup = parser.parse();
+        assertNotNull(tokenGroup);
+        assertEquals("aggregate-bytes-time", tokenGroup.getDirective());
+    }
+
+    @Test(expected = ParseException.class)
+    public void testInvalidRecipeSyntax() {
+        String invalidRecipe = "aggregate-bytes-time :size :duration :total_size :total_time --unknownFlag=XYZ;";
+        GrammarBasedParser parser = new GrammarBasedParser(invalidRecipe, invalidRecipe, null);
+        parser.parse(invalidRecipe);
+    }
 
 }

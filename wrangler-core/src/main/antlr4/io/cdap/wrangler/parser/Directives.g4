@@ -21,36 +21,36 @@ options {
 }
 
 @lexer::header {
-/*
- * Copyright © 2017-2019 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
+  /*
+   * Copyright © 2017-2019 Cask Data, Inc.
+   *
+   * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   * use this file except in compliance with the License. You may obtain a copy of
+   * the License at
+   *
+   * http://www.apache.org/licenses/LICENSE-2.0
+   *
+   * Unless required by applicable law or agreed to in writing, software
+   * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   * License for the specific language governing permissions and limitations under
+   * the License.
+   */
 }
 
 /**
  * Parser Grammar for recognizing tokens and constructs of the directives language.
  */
 recipe
- : statements EOF
- ;
+  : statements EOF
+  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
- ;
+  :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+  ;
 
 directive
- : command
+  : command
   (   codeblock
     | identifier
     | macro
@@ -64,6 +64,10 @@ directive
     | stringList
     | numberRanges
     | properties
+    | BYTE_SIZE
+    | TIME_DURATION
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -88,112 +92,119 @@ expression
   ;
 
 forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
- ;
+  : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+  ;
 
 macro
- : Dollar OBrace (~OBrace | macro | Macro)*? CBrace
- ;
+  : Dollar OBrace (~OBrace | macro | Macro)*? CBrace
+  ;
 
 pragma
- : '#pragma' (pragmaLoadDirective | pragmaVersion)
- ;
+  : '#pragma' (pragmaLoadDirective | pragmaVersion)
+  ;
 
 pragmaLoadDirective
- : 'load-directives' identifierList
- ;
+  : 'load-directives' identifierList
+  ;
 
 pragmaVersion
- : 'version' Number
- ;
+  : 'version' Number
+  ;
 
 codeblock
- : 'exp' Space* ':' condition
- ;
+  : 'exp' Space* ':' condition
+  ;
 
 identifier
- : Identifier
- ;
+  : Identifier
+  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
- | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
- ;
+  : 'prop' ':' OBrace (propertyList)+  CBrace
+  | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
+  | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
+  | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
+  | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+  ;
 
 propertyList
- : property (',' property)*
- ;
+  : property (',' property)*
+  ;
 
 property
- : Identifier '=' ( text | number | bool )
- ;
+  : Identifier '=' ( text | number | bool | BYTE_SIZE | TIME_DURATION | byteSizeArg | timeDurationArg )
+  ;
 
 numberRanges
- : numberRange ( ',' numberRange)*
- ;
+  : numberRange ( ',' numberRange)*
+  ;
 
 numberRange
- : Number ':' Number '=' value
- ;
+  : Number ':' Number '=' value
+  ;
 
 value
- : String | Number | Column | Bool
- ;
+  : String
+  | Number
+  | Column
+  | Bool
+  | BYTE_SIZE
+  | TIME_DURATION
+  | byteSizeArg
+  | timeDurationArg
+  ;
 
 ecommand
- : '!' Identifier
- ;
+  : '!' Identifier
+  ;
 
 config
- : Identifier
- ;
+  : Identifier
+  ;
 
 column
- : Column
- ;
+  : Column
+  ;
 
 text
- : String
- ;
+  : String
+  ;
 
 number
- : Number
- ;
+  : Number
+  ;
 
 bool
- : Bool
- ;
+  : Bool
+  ;
 
 condition
- : OBrace (~CBrace | condition)* CBrace
- ;
+  : OBrace (~CBrace | condition)* CBrace
+  ;
 
 command
- : Identifier
- ;
+  : Identifier
+  ;
 
 colList
- : Column (','  Column)+
- ;
+  : Column (','  Column)+
+  ;
 
 numberList
- : Number (',' Number)+
- ;
+  : Number (',' Number)+
+  ;
 
 boolList
- : Bool (',' Bool)+
- ;
+  : Bool (',' Bool)+
+  ;
 
 stringList
- : String (',' String)+
- ;
+  : String (',' String)+
+  ;
 
 identifierList
- : Identifier (',' Identifier)*
- ;
+  : Identifier (',' Identifier)*
+  ;
 
 
 /*
@@ -247,32 +258,50 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+// BYTE_SIZE and TIME_DURATION Lexer Rules
+BYTE_SIZE
+  : [0-9]+ BYTE_UNIT
+  ;
+
+fragment
+BYTE_UNIT
+  : 'B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB' | 'ZB' | 'YB'
+  ;
+
+TIME_DURATION
+  : [0-9]+ TIME_UNIT
+  ;
+
+fragment
+TIME_UNIT
+  : 'ms' | 's' | 'm' | 'h' | 'd' | 'w'
+  ;
 
 Bool
- : 'true'
- | 'false'
- ;
+  : 'true'
+  | 'false'
+  ;
 
 Number
- : Int ('.' Digit*)?
- ;
+  : Int ('.' Digit*)?
+  ;
 
 Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
+  : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
+  ;
 
 Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
+  : [a-zA-Z_] [a-zA-Z_0-9]*
+  ;
 
 Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
- ;
+  : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
+  ;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
- ;
+  : '\'' ( EscapeSequence | ~('\'') )* '\''
+  | '"'  ( EscapeSequence | ~('"') )* '"'
+  ;
 
 EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
@@ -311,3 +340,14 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+// New parser rules for byteSizeArg and timeDurationArg
+byteSizeArg
+  : BYTE_SIZE
+  ;
+
+timeDurationArg
+  : TIME_DURATION
+  ;
+
