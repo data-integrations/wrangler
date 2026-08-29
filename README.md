@@ -215,4 +215,20 @@ and limitations under the License.
 Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
-permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+permission. No endorsement by The Apache Software Foundation is implied by the use of these marks..
+
+## Byte Size and Time Duration Parsers
+
+The Wrangler now supports parsing byte sizes and time durations with units:
+
+### Byte Size Format
+- Supported units: B, KB, MB, GB, TB (decimal), KiB, MiB, GiB, TiB (binary)
+- Examples: "10KB", "1.5MB", "2GiB"
+
+### Time Duration Format
+- Supported units: ns, ms, s, m, h, d
+- Examples: "100ms", "1.5s", "2h"
+
+### Aggregate Stats Directive
+Aggregates byte size and time duration columns:
+
