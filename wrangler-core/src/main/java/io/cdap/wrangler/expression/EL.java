@@ -35,6 +35,7 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlInfo;
 import org.apache.commons.jexl3.JexlScript;
+import org.apache.commons.jexl3.introspection.JexlPermissions;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
@@ -87,6 +88,7 @@ public final class EL {
       .cache(1024)
       .strict(true)
       .logger(new NullLogger())
+      .permissions(JexlPermissions.UNRESTRICTED)
       .create();
 
     try {
