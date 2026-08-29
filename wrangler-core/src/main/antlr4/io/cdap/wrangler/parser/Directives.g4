@@ -311,3 +311,24 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+BYTE_SIZE: DIGITS ('.' DIGITS)? BYTE_UNIT;
+TIME_DURATION: DIGITS ('.' DIGITS)? TIME_UNIT;
+
+fragment BYTE_UNIT: ('B' | 'KB' | 'MB' | 'GB' | 'TB');
+fragment TIME_UNIT: ('ms' | 's' | 'm' | 'h');
+fragment DIGITS: [0-9]+;
+
+byteSizeArg: BYTE_SIZE;
+timeDurationArg: TIME_DURATION;
+
+value
+  : STRING
+  | NUMBER
+  | BOOLEAN
+  | BYTE_SIZE
+  | TIME_DURATION
+  ;
+
+
+
