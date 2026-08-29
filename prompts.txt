@@ -1,0 +1,9 @@
+1. How to parse values like "10KB", "1.5MB", "2GB" into a long value in Java?
+2. What is the cleanest way to implement custom units like milliseconds, seconds, minutes using enums?
+3. How to build a directive in Wrangler that performs aggregation across all rows?
+4. How to use the ExecutorContext in Wrangler to persist data between executions?
+5. Best way to write unit tests for a Wrangler directive using TestingRig?
+6. What are the best practices for adding new tokens to an ANTLR grammar in an existing codebase?
+7. How to modify Directives.g4 to add custom tokens like BYTE_SIZE and TIME_DURATION?
+8. How to make a PR to an open source project and link it with my fork?
+9. How to manually test ANTLR grammar changes in a Maven project?
