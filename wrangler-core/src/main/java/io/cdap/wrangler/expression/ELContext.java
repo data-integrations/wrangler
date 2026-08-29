@@ -91,7 +91,6 @@ public class ELContext implements JexlContext {
     set("this", row);
   }
 
-  @Nullable
   private void init(ExecutorContext context) {
     if (context != null) {
       // Adds the transient store variables.
@@ -166,3 +165,5 @@ public class ELContext implements JexlContext {
     return values.containsKey(name);
   }
 }
+
+
