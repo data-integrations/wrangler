@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -17,8 +17,6 @@
 package io.cdap.wrangler.api.parser;
 
 import io.cdap.wrangler.api.annotations.PublicEvolving;
-
-import java.io.Serializable;
 
 /**
  * The TokenType class provides the enumerated types for different types of
@@ -42,7 +40,7 @@ import java.io.Serializable;
  * @see TextList
  */
 @PublicEvolving
-public enum TokenType implements Serializable {
+public enum TokenType {
   /**
    * Represents the enumerated type for the object {@code DirectiveName} type.
    * This type is associated with the token that is recognized as a directive
@@ -152,5 +150,19 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents the enumerated type for the object of {@code ByteSize} type.
+   * This type is associated with a byte size value with units like B, KB, MB, GB, TB, PB.
+   * Examples: 10MB, 1.5GB, 512KB
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of {@code TimeDuration} type.
+   * This type is associated with time duration values with units like ns, us, ms, s, m, h, d.
+   * Examples: 100ms, 2.5s, 1h
+   */
+  TIME_DURATION
 }
