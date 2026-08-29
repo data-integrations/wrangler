@@ -159,5 +159,10 @@ public final class TestingRig {
     }
     Assert.assertFalse(status.isSuccess());
   }
+
+  public static List<Row> executeDirectives(String[] recipe, List<Row> rows) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'executeDirectives'");
+  }
 }
 
