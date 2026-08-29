@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -194,6 +194,28 @@ stringList
 identifierList
  : Identifier (',' Identifier)*
  ;
+
+BYTE_SIZE
+  : Digit+ BYTE_UNIT
+  ;
+
+TIME_DURATION
+  : Digit+ TIME_UNIT
+  ;
+
+fragment BYTE_UNIT
+  : [kK][bB]
+  | [mM][bB]
+  | [gG][bB]
+  | [tT][bB]
+  ;
+
+fragment TIME_UNIT
+  : [mM][sS]
+  | [sS]
+  | [mM][iI][nN]
+  | [hH]
+  ;
 
 
 /*
