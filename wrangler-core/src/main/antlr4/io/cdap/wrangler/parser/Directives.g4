@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -114,6 +116,10 @@ codeblock
 identifier
  : Identifier
  ;
+
+ byteSizeArg : BYTE_SIZE ;
+
+ timeDurationArg : TIME_DURATION ;
 
 properties
  : 'prop' ':' OBrace (propertyList)+  CBrace
@@ -311,3 +317,25 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+BYTE_SIZE
+    : DecimalNumber BYTE_UNIT
+    ;
+
+TIME_DURATION
+    : DecimalNumber TIME_UNIT
+    ;
+
+
+fragment DecimalNumber
+    : Digit+ ('.' Digit+)?   // matches 123, 1.5, 0.25, etc.
+    ;
+
+fragment BYTE_UNIT 
+    : ([kK]|[mM]|[gG]|[tT])? [bB]   // e.g., KB, kb, Mb, GB
+    ;
+
+fragment TIME_UNIT 
+    :([nNmM])+ [sS]?           // e.g., ms, MS, h, H, ns
+    ;

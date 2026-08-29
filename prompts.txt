@@ -1,0 +1,7 @@
+"Can you show an example of how to implement custom error messages in the parser for specific syntax mistakes?"
+"Help me debug this lexer rule for handling BYTE_SIZE and TIME_DURATION correctly."
+"What are some tips to ensure the robustness of the generated parser when dealing with complex nested conditions?"
+"What are the best practices for testing byte size and time duration parsing in Java, including handling different cases like '10KB', '150ms', and '2s'?"
+"How do I implement a test case to ensure the aggregate stats directive correctly calculates total byte size and time duration?"
+"Can you guide me in handling edge cases like zero values, large numbers, and inconsistent units in the new parsing logic?"
+"How should I structure my tests to ensure they cover various cases for byte size and time duration conversions and aggregations?"
