@@ -16,9 +16,9 @@
 
 package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
 import java.io.Serializable;
+
+import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 /**
  * The TokenType class provides the enumerated types for different types of
@@ -40,6 +40,8 @@ import java.io.Serializable;
  * @see Expression
  * @see Text
  * @see TextList
+ * @see ByteSize
+ * @see TimeDuration
  */
 @PublicEvolving
 public enum TokenType implements Serializable {
@@ -152,5 +154,16 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents a token with a byte-size unit, e.g., "10MB", "1.5GB".
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents a token with a time duration unit, e.g., "200ms", "3s".
+   */
+  TIME_DURATION
+
 }
