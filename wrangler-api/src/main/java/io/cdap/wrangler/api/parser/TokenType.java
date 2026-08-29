@@ -59,26 +59,30 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of {@code Text} type.
-   * This type is associated with the token that is either enclosed within a single quote(')
+   * This type is associated with the token that is either enclosed within a
+   * single quote(')
    * or a double quote (") as string.
    */
   TEXT,
 
   /**
    * Represents the enumerated type for the object of {@code Numeric} type.
-   * This type is associated with the token that is either a integer or real number.
+   * This type is associated with the token that is either a integer or real
+   * number.
    */
   NUMERIC,
 
   /**
    * Represents the enumerated type for the object of {@code Bool} type.
-   * This type is associated with the token that either represents string 'true' or 'false'.
+   * This type is associated with the token that either represents string 'true'
+   * or 'false'.
    */
   BOOLEAN,
 
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
-   * This type is associated with the rule that is a collection of {@code Boolean} values
+   * This type is associated with the rule that is a collection of {@code Boolean}
+   * values
    * separated by comman(,). E.g.
    * <code>
    *   ColumnName[,ColumnName]*
@@ -88,8 +92,10 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of type {@code TextList} type.
-   * This type is associated with the comma separated text represented were each text
-   * is enclosed within a single quote (') or double quote (") and each text is separated
+   * This type is associated with the comma separated text represented were each
+   * text
+   * is enclosed within a single quote (') or double quote (") and each text is
+   * separated
    * by comma (,). E.g.
    * <code>
    *   Text[,Text]*
@@ -98,8 +104,10 @@ public enum TokenType implements Serializable {
   TEXT_LIST,
 
   /**
-   * Represents the enumerated type for the object of type {@code NumericList} type.
-   * This type is associated with the collection of {@code Numeric} values separated by
+   * Represents the enumerated type for the object of type {@code NumericList}
+   * type.
+   * This type is associated with the collection of {@code Numeric} values
+   * separated by
    * comma(,). E.g.
    * <code>
    *   Numeric[,Numeric]*
@@ -110,7 +118,8 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
-   * This type is associated with the collection of {@code Bool} values separated by
+   * This type is associated with the collection of {@code Bool} values separated
+   * by
    * comma(,). E.g.
    * <code>
    *   Boolean[,Boolean]*
@@ -119,7 +128,8 @@ public enum TokenType implements Serializable {
   BOOLEAN_LIST,
 
   /**
-   * Represents the enumerated type for the object of type {@code Expression} type.
+   * Represents the enumerated type for the object of type {@code Expression}
+   * type.
    * This type is associated with code block that either represents a condition or
    * an expression. E.g.
    * <code>
@@ -129,8 +139,10 @@ public enum TokenType implements Serializable {
   EXPRESSION,
 
   /**
-   * Represents the enumerated type for the object of type {@code Properties} type.
-   * This type is associated with a collection of key and value pairs all separated
+   * Represents the enumerated type for the object of type {@code Properties}
+   * type.
+   * This type is associated with a collection of key and value pairs all
+   * separated
    * by a comma(,). E.g.
    * <code>
    *   prop:{ <key>=<value>[,<key>=<value>]*}
@@ -140,7 +152,8 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of type {@code Ranges} types.
-   * This type is associated with a collection of range represented in the form shown
+   * This type is associated with a collection of range represented in the form
+   * shown
    * below
    * <code>
    *   <start>:<end>=value[,<start>:<end>=value]*
@@ -149,8 +162,30 @@ public enum TokenType implements Serializable {
   RANGES,
 
   /**
-   * Represents the enumerated type for the object of type {@code String} with restrictions
+   * Represents the enumerated type for the object of type {@code String} with
+   * restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents the enumerated type for the object of type {@code ByteSize} type.
+   * This type is associated with token that represents a byte size value with a
+   * unit,
+   * like "10KB", "5MB", "2GB", etc.
+   * 
+   * @see ByteSize
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of type {@code TimeDuration}
+   * type.
+   * This type is associated with token that represents a time duration value with
+   * a unit,
+   * like "5s" (seconds), "10m" (minutes), "2h" (hours), etc.
+   * 
+   * @see TimeDuration
+   */
+  TIME_DURATION
 }
