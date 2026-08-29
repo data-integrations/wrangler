@@ -138,10 +138,10 @@ numberRanges
 numberRange
  : Number ':' Number '=' value
  ;
-
-value
- : String | Number | Column | Bool
- ;
+//
+//value
+// : String | Number | Column | Bool
+// ;
 
 ecommand
  : '!' Identifier
@@ -311,3 +311,37 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+/* Grammar Modifications for BYTE_SIZE and TIME_DURATION */
+
+// Add these lexer rules at the end of your lexer section
+BYTE_SIZE
+  : Int BYTE_UNIT
+  ;
+
+TIME_DURATION
+  : Int TIME_UNIT
+  ;
+
+fragment BYTE_UNIT
+  : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB')
+  ;
+
+fragment TIME_UNIT
+  : ('ms' | 's' | 'm' | 'h' | 'd')
+  ;
+
+// Modify parser rule "value" to include BYTE_SIZE and TIME_DURATION
+value
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
+ ;
+
+// Alternatively, you can create specific rules if needed:
+// byteSizeArg : BYTE_SIZE ;
+// timeDurationArg : TIME_DURATION ;
