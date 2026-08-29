@@ -53,6 +53,7 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
   public static final SystemDirectiveRegistry INSTANCE;
 
   static {
+    register("aggregate-stats", AggregateStats.class);
     try {
       INSTANCE = new SystemDirectiveRegistry();
     } catch (DirectiveLoadException e) {
