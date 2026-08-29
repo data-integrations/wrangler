@@ -64,6 +64,7 @@ directive
     | stringList
     | numberRanges
     | properties
+    | timeDurationArg
   )*?
   ;
 
@@ -138,6 +139,15 @@ numberRanges
 numberRange
  : Number ':' Number '=' value
  ;
+
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
 
 value
  : String | Number | Column | Bool
@@ -311,3 +321,28 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+ // --- New Lexer Rules for Byte Sizes ---
+ BYTE_SIZE
+   : Number BYTE_UNIT
+   ;
+
+ fragment BYTE_UNIT
+   : [kK][bB]
+   | [mM][bB]
+   | [gG][bB]
+   | [tT][bB]
+   ;
+
+ // --- New Lexer Rules for Time Durations ---
+ TIME_DURATION
+   : Number TIME_UNIT
+   ;
+
+ fragment TIME_UNIT
+   : [mM][sS]
+   | [sS]
+   | [mM][iI][nN]
+   | [hH]
+   ;
+
