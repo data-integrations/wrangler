@@ -1,0 +1,156 @@
+# ClickHouse Flat File Ingestion Application - Development Prompts
+
+This document contains the prompts used to generate the ClickHouse Flat File Ingestion application.
+
+## Backend Development Prompts
+
+### 1. Project Setup
+```
+Create a Spring Boot application for ClickHouse flat file ingestion with the following components:
+- File upload and storage
+- Table mapping between flat files and ClickHouse tables
+- Data ingestion service
+- Ingestion status tracking
+- Error handling
+```
+
+### 2. Model Classes
+```
+Create the following model classes for the ClickHouse flat file ingestion application:
+- FileUpload: Represents an uploaded file with metadata
+- TableMapping: Represents the mapping between file columns and ClickHouse table columns
+- IngestionJob: Represents a data ingestion job with status
+- IngestionStatus: Represents the current status of an ingestion job
+```
+
+### 3. Service Classes
+```
+Create the following service classes for the ClickHouse flat file ingestion application:
+- FileService: Handles file upload, storage, and retrieval
+- TableMappingService: Manages column mappings between files and ClickHouse tables
+- IngestionService: Handles the data ingestion process into ClickHouse
+- IngestionStatusService: Tracks and reports the status of ingestion jobs
+```
+
+### 4. Controller Classes
+```
+Create the following REST controller classes for the ClickHouse flat file ingestion application:
+- FileController: Handles file upload endpoints
+- TableMappingController: Manages table mapping endpoints
+- IngestionController: Controls data ingestion endpoints
+- IngestionStatusController: Provides status information for ingestion jobs
+```
+
+### 5. Configuration
+```
+Create configuration classes for the ClickHouse flat file ingestion application:
+- ClickHouseConfig: Configures the ClickHouse connection
+- FileStorageConfig: Configures file storage settings
+- WebConfig: Configures CORS and other web settings
+```
+
+## Frontend Development Prompts
+
+### 1. Project Setup
+```
+Create a React application for ClickHouse flat file ingestion with the following components:
+- File upload component
+- Table mapping component
+- Data ingestion component
+- Ingestion status component
+- Data preview component
+```
+
+### 2. API Service
+```
+Create API service classes for the ClickHouse flat file ingestion application:
+- FileService: Handles file upload API calls
+- TableMappingService: Manages table mapping API calls
+- IngestionService: Handles ingestion API calls
+- IngestionStatusService: Retrieves ingestion status information
+```
+
+### 3. UI Components
+```
+Create the following UI components for the ClickHouse flat file ingestion application:
+- FileUpload: Component for uploading files
+- TableMapping: Component for mapping file columns to ClickHouse table columns
+- DataIngestion: Component for starting and monitoring data ingestion
+- IngestionStatus: Component for displaying ingestion job status
+- DataPreview: Component for previewing data before ingestion
+```
+
+### 4. Page Components
+```
+Create the following page components for the ClickHouse flat file ingestion application:
+- Home: Landing page with navigation to other pages
+- FileUpload: Page for uploading files
+- TableMapping: Page for mapping file columns to ClickHouse table columns
+- DataIngestion: Page for starting and monitoring data ingestion
+- IngestionStatus: Page for viewing all ingestion jobs and their status
+```
+
+### 5. Routing and Navigation
+```
+Create routing and navigation for the ClickHouse flat file ingestion application:
+- Set up React Router for navigation between pages
+- Create a navigation component for the application
+- Implement protected routes for authenticated users
+```
+
+## Integration Prompts
+
+### 1. Frontend-Backend Integration
+```
+Integrate the frontend and backend of the ClickHouse flat file ingestion application:
+- Connect file upload component to file upload API
+- Connect table mapping component to table mapping API
+- Connect data ingestion component to ingestion API
+- Connect ingestion status component to status API
+```
+
+### 2. Error Handling
+```
+Implement comprehensive error handling for the ClickHouse flat file ingestion application:
+- Handle API errors in the frontend
+- Display user-friendly error messages
+- Implement retry mechanisms for failed API calls
+- Log errors for debugging
+```
+
+### 3. Data Validation
+```
+Implement data validation for the ClickHouse flat file ingestion application:
+- Validate file formats and content
+- Validate table mappings
+- Validate data types during ingestion
+- Provide feedback for validation errors
+```
+
+## Deployment Prompts
+
+### 1. Docker Configuration
+```
+Create Docker configuration for the ClickHouse flat file ingestion application:
+- Dockerfile for the backend
+- Dockerfile for the frontend
+- Docker Compose file for the entire application
+```
+
+### 2. CI/CD Pipeline
+```
+Create a CI/CD pipeline for the ClickHouse flat file ingestion application:
+- GitHub Actions workflow for building and testing
+- Deployment to staging and production environments
+- Automated testing before deployment
+```
+
+## Bonus Feature Prompts
+
+### 1. Multi-table Joins
+```
+Implement support for multi-table joins in the ClickHouse flat file ingestion application:
+- Allow users to define relationships between tables
+- Support for joining multiple flat files before ingestion
+- UI for configuring join conditions
+``` 

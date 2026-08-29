@@ -175,6 +175,64 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+## Byte Size and Time Duration Parsers
+
+The Wrangler library now includes built-in support for parsing and aggregating byte sizes and time durations. This feature allows you to easily work with data that includes size measurements (e.g., "1.5MB", "2GB") and time intervals (e.g., "500ms", "2.5h").
+
+### Supported Units
+
+#### Byte Size Units
+- B (Bytes)
+- KB (Kilobytes)
+- MB (Megabytes)
+- GB (Gigabytes)
+- TB (Terabytes)
+- PB (Petabytes)
+
+#### Time Duration Units
+- ns (Nanoseconds)
+- us (Microseconds)
+- ms (Milliseconds)
+- s (Seconds)
+- m (Minutes)
+- h (Hours)
+- d (Days)
+
+### Using the Aggregate Stats Directive
+
+The `aggregate-stats` directive allows you to aggregate byte sizes and time durations across rows. Here's the syntax:
+
+```
+aggregate-stats :size_column :time_column total_size_column total_time_column [output_size_unit] [output_time_unit]
+```
+
+Parameters:
+- `:size_column` - Column containing byte sizes (e.g., "1.5MB", "2GB")
+- `:time_column` - Column containing time durations (e.g., "500ms", "2.5h")
+- `total_size_column` - Name of the output column for total size
+- `total_time_column` - Name of the output column for total time
+- `output_size_unit` - (Optional) Unit for the output size (default: "MB")
+- `output_time_unit` - (Optional) Unit for the output time (default: "s")
+
+Example:
+```
+# Input data:
+# | data_size | response_time |
+# |-----------|---------------|
+# | 1.5MB     | 500ms        |
+# | 2.5MB     | 750ms        |
+# | 1MB       | 250ms        |
+
+# Directive:
+aggregate-stats :data_size :response_time total_size total_time MB s
+
+# Output:
+# | total_size | total_time |
+# |------------|------------|
+# | 5.0        | 1.5        |
+```
+
+The directive automatically handles mixed units in the input data, converting everything to a common base unit (bytes for sizes, nanoseconds for times) before aggregating and then converting to the requested output units.
 
 ## Contact
 
@@ -216,3 +274,60 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+# Wrangler
+
+A data preparation tool for cleaning, transforming, and preparing data for analysis.
+
+## Unit Parsers
+
+### Byte Size Parser
+The byte size parser supports the following units:
+- B (bytes)
+- KB (kilobytes)
+- MB (megabytes)
+- GB (gigabytes)
+- TB (terabytes)
+- PB (petabytes)
+
+Example usage:
+```
+1B    // 1 byte
+1KB   // 1 kilobyte
+1MB   // 1 megabyte
+1GB   // 1 gigabyte
+1TB   // 1 terabyte
+1PB   // 1 petabyte
+```
+
+### Time Duration Parser
+The time duration parser supports the following units:
+- ns (nanoseconds)
+- us (microseconds)
+- ms (milliseconds)
+- s (seconds)
+- m (minutes)
+- h (hours)
+- d (days)
+
+Example usage:
+```
+1ns   // 1 nanosecond
+1us   // 1 microsecond
+1ms   // 1 millisecond
+1s    // 1 second
+1m    // 1 minute
+1h    // 1 hour
+1d    // 1 day
+```
+
+### Usage in Directives
+Both byte size and time duration values can be used in directives for data transformation and aggregation:
+
+```
+// Aggregate byte sizes
+aggregate-stats :column1 sum as total_size;
+
+// Aggregate time durations
+aggregate-stats :column2 average as avg_duration;
+```

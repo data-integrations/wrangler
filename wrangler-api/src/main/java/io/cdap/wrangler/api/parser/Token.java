@@ -53,7 +53,7 @@ public interface Token extends Serializable {
    * The class implementing this interface will return the {@code JsonElement}
    * instance including the values of the object.
    *
-   * @return {@code JsonElement} object containing members of  implementing class.
+   * @return {@code JsonElement} object containing members of implementing class.
    */
   JsonElement toJson();
 }

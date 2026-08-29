@@ -1,0 +1,26 @@
+AI Prompts Used During Development
+
+1. Grammar Implementation
+- Prompt: "Check and update grammar file for BYTE_SIZE and TIME_DURATION tokens"
+- Purpose: To verify and enhance the grammar definitions for byte size and time duration parsing
+- Result: Confirmed proper implementation of token definitions in Directives.g4
+
+2. Lexer Test Implementation
+- Prompt: "Create DirectivesLexerTest for testing byte size and time duration tokens"
+- Purpose: To implement comprehensive tests for token parsing
+- Result: Created test cases for valid and invalid formats of both token types
+
+3. Documentation Updates
+- Prompt: "Update README.md with unit parser documentation"
+- Purpose: To provide clear documentation about the new unit parsers
+- Result: Added detailed sections about byte size and time duration parsers with examples
+
+4. Integration Testing
+- Prompt: "Verify AggregateStats directive with new token types"
+- Purpose: To ensure proper integration of new tokens with existing functionality
+- Result: Confirmed working implementation through test cases
+
+5. Code Review
+- Prompt: "Review implementation for coding standards and error handling"
+- Purpose: To verify code quality and robustness
+- Result: Confirmed proper implementation of error handling and adherence to coding standards 
