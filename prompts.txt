@@ -1,0 +1,89 @@
+# prompts.txt - Essential AI Assistance for Wrangler Project
+==============================================================================
+
+# Step 0: Understanding the Assignment
+--------------------------------------
+
+How can I enhance the CDAP Wrangler library to support byte size and time duration parsing?
+
+# Step 1: Modifying Directives.g4
+---------------------------------
+
+How do I add ByteSize and TimeDuration tokens to Directives.g4?
+
+What regex pattern should I use to recognize inputs like "10KB" and "5s" in ANTLR4?
+
+# Step 2: Implementing ByteSize.java
+------------------------------------
+
+How do I create a class that parses and converts between byte units (B, KB, MB, GB, TB, PB)?
+
+My regex isn't matching "5KB" correctly:
+  private static final Pattern SIZE_PATTERN = Pattern.compile("^(\\d+)(KB|MB|GB|TB|PB)$");
+How should I fix it?
+
+# Step 3: Implementing TimeDuration.java
+----------------------------------------
+
+How do I implement a TimeDuration class that handles values like "100ms", "5s", "2m", "1h"?
+
+What's the correct conversion between different time units (ms, s, m, h, d, w)?
+
+# Step 4: Updating RecipeVisitor
+--------------------------------
+
+How do I modify RecipeVisitor to handle ByteSize and TimeDuration tokens?
+
+# Step 5: Implementing Aggregate-Stats Directive
+-----------------------------------------------
+
+How do I create a directive that aggregates ByteSize and TimeDuration values across rows?
+
+How do I implement "sum" and "avg" aggregation types for my directive?
+
+I'm getting a NullPointerException in my aggregate-stats directive when trying to process:
+  long sizeBytes = new ByteSize(sizeVal.toString()).getBytes();
+How do I handle null values safely?
+
+# Step 6: Writing Tests
+----------------------
+
+What tests should I write to verify ByteSize correctly parses "1KB", "5MB", and "2.5GB"?
+
+What tests should I write for TimeDuration to verify it handles "100ms", "5s", "2m" correctly?
+
+# Step 7: Documentation
+----------------------
+
+How should I document my new ByteSize and TimeDuration parsers in the README?
+
+What should I include in the documentation for the aggregate-stats directive?
+
+# Error Rectification
+--------------------
+
+I'm getting a conversion error with TB units:
+  Expected: 1099511627776 (1TB)
+  Actual: 1000000000000
+How do I fix my byte unit conversion?
+
+I'm getting this ANTLR error when running the build:
+  error(119): Directives.g4:252:5: The following sets of rules are mutually left-recursive [value]
+How do I fix this grammar issue?
+
+When running my unit tests I get this error:
+  java.lang.ArithmeticException: long overflow
+      at java.base/java.lang.Math.multiplyExact(Math.java:967)
+      at io.cdap.wrangler.api.parser.TimeDuration.parseDuration(TimeDuration.java:89)
+How do I prevent overflow with very large time values?
+
+Maven build is failing with this error:
+  [ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.8.1:testCompile (default-testCompile) on project wrangler-core: Compilation failure
+  [ERROR] /path/to/project/wrangler-core/src/test/java/io/cdap/wrangler/parser/ByteSizeTest.java:[35,16] cannot find symbol
+  [ERROR]   symbol:   method getBytes()
+How do I add the missing method to my ByteSize class?
+
+My regex isn't matching values with spaces like "5 KB":
+  IllegalArgumentException: Invalid byte size format: 5 KB
+How do I modify my regex to handle optional spaces?
+

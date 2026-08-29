@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | ByteSize
+    | TimeDuration
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -247,6 +249,33 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
+
+ByteSize
+ : Int ('.' Digit*)? ByteUnit
+ ;
+
+TimeDuration
+ : Int ('.' Digit*)? TimeUnit
+ ;
+
+fragment
+ByteUnit
+ : [kK][bB] // Kilobyte
+ | [mM][bB] // Megabyte
+ | [gG][bB] // Gigabyte
+ | [tT][bB] // Terabyte
+ | [pP][bB] // Petabyte
+ | [bB]     // Byte
+ ;
+
+fragment
+TimeUnit
+ : [mM][sS]     // Millisecond
+ | [sS]         // Second
+ | [mM]         // Minute
+ | [hH]         // Hour
+ | [dD]         // Day
+ ;
 
 Bool
  : 'true'

@@ -22,6 +22,35 @@ are manually created.
 
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
+  * **Byte Size and Time Duration Parsers**: Data Prep now natively supports parsing values with byte size units (KB, MB, GB) and time duration units (ms, s, m, h, d) directly in your directives. These new parsers enable easy handling and conversion of data size and time values without complex multi-step calculations.
+  
+    * **ByteSize parser**:
+      * Automatically detects and parses values like "10KB", "5MB", "2.5GB", "1TB", "3PB"
+      * Standardizes all values to bytes internally for consistent calculation
+      * Supports common size units: B (bytes), KB (kilobytes), MB (megabytes), GB (gigabytes), TB (terabytes), PB (petabytes)
+      * Provides utility methods to convert between different units: bytes, KB, MB, GB, TB, PB
+      * Example usage: `parse-as-bytesize :column_name` or directly via tokens like `10KB` in directives
+
+    * **TimeDuration parser**:
+      * Parses time values like "100ms", "5s", "2m", "1h", "3d", "1w" 
+      * Standardizes all values to milliseconds internally for consistent calculation
+      * Supports common time units: ns (nanoseconds), us (microseconds), ms (milliseconds), s (seconds), m (minutes), h (hours), d (days), w (weeks)
+      * Provides utility methods to convert between different time units
+      * Example usage: `parse-as-timeduration :column_name` or directly via tokens like `5s` in directives
+
+    * **aggregate-stats directive**:
+      * New directive that leverages the ByteSize and TimeDuration parsers
+      * Aggregates data size and time duration values across multiple rows
+      * Automatically converts between different units
+      * Supports multiple aggregation methods: sum (default), average
+      * Usage syntax: `aggregate-stats :size_column :time_column target_size_column target_time_column [size_unit] [time_unit] [aggregation_type]`
+      * Example: `aggregate-stats :data_size :response_time total_size_mb avg_time_s MB s avg` - Calculates the average data size in MB and average response time in seconds
+
+    * **Documentation**: Detailed documentation for these new features is available in the following files (these files need to be created as part of this assignment):
+      * [Parse as ByteSize](wrangler-docs/directives/parse-as-bytesize.md)
+      * [Parse as TimeDuration](wrangler-docs/directives/parse-as-timeduration.md)
+      * [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)
+
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
@@ -83,6 +112,8 @@ These directives are currently available:
 | [Parse XML To JSON](wrangler-docs/directives/parse-xml-to-json.md)              | Parses an XML document into a JSON structure                     |
 | [Parse as Currency](wrangler-docs/directives/parse-as-currency.md)              | Parses a string representation of currency into a number.        |
 | [Parse as Datetime](wrangler-docs/directives/parse-as-datetime.md)              | Parses strings with datetime values to CDAP datetime type        |
+| [Parse as ByteSize](wrangler-docs/directives/parse-as-bytesize.md)              | Parses strings with byte units (KB, MB, GB, etc.) into ByteSize type |
+| [Parse as TimeDuration](wrangler-docs/directives/parse-as-timeduration.md)      | Parses strings with time units (ms, s, m, h, d) into TimeDuration type |
 | **Output Formatters**                                                  |                                                                  |
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
@@ -157,6 +188,7 @@ These directives are currently available:
 | **Transient Aggregators & Setters**                                    |                                                                  |
 | [Increment Variable](wrangler-docs/directives/increment-variable.md)            | Increments a transient variable with a record of processing.     |
 | [Set Variable](wrangler-docs/directives/set-variable.md)                        | Sets a transient variable with a record of processing.     |
+| [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)                  | Aggregates byte size and time duration values across multiple records. |
 | **Functions**                                                          |                                                                  |
 | [Data Quality](wrangler-docs/functions/dq-functions.md)                         | Data quality check functions. Checks for date, time, etc.        |
 | [Date Manipulations](wrangler-docs/functions/date-functions.md)                 | Functions that can manipulate date                               |
@@ -216,3 +248,52 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+## Zeotap Assignment: Byte Size and Time Duration Units Parsers
+
+This repository has been enhanced as part of a Zeotap assignment to add support for byte size and time duration units parsers to the CDAP Wrangler library. The following components were implemented:
+
+### 1. Grammar Modifications
+- Added BYTE_SIZE and TIME_DURATION token types to the Directives.g4 grammar file
+- Integrated these tokens into relevant parser rules for use in directives
+- Modified grammar to support parsing values like "10KB" and "100ms" directly
+
+### 2. API Updates
+- Created the ByteSize.java class to handle data sizes with units (B, KB, MB, GB, TB, PB)
+- Created the TimeDuration.java class to handle time durations with units (ns, us, ms, s, m, h, d, w)
+- Added corresponding token types to the TokenType enum
+- Implemented methods for converting between different units
+
+### 3. Core Parser Updates
+- Updated the RecipeVisitor to handle the new token types
+- Modified the parser to properly extract and handle ByteSize and TimeDuration tokens
+- Added support for token group handling
+
+### 4. New Directive Implementation
+- Created the AggregateSizeDuration directive that aggregates byte size and time duration values
+- Implemented support for different aggregation types (sum, average)
+- Added functionality to convert to different output units
+- Created a proper finalization method to generate the aggregated result
+
+### 5. Testing
+- Added comprehensive unit tests for ByteSize and TimeDuration classes
+- Created test cases for the aggregate-stats directive
+- Verified proper parsing and aggregation of values with different units
+
+### 6. Documentation
+- Updated the README with information about the new features
+- Created detailed documentation for each new component:
+  - [Parse as ByteSize](wrangler-docs/directives/parse-as-bytesize.md)
+  - [Parse as TimeDuration](wrangler-docs/directives/parse-as-timeduration.md)
+  - [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)
+
+### Usage Example
+
+```
+// Sample recipe using the new features
+parse-as-bytesize :data_size
+parse-as-timeduration :response_time
+aggregate-stats :data_size :response_time total_size_mb avg_time_s MB s avg
+```
+
+This recipe parses the data_size column as byte sizes and the response_time column as time durations, then aggregates them to calculate the average data size in megabytes and the average response time in seconds.

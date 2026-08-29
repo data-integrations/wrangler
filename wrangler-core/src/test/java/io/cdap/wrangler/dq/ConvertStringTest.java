@@ -180,6 +180,10 @@ public class ConvertStringTest {
       + "\u2028\u2028h\u2029\u2029i\u202F\u202Fj\u205F\u205Fk\u3000\u3000l";
     cleanStr = convertString.removeRepeatedWhitespaces(input);
     Assert.assertEquals("a\u2005b\u2006c\u2007d\u2008e\u2009f\u200Ag\u2028h\u2029i\u202Fj\u205Fk\u3000l", cleanStr); 
+
+    input = "a?b c?d??e?f?g?h?i?";
+    cleanStr = convertString.removeRepeatedWhitespaces(input);
+    Assert.assertEquals("a?b c?d??e?f?g?h?i?", cleanStr); 
   }
 
   @Test

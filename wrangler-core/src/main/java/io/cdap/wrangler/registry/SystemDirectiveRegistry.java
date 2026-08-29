@@ -56,8 +56,16 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
     try {
       INSTANCE = new SystemDirectiveRegistry();
     } catch (DirectiveLoadException e) {
+      // Add more detailed error information
+      System.err.println("Failed to load system directives. Error: " + e.getMessage());
+      e.printStackTrace();
       // This shouldn't happen
       throw new RuntimeException("Failed to load system directives", e);
+    } catch (Exception e) {
+      // Catch any other exceptions that might be occurring
+      System.err.println("Unexpected error loading directives: " + e.getMessage());
+      e.printStackTrace();
+      throw new RuntimeException("Unexpected error initializing directives", e);
     }
   }
 
@@ -85,11 +93,19 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
         Reflections reflections = new Reflections(namespace);
         Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
         for (Class<? extends Directive> directive : system) {
-          DirectiveInfo info = DirectiveInfo.fromSystem(directive);
-          registry.put(info.name(), info);
+          try {
+            DirectiveInfo info = DirectiveInfo.fromSystem(directive);
+            registry.put(info.name(), info);
+          } catch (Exception e) {
+            // Log the error but continue processing other directives
+            System.err.println("Failed to load directive class: " + directive.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+          }
         }
-      } catch (InstantiationException | IllegalAccessException e) {
-        throw new DirectiveLoadException(e.getMessage(), e);
+      } catch (Exception e) {
+        System.err.println("Error scanning namespace: " + namespace + ": " + e.getMessage());
+        e.printStackTrace();
+        throw new DirectiveLoadException("Error scanning namespace: " + namespace, e);
       }
     }
     this.registry = Collections.unmodifiableMap(registry);
