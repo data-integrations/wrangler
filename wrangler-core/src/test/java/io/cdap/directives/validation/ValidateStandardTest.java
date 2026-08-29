@@ -50,31 +50,32 @@ import static org.junit.Assert.assertTrue;
 public class ValidateStandardTest {
 
   private static Map<String, Standard> getSpecsInArchive()
-    throws IOException, NoSuchAlgorithmException {
-    Map<String, Standard> schemas = new HashMap<>();
-    CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
-    if (src != null) {
-      File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
+  throws IOException, NoSuchAlgorithmException {
+  Map<String, Standard> schemas = new HashMap<>();
+  CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
+  if (src != null) {
+    File schemasRoot =
+      new File(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH);
 
-      if (!schemasRoot.isDirectory()) {
-        throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
-      }
-
-      for (File f : schemasRoot.listFiles()) {
-        if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
-          continue;
-        }
-
-        String hash = calcHash(new FileInputStream(f));
-        schemas.put(
-          FilenameUtils.getBaseName(f.getName()),
-          new Standard(hash, FilenameUtils.getExtension(f.getName())));
-      }
+    if (!schemasRoot.isDirectory()) {
+      throw new IOException(
+        String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
     }
 
-    return schemas;
+    for (File f : schemasRoot.listFiles()) {
+      if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
+        continue;
+      }
+
+      String hash = calcHash(new FileInputStream(f));
+      schemas.put(
+        FilenameUtils.getBaseName(f.getName()),
+        new Standard(hash, FilenameUtils.getExtension(f.getName())));
+    }
+  }
+
+  return schemas;
+
   }
 
   private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
