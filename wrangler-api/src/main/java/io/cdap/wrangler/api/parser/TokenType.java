@@ -30,6 +30,7 @@ import java.io.Serializable;
  *
  * @see Bool
  * @see BoolList
+ * @see ByteSize
  * @see ColumnName
  * @see ColumnNameList
  * @see DirectiveName
@@ -40,6 +41,7 @@ import java.io.Serializable;
  * @see Expression
  * @see Text
  * @see TextList
+ * @see TimeDuration
  */
 @PublicEvolving
 public enum TokenType implements Serializable {
@@ -152,5 +154,25 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents the enumerated type for the object of type {@code ByteSize} type.
+   * This type is associated with a value followed by a byte unit (B, KB, MB, GB, TB).
+   * E.g.
+   * <code>
+   *   10KB, 1.5MB, 2GB
+   * </code>
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of type {@code TimeDuration} type.
+   * This type is associated with a value followed by a time unit (ns, ms, s, min, h, d).
+   * E.g.
+   * <code>
+   *   150ms, 2.5s, 10min
+   * </code>
+   */
+  TIME_DURATION
 }
