@@ -27,6 +27,16 @@
 
   <dependencies>
     <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client</artifactId>
+        <version>6.9.2</version> <!-- Use latest stable version -->
+    </dependency>
+    <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-model-core</artifactId>
+        <version>6.9.2</version>
+    </dependency>
+    <dependency>
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
