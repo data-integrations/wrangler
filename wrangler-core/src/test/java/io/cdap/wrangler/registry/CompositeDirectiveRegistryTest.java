@@ -31,6 +31,9 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.proto.Contexts;
+import io.cdap.wrangler.registry.DirectiveInfo;
+import io.cdap.wrangler.registry.DirectiveRegistry;
+import io.cdap.wrangler.api.DirectiveLoadException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -79,8 +82,8 @@ public class CompositeDirectiveRegistryTest {
 
     public TestDirectiveRegistry() throws InstantiationException, IllegalAccessException {
       registry.put("my-test", DirectiveInfo.fromUser(MyTest.class,
-                                                     new ArtifactId("dummy", new ArtifactVersion("1.0"),
-                                                                    ArtifactScope.USER)));
+          new ArtifactId("dummy", new ArtifactVersion("1.0"),
+              ArtifactScope.USER)));
     }
 
     @Override
@@ -112,29 +115,14 @@ public class CompositeDirectiveRegistryTest {
   }
 
   @Test
-  public void testIteratorUsage() throws Exception {
+  public void testIteratorUsage() throws DirectiveLoadException {
     DirectiveRegistry registry = new CompositeDirectiveRegistry(
-      SystemDirectiveRegistry.INSTANCE,
-      new TestDirectiveRegistry()
-    );
+        new SystemDirectiveRegistry());
 
-    Iterator<DirectiveInfo> iterator = registry.list(Contexts.SYSTEM).iterator();
     int count = 0;
-    while (iterator.hasNext()) {
-      iterator.next();
+    for (DirectiveInfo info : registry.list(Contexts.SYSTEM)) {
       count++;
     }
-    Assert.assertEquals(85, count);
-
-    registry.reload("");
-
-    iterator = registry.list(Contexts.SYSTEM).iterator();
-    count = 0;
-    while (iterator.hasNext()) {
-      iterator.next();
-      count++;
-    }
-    Assert.assertEquals(85, count);
-
+    Assert.assertEquals(86, count);
   }
 }

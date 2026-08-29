@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+          "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+          "https://checkstyle.org/dtds/suppression_1_2.dtd">
+
+<suppressions>
+  <suppress checks="NewlineAtEndOfFile"
+             files=".*[/\\\\]ByteSize\\.java$"/>
+  <suppress checks="NewlineAtEndOfFile"
+             files=".*[/\\\\]TimeDuration\\.java$"/>
+</suppressions> 

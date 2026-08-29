@@ -24,6 +24,7 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Arrays;
 
 public class FormatDateTimeTest {
 
@@ -73,5 +74,21 @@ public class FormatDateTimeTest {
     final List<Row> results = TestingRig.execute(directives, Collections.singletonList(row1));
     //should be error collected
     Assert.assertTrue(results.isEmpty());
+  }
+
+  @Test
+  public void testDateTimeFormatsWithConsistentAMPM() throws Exception {
+    String[] directives = new String[] {
+      "parse-as-datetime :col1 'MM/dd/yyyy HH:mm'",
+      "format-datetime :col1 'yyyyMMdd h:mm a'"
+    };
+
+    List<Row> rows = Arrays.asList(
+      new Row("col1", "08/22/2000 20:36")
+    );
+
+    rows = TestingRig.execute(directives, rows);
+    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals("20000822 8:36 PM", rows.get(0).getValue("col1"));
   }
 }
