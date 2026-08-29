@@ -1,0 +1,11 @@
+
+
+I want to add a aggregation directive that converts data units in bytes size like 10kb to bytes help me understand the lifecycle for this.
+
+/Users/kunal/Downloads/web/wrangler/wrangler/wrangler-core/src/main/java/io/cdap/wrangler/parser/RecipeVisitor.java:[357,26] cannot find symbol
+[ERROR]   symbol:   class ByteSize debug this error.
+
+I used couple of prompts for debugging.
+
+
+
