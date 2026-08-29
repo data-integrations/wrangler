@@ -39,7 +39,7 @@ public class SetTypeTest {
   public void testToInt() throws Exception {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{0, 0, 39, 16}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
@@ -63,7 +63,7 @@ public class SetTypeTest {
   public void testToShort() throws Exception {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{39, 16}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
@@ -77,7 +77,7 @@ public class SetTypeTest {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Short);
       Short value = (Short) object;
-      Assert.assertTrue(value.equals(new Short("10000")));
+      Assert.assertTrue(value.equals(Short.valueOf("10000")));
     }
   }
 
@@ -85,7 +85,7 @@ public class SetTypeTest {
   public void testToLong() throws Exception {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.0d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{0, 0, 0, 0 , 0, 0, 39, 16}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
@@ -107,7 +107,7 @@ public class SetTypeTest {
   public void testToFloat() throws Exception {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", 10000.00d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{70, 28, 64, 0}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
@@ -121,7 +121,7 @@ public class SetTypeTest {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Float);
       Float value = (Float) object;
-      Assert.assertTrue(value.equals(new Float(10000)));
+      Assert.assertTrue(value.equals(Float.valueOf(10000)));
     }
   }
 
@@ -129,7 +129,7 @@ public class SetTypeTest {
   public void testToDouble() throws Exception {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000.00").add("int_col", 10000).add("double_col", 10000.00d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[]{64, -61, -120, 0, 0, 0, 0, 0}).add("decimal_col", new BigDecimal("10000"))
     );
     String[] directives = new String[] {
@@ -144,7 +144,7 @@ public class SetTypeTest {
       Object object = row.getValue(i);
       Assert.assertTrue(object instanceof Double);
       Double value = (Double) object;
-      Assert.assertTrue(value.equals(new Double(10000)));
+      Assert.assertTrue(value.equals(Double.valueOf(10000)));
     }
   }
 
@@ -283,14 +283,14 @@ public class SetTypeTest {
     List<Row> trueRows = Collections.singletonList(
       new Row("str_1", "true").add("str_2", "True").add("str_3", "TRUE")
         .add("int_col", 10000).add("double_col", 10000.00d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L)
         .add("float_col", 10000.0f).add("decimal_col", new BigDecimal("10000"))
         .add("true_col", true)
     );
     List<Row> falseRows = Collections.singletonList(
       new Row("str_1", "false").add("str_2", "False").add("str_3", "FALSE")
         .add("int_col", -10000).add("double_col", -10000.00d)
-        .add("short_col", new Short("-10000")).add("long_col", -10000L)
+        .add("short_col", Short.valueOf("-10000")).add("long_col", -10000L)
         .add("float_col", -10000.0f).add("decimal_col", new BigDecimal("10000").negate())
         .add("false_col", false)
     );
@@ -322,7 +322,7 @@ public class SetTypeTest {
     LocalDateTime now = LocalDateTime.now();
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000f)
         .add("bytes_col", new byte[]{49, 48, 48, 48, 48}).add("decimal_col", new BigDecimal("10000"))
         .add ("datetime_col", now)
     );
@@ -368,7 +368,7 @@ public class SetTypeTest {
   public void testToBytes() throws Exception {
     List<Row> rows = Collections.singletonList(
       new Row("str_col", "10000").add("int_col", 10000).add("double_col", 10000.00d)
-        .add("short_col", new Short("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
+        .add("short_col", Short.valueOf("10000")).add("long_col", 10000L).add("float_col", 10000.0f)
         .add("bytes_col", new byte[] {64, -61, -120, 0, 0, 0, 0, 0}).add("decimal_col", new BigDecimal("10000"))
     );
     byte[][] bytesResults = new byte[][] {
