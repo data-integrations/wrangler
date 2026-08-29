@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.security.MessageDigest;
@@ -50,12 +51,12 @@ import static org.junit.Assert.assertTrue;
 public class ValidateStandardTest {
 
   private static Map<String, Standard> getSpecsInArchive()
-    throws IOException, NoSuchAlgorithmException {
+          throws IOException, NoSuchAlgorithmException, URISyntaxException {
     Map<String, Standard> schemas = new HashMap<>();
     CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
     if (src != null) {
       File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
+        Paths.get(src.getLocation().toURI()).resolve( ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
 
       if (!schemasRoot.isDirectory()) {
         throw new IOException(

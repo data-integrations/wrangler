@@ -52,6 +52,11 @@ public class SetTransientVariableTest {
     final Map<String, Object> s = new HashMap<>();
     rows = TestingRig.execute(recipe, rows, new ExecutorContext() {
       @Override
+      public boolean isEndPartition() {
+        return false;
+      }
+
+      @Override
       public Environment getEnvironment() {
         return Environment.TESTING;
       }

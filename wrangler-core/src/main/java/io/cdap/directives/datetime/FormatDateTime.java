@@ -93,10 +93,12 @@ public class FormatDateTime implements Directive, Lineage {
 
       try {
         LocalDateTime localDateTime = (LocalDateTime) value;
-        row.setValue(idx, localDateTime.format(formatter));
+        // Apply the formatter to the datetime and convert AM/PM to uppercase
+        String formattedValue = localDateTime.format(formatter);
+        row.setValue(idx, formattedValue.toUpperCase());  // Convert the formatted value to uppercase
       } catch (DateTimeException exception) {
         throw new ErrorRowException(NAME, String.format("Error converting datetime %s to string with format %s",
-                                                        value.toString(), format), 2, exception);
+                value.toString(), format), 2, exception);
       }
     }
     return rows;
