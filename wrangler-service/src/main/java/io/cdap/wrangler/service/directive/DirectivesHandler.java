@@ -31,8 +31,15 @@ import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.cdap.proto.element.EntityType;
+import io.cdap.cdap.proto.id.NamespaceId;
+import io.cdap.cdap.proto.id.SystemAppEntityId;
+import io.cdap.cdap.proto.security.StandardPermission;
+import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
+import io.cdap.wrangler.proto.id.WorkspaceEntityId;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.SamplingMethod;
@@ -115,6 +122,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   private static final String DATA_MODEL_MODEL_PROPERTY = "dataModelModel";
 
   private DirectiveRegistry composite;
+  private ContextAccessEnforcer contextAccessEnforcer;
+  private boolean authEnforcementEnabled;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -123,6 +132,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       SystemDirectiveRegistry.INSTANCE,
       new UserDirectiveRegistry(context)
     );
+    contextAccessEnforcer = context.getContextAccessEnforcer();
+    authEnforcementEnabled = Feature.WRANGLER_DIRECTIVE_RECIPE_AUTH_CHECK.isEnabled(context);
   }
 
   /**
@@ -168,6 +179,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
                      @PathParam("id") String id, @QueryParam("name") String name,
                      @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.CREATE);
       String workspaceName = name == null || name.isEmpty() ? id : name;
 
       Map<String, String> properties = new HashMap<>();
@@ -211,6 +223,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
     respond(request, responder, namespace, ns -> {
+      enforceNamespaceParent(ns.getName(), StandardPermission.LIST);
       List<WorkspaceIdentifier> workspaces = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         return ws.listWorkspaces(ns, scope);
@@ -239,6 +252,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.DELETE);
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         ws.deleteWorkspace(new NamespacedId(ns, id));
@@ -267,6 +281,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace, @QueryParam("group") String group) {
     respond(request, responder, namespace, ns -> {
+      enforceNamespaceParent(ns.getName(), StandardPermission.DELETE);
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         ws.deleteScope(ns, group);
@@ -310,6 +325,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.GET);
       Workspace workspace = getWorkspace(new NamespacedId(ns, id));
       String name = workspace.getName();
       Request workspaceReq = workspace.getRequest();
@@ -367,6 +383,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("Name must be provided in the 'file' header");
       }
       NamespacedId id = new NamespacedId(ns, ServiceUtils.generateMD5(name));
+      enforceWorkspace(ns.getName(), id.getId(), StandardPermission.CREATE);
 
       return TransactionRunners.run(getContext(), context -> {
         // if workspace doesn't exist, then we create the workspace before
@@ -456,6 +473,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.USE);
       RequestExtractor handler = new RequestExtractor(request);
 
       // Extract charset, if not specified, default it to UTF-8.
@@ -547,6 +565,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.USE);
       composite.reload(namespace);
       try {
         RequestExtractor handler = new RequestExtractor(request);
@@ -598,6 +617,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void summary(HttpServiceRequest request, HttpServiceResponder responder,
                       @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.GET);
       try {
         composite.reload(namespace);
         RequestExtractor handler = new RequestExtractor(request);
@@ -628,6 +648,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.USE);
       composite.reload(namespace);
       RequestExtractor handler = new RequestExtractor(request);
       Request user = handler.getContent("UTF-8", Request.class);
@@ -666,12 +687,12 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
    * @param request Handler for incoming request.
    * @param responder Responder for data going out.
    * @param id Workspace to associate a data model.
-   */
-  @POST
+   */  @POST
   @Path("contexts/{context}/workspaces/{id}/datamodels")
   public void addDataModel(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.UPDATE);
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
       RequestExtractor handler = new RequestExtractor(request);
@@ -720,6 +741,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void removeDataModel(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.UPDATE);
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
       Map<String, String> properties = new HashMap<>(workspace.getProperties());
@@ -748,6 +770,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void addModels(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.UPDATE);
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
       RequestExtractor handler = new RequestExtractor(request);
@@ -805,9 +828,10 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/models/{modelid}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void removeModels(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("context") String namespace, @PathParam("id") String id,
-                           @PathParam("modelid") String modelId) {
+                            @PathParam("context") String namespace, @PathParam("id") String id,
+                            @PathParam("modelid") String modelId) {
     respond(request, responder, namespace, ns -> {
+      enforceWorkspace(ns.getName(), id, StandardPermission.UPDATE);
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
       Map<String, String> properties = new HashMap<>(workspace.getProperties());
@@ -837,7 +861,10 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("info")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void capabilities(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> new ServiceResponse<>(ProjectInfo.getProperties()));
+    respond(request, responder, () -> {
+      enforceSystemApp("dataprep", "service", "info", StandardPermission.GET);
+      return new ServiceResponse<>(ProjectInfo.getProperties());
+    });
   }
 
   /**
@@ -908,6 +935,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void artifacts(HttpServiceRequest request, HttpServiceResponder responder,
                         @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      enforceNamespaceParent(ns.getName(), StandardPermission.LIST);
       List<DirectiveArtifact> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
@@ -935,6 +963,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void directives(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      enforceNamespaceParent(ns.getName(), StandardPermission.LIST);
       List<DirectiveDescriptor> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
@@ -962,6 +991,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      enforceNamespaceParent(ns.getName(), StandardPermission.UPDATE);
       composite.reload(namespace);
       return new ServiceResponse<Void>("Successfully reloaded all user defined directives.");
     });
@@ -977,7 +1007,10 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("charsets")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void charsets(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> new ServiceResponse<>(Charset.availableCharsets().keySet()));
+    respond(request, responder, () -> {
+      enforceSystemApp("dataprep", "service", "charsets", StandardPermission.GET);
+      return new ServiceResponse<>(Charset.availableCharsets().keySet());
+    });
   }
 
   /**
@@ -991,6 +1024,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void uploadConfig(HttpServiceRequest request, HttpServiceResponder responder) {
     respond(request, responder, () -> {
+      enforceSystemApp("dataprep", "service", "config", StandardPermission.UPDATE);
       // Read the request body
       RequestExtractor handler = new RequestExtractor(request);
       DirectiveConfig config = handler.getContent("UTF-8", DirectiveConfig.class);
@@ -1012,7 +1046,10 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("config")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> new ServiceResponse<>(configStore.getConfig()));
+    respond(request, responder, () -> {
+      enforceSystemApp("dataprep", "service", "config", StandardPermission.GET);
+      return new ServiceResponse<>(configStore.getConfig());
+    });
   }
 
   /**
@@ -1088,5 +1125,23 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       return executeDirectives(id.getNamespace().getName(), directives, sample.apply(rows),
                                grammarVisitor);
     });
+  }
+
+  private void enforceWorkspace(String namespace, String workspaceId, StandardPermission permission) {
+    if (authEnforcementEnabled) {
+      contextAccessEnforcer.enforce(new WorkspaceEntityId(namespace, workspaceId), permission);
+    }
+  }
+
+  private void enforceNamespaceParent(String namespace, StandardPermission permission) {
+    if (authEnforcementEnabled) {
+      contextAccessEnforcer.enforceOnParent(EntityType.SYSTEM_APP_ENTITY, new NamespaceId(namespace), permission);
+    }
+  }
+
+  private void enforceSystemApp(String appName, String type, String name, StandardPermission permission) {
+    if (authEnforcementEnabled) {
+      contextAccessEnforcer.enforce(new SystemAppEntityId(NamespaceId.SYSTEM.getNamespace(), appName, type, name), permission);
+    }
   }
 }

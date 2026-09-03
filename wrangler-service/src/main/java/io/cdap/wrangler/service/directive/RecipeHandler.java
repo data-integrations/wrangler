@@ -25,10 +25,16 @@ import io.cdap.cdap.api.metrics.Metrics;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.cdap.proto.element.EntityType;
+import io.cdap.cdap.proto.id.NamespaceId;
+import io.cdap.cdap.proto.security.StandardPermission;
+import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
 import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.BadRequestException;
+import io.cdap.wrangler.proto.id.RecipeEntityId;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeCreationRequest;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
@@ -56,6 +62,8 @@ public class RecipeHandler extends AbstractWranglerHandler {
   private static final Pattern RECIPE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9 ]*");
 
   private RecipeStore recipeStore;
+  private ContextAccessEnforcer contextAccessEnforcer;
+  private boolean authEnforcementEnabled;
 
   // Injected by CDAP
   @SuppressWarnings("unused")
@@ -67,6 +75,8 @@ public class RecipeHandler extends AbstractWranglerHandler {
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
     recipeStore = new RecipeStore(context);
+    contextAccessEnforcer = context.getContextAccessEnforcer();
+    authEnforcementEnabled = Feature.WRANGLER_DIRECTIVE_RECIPE_AUTH_CHECK.isEnabled(context);
   }
 
   @POST
@@ -76,6 +86,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
       RecipeId recipeId = RecipeId.builder(ns).build();
+      enforceRecipe(recipeId.getNamespace().getName(), recipeId.getRecipeId(), StandardPermission.CREATE);
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.createRecipe(recipeId, RecipeRow.builder(recipe).build());
       metrics.gauge(NUMBER_RECIPE_SAVED_METRIC, recipe.getDirectives().size());
@@ -91,6 +102,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
                         @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns -> {
       RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
+      enforceRecipe(id.getNamespace().getName(), id.getRecipeId(), StandardPermission.GET);
       responder.sendJson(recipeStore.getRecipeById(id));
     });
   }
@@ -102,7 +114,9 @@ public class RecipeHandler extends AbstractWranglerHandler {
                         @PathParam("context") String namespace,
                         @PathParam("recipe-name") String recipeName) {
     respond(responder, namespace, ns -> {
-      responder.sendJson(recipeStore.getRecipeByName(ns, recipeName));
+      enforceRecipe(ns.getName(), recipeName, StandardPermission.GET);
+      Recipe recipe = recipeStore.getRecipeByName(ns, recipeName);
+      responder.sendJson(recipe);
     });
   }
 
@@ -110,12 +124,16 @@ public class RecipeHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/recipes")
   public void listRecipes(HttpServiceRequest request, HttpServiceResponder responder,
-                          @PathParam("context") String namespace,
-                          @QueryParam("pageSize") Integer pageSize,
-                          @QueryParam("pageToken") String pageToken,
-                          @QueryParam("sortBy")String sortBy,
-                          @QueryParam("sortOrder") String sortOrder) {
+                           @PathParam("context") String namespace,
+                           @QueryParam("pageSize") Integer pageSize,
+                           @QueryParam("pageToken") String pageToken,
+                           @QueryParam("sortBy")String sortBy,
+                           @QueryParam("sortOrder") String sortOrder) {
     respond(responder, namespace, ns -> {
+      if (authEnforcementEnabled) {
+        contextAccessEnforcer.enforceOnParent(EntityType.SYSTEM_APP_ENTITY, new NamespaceId(ns.getName()),
+                                              StandardPermission.LIST);
+      }
       RecipePageRequest pageRequest = RecipePageRequest.builder(ns)
         .setPageSize(pageSize)
         .setPageToken(pageToken)
@@ -133,7 +151,9 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("context") String namespace,
                            @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns-> {
-      recipeStore.deleteRecipe(RecipeId.builder(ns).setRecipeId(recipeId).build());
+      RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
+      enforceRecipe(id.getNamespace().getName(), id.getRecipeId(), StandardPermission.DELETE);
+      recipeStore.deleteRecipe(id);
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
@@ -146,10 +166,17 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("recipe-id") String recipeIdString) {
     respond(responder, namespace, ns-> {
       RecipeId recipeId = RecipeId.builder(ns).setRecipeId(recipeIdString).build();
+      enforceRecipe(recipeId.getNamespace().getName(), recipeId.getRecipeId(), StandardPermission.UPDATE);
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.updateRecipe(recipeId, RecipeRow.builder(recipe).build());
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
+  }
+
+  private void enforceRecipe(String namespace, String recipeId, StandardPermission permission) {
+    if (authEnforcementEnabled) {
+      contextAccessEnforcer.enforce(new RecipeEntityId(namespace, recipeId), permission);
+    }
   }
 
   private void validateRecipeRequest(Recipe recipe) {
