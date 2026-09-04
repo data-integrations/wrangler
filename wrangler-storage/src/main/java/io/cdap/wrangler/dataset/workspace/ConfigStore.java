@@ -19,13 +19,13 @@ package io.cdap.wrangler.dataset.workspace;
 import com.google.gson.Gson;
 import io.cdap.cdap.spi.data.StructuredRow;
 import io.cdap.cdap.spi.data.StructuredTable;
-import io.cdap.cdap.spi.data.StructuredTableContext;
-import io.cdap.cdap.spi.data.TableNotFoundException;
 import io.cdap.cdap.spi.data.table.StructuredTableId;
 import io.cdap.cdap.spi.data.table.StructuredTableSpecification;
 import io.cdap.cdap.spi.data.table.field.Field;
 import io.cdap.cdap.spi.data.table.field.FieldType;
 import io.cdap.cdap.spi.data.table.field.Fields;
+import io.cdap.cdap.spi.data.transaction.TransactionRunner;
+import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.api.DirectiveConfig;
 
 import java.io.IOException;
@@ -54,32 +54,28 @@ public class ConfigStore {
     .withFields(new FieldType(KEY_COL, FieldType.Type.STRING), new FieldType(VAL_COL, FieldType.Type.STRING))
     .withPrimaryKeys(KEY_COL)
     .build();
-  private final StructuredTable table;
+  private final TransactionRunner transactionRunner;
 
-  public ConfigStore(StructuredTable table) {
-    this.table = table;
-  }
-
-  public static ConfigStore get(StructuredTableContext context) {
-    try {
-      StructuredTable table = context.getTable(TABLE_ID);
-      return new ConfigStore(table);
-    } catch (TableNotFoundException e) {
-      throw new IllegalStateException(String.format(
-        "System table '%s' does not exist. Please check your system environment.", TABLE_ID.getName()), e);
-    }
+  public ConfigStore(TransactionRunner transactionRunner) {
+    this.transactionRunner = transactionRunner;
   }
 
   public void updateConfig(DirectiveConfig config) throws IOException {
-    List<Field<?>> fields = new ArrayList<>(2);
-    fields.add(keyField);
-    fields.add(Fields.stringField(VAL_COL, GSON.toJson(config)));
-    table.upsert(fields);
+    TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+      List<Field<?>> fields = new ArrayList<>(2);
+      fields.add(keyField);
+      fields.add(Fields.stringField(VAL_COL, GSON.toJson(config)));
+      table.upsert(fields);
+    }, IOException.class);
   }
 
   public DirectiveConfig getConfig() throws IOException {
-    Optional<StructuredRow> row = table.read(Collections.singletonList(keyField));
-    String configStr = row.map(r -> r.getString(VAL_COL)).orElse("{}");
-    return GSON.fromJson(configStr, DirectiveConfig.class);
+    return TransactionRunners.run(transactionRunner, context -> {
+      StructuredTable table = context.getTable(TABLE_ID);
+      Optional<StructuredRow> row = table.read(Collections.singletonList(keyField));
+      String configStr = row.map(r -> r.getString(VAL_COL)).orElse("{}");
+      return GSON.fromJson(configStr, DirectiveConfig.class);
+    }, IOException.class);
   }
 }

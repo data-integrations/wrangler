@@ -86,6 +86,7 @@ import io.cdap.wrangler.utils.SchemaConverter;
 import io.cdap.wrangler.utils.StructuredToRowTransformer;
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -423,10 +424,12 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
       // check if the rows are empty before going to create a record schema, it will result in a 400 if empty fields
       // are passed to a record type schema
+      DirectiveConfig directiveConfig = getDirectiveConfig();
       Map<String, String> properties = ImmutableMap.of("directives", String.join("\n", directives),
                                                        "field", "*",
                                                        "precondition", "false",
-                                                       "workspaceId", workspaceId);
+                                                       "workspaceId", workspaceId,
+                                                       "directiveConfig", GSON.toJson(directiveConfig));
 
       Set<StageSpec> srcSpecs = getSourceSpecs(detail, directives);
 
@@ -581,7 +584,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
    */
   private <E extends Exception> List<Row> executeLocally(String namespace, List<String> directives,
                                    WorkspaceDetail detail, GrammarWalker.Visitor<E> grammarVisitor)
-    throws DirectiveLoadException, DirectiveParseException, E, RecipeException {
+    throws DirectiveLoadException, DirectiveParseException, E, RecipeException, IOException {
 
     // load the udd
     composite.reload(namespace);
@@ -607,7 +610,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     Map<String, DirectiveClass> systemDirectives = new HashMap<>();
 
     // Gather system directives and call additional visitor.
-    GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(DirectiveConfig.EMPTY));
+    DirectiveConfig config = getDirectiveConfig();
+    GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), new ConfigDirectiveContext(config));
     AtomicBoolean hasDirectives = new AtomicBoolean();
     walker.walk(recipe, (command, tokenGroup) -> {
       DirectiveInfo info = SystemDirectiveRegistry.INSTANCE.get(command);
@@ -625,7 +629,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
 
     RemoteDirectiveRequest directiveRequest = new RemoteDirectiveRequest(recipe, systemDirectives,
                                                                          namespace, detail.getSampleAsBytes(),
-                                                                         TRANSIENT_STORE.get(INPUT_SCHEMA));
+                                                                         TRANSIENT_STORE.get(INPUT_SCHEMA),
+                                                                         config);
     RunnableTaskRequest runnableTaskRequest = RunnableTaskRequest.getBuilder(RemoteExecutionTask.class.getName())
       .withParam(GSON.toJson(directiveRequest))
       .withNamespace(namespace)
