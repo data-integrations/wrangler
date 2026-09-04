@@ -60,6 +60,11 @@
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-api</artifactId>
       <version>${cdap.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.cdap.cdap</groupId>
+      <artifactId>cdap-features</artifactId>
+      <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

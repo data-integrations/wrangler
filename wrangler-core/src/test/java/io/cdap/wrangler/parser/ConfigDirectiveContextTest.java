@@ -62,7 +62,7 @@ public class ConfigDirectiveContextTest {
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     directives.parse();
   }
 
@@ -77,7 +77,7 @@ public class ConfigDirectiveContextTest {
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     directives.parse();
   }
 
@@ -92,7 +92,7 @@ public class ConfigDirectiveContextTest {
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
@@ -108,7 +108,7 @@ public class ConfigDirectiveContextTest {
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }
@@ -124,7 +124,7 @@ public class ConfigDirectiveContextTest {
 
     RecipeParser directives = new GrammarBasedParser(Contexts.SYSTEM, text,
                                                      new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE),
-                                                     new ConfigDirectiveContext(config));
+                                                     new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
   }

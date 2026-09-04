@@ -33,6 +33,7 @@ import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.expression.CompileOptions;
 import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
@@ -70,7 +71,7 @@ public class Fail implements Directive, Lineage {
     }
     condition = expression.value();
     try {
-      el = EL.compile(condition);
+      el = EL.compile(condition, CompileOptions.fromArguments(args));
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

@@ -17,18 +17,26 @@
 package io.cdap.wrangler.api;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
- * This class {@link DirectiveConfig} defines the configuration for the Wrangler.
+ * This class {@link DirectiveConfig} defines the configuration for the
+ * Wrangler.
  * It specifies the directive exclusions -- meaning directives that should
  * not be accessible to the users and as well as directive aliases.
  *
@@ -42,18 +50,81 @@ import java.util.Set;
  *  "aliases" : {
  *      "json-parser" : "parse-as-json",
  *      "js-parser" : "parse-as-json"
+ *   },
+ *   "jexlAllowlist" : [
+ *     {
+ *       "className": "java.lang.Runtime",
+ *       "methods": ["*"],
+ *       "properties": ["*"]
  *   }
+ *   ]
  *  }
  */
 @Deprecated
 public final class DirectiveConfig {
   public static final DirectiveConfig EMPTY = new DirectiveConfig();
-  // RecipeParser to be excluded or made non-accessible.
-  private final Set<String> exclusions = new HashSet<>();
+  private static final String EXCLUSIONS_KEY = "exclusions";
+  private static final String ALIASES_KEY = "aliases";
+  public static final String JEXL_ALLOWLIST_KEY = "jexlAllowlist";
 
-  // RecipeParser to be aliased.
-  private final Map<String, String> aliases = new HashMap<>();
+  private final Set<String> exclusions;
+  private final Map<String, String> aliases;
+  private final List<JexlAllowlist> jexlAllowlist;
 
+  public DirectiveConfig() {
+    this(Collections.emptySet(), Collections.emptyMap(), Collections.emptyList());
+  }
+
+  public DirectiveConfig(@Nullable Set<String> exclusions,
+                         @Nullable Map<String, String> aliases,
+                         @Nullable List<JexlAllowlist> jexlAllowlist) {
+    this.exclusions = exclusions == null ? new HashSet<>() : new HashSet<>(exclusions);
+    this.aliases = aliases == null ? new HashMap<>() : new HashMap<>(aliases);
+    this.jexlAllowlist = jexlAllowlist == null ? null : new ArrayList<>(jexlAllowlist);
+  }
+
+  /**
+   * Custom GSON adapter for {@link DirectiveConfig}.
+   */
+  public static final class DirectiveConfigDeserializer implements JsonDeserializer<DirectiveConfig> {
+
+    @Override
+    public DirectiveConfig deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        throws JsonParseException {
+
+      JsonObject jsonObject = json.getAsJsonObject();
+
+      Set<String> exclusions = Collections.emptySet();
+      if (jsonObject.has(EXCLUSIONS_KEY) && !jsonObject.get(EXCLUSIONS_KEY).isJsonNull()) {
+        exclusions = context.deserialize(jsonObject.get(EXCLUSIONS_KEY), 
+                                         new TypeToken<HashSet<String>>() { }.getType());
+      }
+
+      Map<String, String> aliases = Collections.emptyMap();
+      if (jsonObject.has(ALIASES_KEY) && !jsonObject.get(ALIASES_KEY).isJsonNull()) {
+        aliases = context.deserialize(jsonObject.get(ALIASES_KEY), 
+                                      new TypeToken<HashMap<String, String>>() { }.getType());
+      }
+
+      List<JexlAllowlist> jexlAllowlist = null;
+      if (jsonObject.has(JEXL_ALLOWLIST_KEY) && !jsonObject.get(JEXL_ALLOWLIST_KEY).isJsonNull()) {
+        jexlAllowlist = context.deserialize(jsonObject.get(JEXL_ALLOWLIST_KEY), 
+                                            new TypeToken<List<JexlAllowlist>>() { }.getType());
+      }
+
+      return new DirectiveConfig(exclusions, aliases, jexlAllowlist);
+    }
+  }
+
+  /**
+   * Gets the list of JEXL inclusions.
+   *
+   * @return the list of JEXL inclusions
+   */
+  @Nullable
+  public List<JexlAllowlist> getJexlAllowlist() {
+    return jexlAllowlist == null ? null : Collections.unmodifiableList(jexlAllowlist);
+  }
 
   /**
    * Checks if a directive is aliased.
@@ -108,8 +179,9 @@ public final class DirectiveConfig {
   public JsonElement toJson() {
     Gson gson = new Gson();
     JsonObject object = new JsonObject();
-    object.add("exclusions", gson.toJsonTree(exclusions));
-    object.add("aliases", gson.toJsonTree(aliases));
+    object.add(EXCLUSIONS_KEY, gson.toJsonTree(exclusions));
+    object.add(ALIASES_KEY, gson.toJsonTree(aliases));
+    object.add(JEXL_ALLOWLIST_KEY, gson.toJsonTree(jexlAllowlist));
     return object;
   }
 }
