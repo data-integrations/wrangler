@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
@@ -52,12 +53,15 @@ import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.api.JexlAllowlist;
+import io.cdap.wrangler.api.JexlAllowlistDeserializer;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.RecipeSymbol;
@@ -111,8 +115,10 @@ import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE_NAME;
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements LinearRelationalTransform {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
-  private static final Gson GSON = new Gson();
-
+  private static final Gson GSON = new GsonBuilder()
+      .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
+      .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .create();
   private static final String ON_ERROR_DEFAULT = "fail-pipeline";
   private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
   private static final String ON_ERROR_PROCEED = "send-to-error-port";
@@ -237,7 +243,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
             // service/arguments are not yet available. DirectiveConfig.EMPTY is used for
             // compile-time
             // grammar validation.
-            DirectiveContext directiveContext = new ConfigDirectiveContext(DirectiveConfig.EMPTY);
+            DirectiveContext directiveContext = new ConfigDirectiveContext(DirectiveConfig.EMPTY, false);
             GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), directiveContext);
             walker.walk(new MigrateToV2(directives).migrate(), (command, tokenGroup) -> {
               DirectiveInfo directiveInfo = registry.get("", command);
@@ -582,7 +588,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     }
 
     DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
-    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig);
+    boolean jexlAllowlistEnabled = context != null && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
+    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig, jexlAllowlistEnabled);
 
     return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
                                   registry, directiveContext);

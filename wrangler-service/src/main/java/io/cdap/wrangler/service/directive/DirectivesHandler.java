@@ -39,7 +39,10 @@ import io.cdap.wrangler.SamplingMethod;
 import io.cdap.wrangler.ServiceUtils;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.JexlAllowlist;
+import io.cdap.wrangler.api.JexlAllowlistDeserializer;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
 import io.cdap.wrangler.dataset.workspace.ConfigStore;
@@ -107,8 +110,11 @@ import javax.ws.rs.QueryParam;
 @Deprecated
 public class DirectivesHandler extends AbstractDirectiveHandler {
   private static final Logger LOG = LoggerFactory.getLogger(DirectivesHandler.class);
-  private static final Gson GSON =
-    new GsonBuilder().registerTypeAdapter(Schema.class, new SchemaTypeAdapter()).create();
+  private static final Gson GSON = new GsonBuilder()
+      .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
+      .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
+      .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .create();
 
   private static final String DATA_MODEL_PROPERTY = "dataModel";
   private static final String DATA_MODEL_REVISION_PROPERTY = "dataModelRevision";
@@ -165,8 +171,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void create(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
-                     @PathParam("id") String id, @QueryParam("name") String name,
-                     @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
+      @PathParam("id") String id, @QueryParam("name") String name,
+      @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
       String workspaceName = name == null || name.isEmpty() ? id : name;
 
@@ -174,9 +180,9 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       properties.put(PropertyIds.NAME, workspaceName);
       NamespacedId workspaceId = new NamespacedId(ns, id);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(workspaceName)
-        .setScope(scope)
-        .setProperties(properties)
-        .build();
+          .setScope(scope)
+          .setProperties(properties)
+          .build();
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
         ws.writeWorkspaceMeta(workspaceId, workspaceMeta);
@@ -209,7 +215,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
-                   @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
+      @PathParam("context") String namespace, @QueryParam("scope") @DefaultValue("default") String scope) {
     respond(request, responder, namespace, ns -> {
       List<WorkspaceIdentifier> workspaces = TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -237,7 +243,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -265,7 +271,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void deleteGroup(HttpServiceRequest request, HttpServiceResponder responder,
-                          @PathParam("context") String namespace, @QueryParam("group") String group) {
+      @PathParam("context") String namespace, @QueryParam("group") String group) {
     respond(request, responder, namespace, ns -> {
       TransactionRunners.run(getContext(), context -> {
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -308,7 +314,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
-                  @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       Workspace workspace = getWorkspace(new NamespacedId(ns, id));
       String name = workspace.getName();
@@ -338,12 +344,12 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   private JsonObject merge(JsonObject first, JsonObject second) {
     JsonObject merged = new JsonObject();
     if (first != null && !first.isJsonNull()) {
-      for (Map.Entry<String, JsonElement> entry: first.entrySet()) {
+      for (Map.Entry<String, JsonElement> entry : first.entrySet()) {
         merged.add(entry.getKey(), entry.getValue());
       }
     }
     if (second != null && !second.isJsonNull()) {
-      for (Map.Entry<String, JsonElement> entry: second.entrySet()) {
+      for (Map.Entry<String, JsonElement> entry : second.entrySet()) {
         merged.add(entry.getKey(), entry.getValue());
       }
     }
@@ -360,7 +366,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       String name = request.getHeader(PropertyIds.FILE_NAME);
       if (name == null) {
@@ -393,14 +399,14 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         byte[] content = handler.getContent();
         if (content == null) {
           throw new BadRequestException("Body not present, please post the file containing the "
-                                          + "records to be wrangled.");
+              + "records to be wrangled.");
         }
 
         // Depending on content type, load data.
         DataType type = DataType.fromString(contentType);
         if (type == null) {
           throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-                                          "or 'application/data-prep'");
+              "or 'application/data-prep'");
         }
         switch (type) {
           case TEXT:
@@ -436,8 +442,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         ws.updateWorkspaceProperties(id, properties);
 
         WorkspaceInfo workspaceInfo = new WorkspaceInfo(id.getId(), name, delimiter, charset, contentType,
-                                                        ConnectionType.UPLOAD.getType(),
-                                                        SamplingMethod.NONE.getMethod());
+            ConnectionType.UPLOAD.getType(),
+            SamplingMethod.NONE.getMethod());
         return new ServiceResponse<>(workspaceInfo);
       });
     });
@@ -454,7 +460,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/upload")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void uploadData(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       RequestExtractor handler = new RequestExtractor(request);
 
@@ -474,7 +480,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       DataType type = DataType.fromString(contentType);
       if (type == null) {
         throw new BadRequestException("Invalid content type. Must be 'text/plain', 'application/octet-stream' " +
-                                        "or 'application/data-prep'");
+            "or 'application/data-prep'");
       }
       NamespacedId namespaceId = new NamespacedId(ns, id);
 
@@ -545,7 +551,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/execute")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void execute(HttpServiceRequest request, HttpServiceResponder responder,
-                      @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       try {
@@ -568,8 +574,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         }, userDirectivesCollector);
         userDirectivesCollector.addLoadDirectivesPragma(directives);
 
-        io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse response =
-          generateExecutionResponse(rows, directiveRequest.getWorkspace().getResults());
+        io.cdap.wrangler.proto.workspace.v2.DirectiveExecutionResponse response = generateExecutionResponse(rows,
+            directiveRequest.getWorkspace().getResults());
 
         // Save the recipes being executed.
         TransactionRunners.run(getContext(), context -> {
@@ -578,7 +584,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         });
 
         return new DirectiveExecutionResponse(response.getValues(), response.getHeaders(),
-                                              response.getTypes(), directives);
+            response.getTypes(), directives);
       } catch (JsonParseException e) {
         throw new BadRequestException(e.getMessage(), e);
       }
@@ -596,7 +602,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/summary")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void summary(HttpServiceRequest request, HttpServiceResponder responder,
-                      @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       try {
         composite.reload(namespace);
@@ -626,7 +632,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/schema")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void schema(HttpServiceRequest request, HttpServiceResponder responder,
-                     @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       RequestExtractor handler = new RequestExtractor(request);
@@ -655,8 +661,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       // the current contract with the UI is not to pass the
       // entire schema string, but just the fields.
       return new JsonParser().parse(schemaJson)
-        .getAsJsonObject()
-        .get("fields").getAsJsonArray();
+          .getAsJsonObject()
+          .get("fields").getAsJsonArray();
     });
   }
 
@@ -670,7 +676,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @POST
   @Path("contexts/{context}/workspaces/{id}/datamodels")
   public void addDataModel(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
@@ -683,10 +689,10 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("There is no data model initialized.");
       }
       org.apache.avro.Schema schema = DataModelGlossary.getGlossary()
-        .get(dataModelInfo.getId(), dataModelInfo.getRevision());
+          .get(dataModelInfo.getId(), dataModelInfo.getRevision());
       if (schema == null) {
         throw new BadRequestException(String.format("Unable to find data model %s revision %d", dataModelInfo.getId(),
-                                                    dataModelInfo.getRevision()));
+            dataModelInfo.getRevision()));
       }
 
       Map<String, String> properties = new HashMap<>(workspace.getProperties());
@@ -718,7 +724,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/datamodels")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void removeDataModel(HttpServiceRequest request, HttpServiceResponder responder,
-                              @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
@@ -746,7 +752,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @POST
   @Path("contexts/{context}/workspaces/{id}/models")
   public void addModels(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("context") String namespace, @PathParam("id") String id) {
+      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
@@ -776,14 +782,14 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("There is no data model initialized.");
       }
       org.apache.avro.Schema schema = DataModelGlossary.getGlossary()
-        .get(dataModelInfo.getId(), dataModelInfo.getRevision());
+          .get(dataModelInfo.getId(), dataModelInfo.getRevision());
       List<org.apache.avro.Schema.Field> fieldMatch = schema.getFields().stream()
-        .filter(field -> field.name().equals(model.getId()))
-        .collect(Collectors.toList());
+          .filter(field -> field.name().equals(model.getId()))
+          .collect(Collectors.toList());
       if (fieldMatch.isEmpty()) {
         throw new NotFoundException(
-          String.format("Unable to find model %s in data model %s revision %d.", model.getId(), dataModelInfo.getId(),
-                        dataModelInfo.getRevision()));
+            String.format("Unable to find model %s in data model %s revision %d.", model.getId(), dataModelInfo.getId(),
+                dataModelInfo.getRevision()));
       }
 
       properties.put(DATA_MODEL_MODEL_PROPERTY, model.getId());
@@ -805,8 +811,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/workspaces/{id}/models/{modelid}")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void removeModels(HttpServiceRequest request, HttpServiceResponder responder,
-                           @PathParam("context") String namespace, @PathParam("id") String id,
-                           @PathParam("modelid") String modelId) {
+      @PathParam("context") String namespace, @PathParam("id") String id,
+      @PathParam("modelid") String modelId) {
     respond(request, responder, namespace, ns -> {
       NamespacedId namespacedId = new NamespacedId(ns, id);
       Workspace workspace = getWorkspace(namespacedId);
@@ -864,7 +870,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/usage")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
-                    @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
@@ -874,9 +880,9 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
 
       for (DirectiveInfo directive : composite.list(namespace)) {
         DirectiveUsage directiveUsage = new DirectiveUsage(directive.name(), directive.usage(), directive.description(),
-                                                           config.isExcluded(directive.name()), false,
-                                                           directive.scope().name(), directive.definition(),
-                                                           directive.categories());
+            config.isExcluded(directive.name()), false,
+            directive.scope().name(), directive.definition(),
+            directive.categories());
         values.add(directiveUsage);
 
         // For this directive we find all aliases and add them to the
@@ -885,9 +891,9 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
           List<String> list = aliases.get(directive.name());
           for (String alias : list) {
             directiveUsage = new DirectiveUsage(alias, directive.usage(), directive.description(),
-                                                config.isExcluded(directive.name()), true,
-                                                directive.scope().name(), directive.definition(),
-                                                directive.categories());
+                config.isExcluded(directive.name()), true,
+                directive.scope().name(), directive.definition(),
+                directive.categories());
             values.add(directiveUsage);
           }
         }
@@ -906,7 +912,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/artifacts")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void artifacts(HttpServiceRequest request, HttpServiceResponder responder,
-                        @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       List<DirectiveArtifact> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
@@ -922,6 +928,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       return new ServiceResponse<>(values);
     });
   }
+
   /**
    * This HTTP endpoint is used to retrieve plugins that are
    * of type <code>Directive.Type</code> (directive). Artifact will be reported
@@ -933,14 +940,14 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/directives")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void directives(HttpServiceRequest request, HttpServiceResponder responder,
-                         @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       List<DirectiveDescriptor> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
         Set<PluginClass> plugins = artifact.getClasses().getPlugins();
-        DirectiveArtifact directiveArtifact =
-          new DirectiveArtifact(artifact.getName(), artifact.getVersion(), artifact.getScope().name());
+        DirectiveArtifact directiveArtifact = new DirectiveArtifact(artifact.getName(), artifact.getVersion(),
+            artifact.getScope().name());
         for (PluginClass plugin : plugins) {
           if (Directive.TYPE.equalsIgnoreCase(plugin.getType())) {
             values.add(new DirectiveDescriptor(plugin, directiveArtifact));
@@ -960,7 +967,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("contexts/{context}/directives/reload")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
-                               @PathParam("context") String namespace) {
+      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
       composite.reload(namespace);
       return new ServiceResponse<Void>("Successfully reloaded all user defined directives.");
@@ -997,6 +1004,22 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       if (config == null) {
         throw new BadRequestException("Config is empty. Please check if the request is sent as HTTP POST body.");
       }
+
+      List<JexlAllowlist> userAllowlist = config.getJexlAllowlist();
+      if (jexlAllowlistEnabled && userAllowlist == null) {
+        throw new BadRequestException("JEXL allowlist cannot be null. Please provide a valid JEXL allowlist.");
+      }
+      if (!jexlAllowlistEnabled && userAllowlist != null) {
+        throw new BadRequestException(
+            "Updates to JEXL allowlist in the wrangler directives config is disabled.");
+      }
+      // No updates to JexlAllowlist when JEXL Allowlist feature is disabled
+      if (!jexlAllowlistEnabled) {
+        DirectiveConfig existingConfig = configStore.getConfig();
+        List<JexlAllowlist> existingAllowlist = existingConfig != null ? existingConfig.getJexlAllowlist() : null;
+        config = new DirectiveConfig(config.getExclusions(), config.getAliases(), existingAllowlist);
+      }
+
       configStore.updateConfig(config);
       return new ServiceResponse<Void>("Successfully updated configuration.");
     });
@@ -1012,7 +1035,15 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   @Path("config")
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void getConfig(HttpServiceRequest request, HttpServiceResponder responder) {
-    respond(request, responder, () -> new ServiceResponse<>(configStore.getConfig()));
+    respond(request, responder, () -> {
+      DirectiveConfig config = configStore.getConfig();
+      if (!jexlAllowlistEnabled) {
+        JsonObject configJson = config.toJson().getAsJsonObject();
+        configJson.remove(DirectiveConfig.JEXL_ALLOWLIST_KEY);
+        return new ServiceResponse<>(configJson);
+      }
+      return new ServiceResponse<>(config);
+    });
   }
 
   /**
@@ -1025,7 +1056,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
     DataType type = workspace.getType();
     List<Row> rows = new ArrayList<>();
 
-    switch(type) {
+    switch (type) {
       case TEXT: {
         String data = Bytes.toString(workspace.getData());
         if (data != null) {
@@ -1063,8 +1094,9 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
    * @return records generated from the directives.
    */
   private List<Row> executeDirectives(NamespacedId id, List<String> directives,
-                                      Function<List<Row>, List<Row>> sample) {
-    return executeDirectives(id, directives, sample, (a, b) -> { });
+      Function<List<Row>, List<Row>> sample) {
+    return executeDirectives(id, directives, sample, (a, b) -> {
+    });
   }
 
   /**
@@ -1077,8 +1109,8 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
    * @return records generated from the directives.
    */
   private <E extends Exception> List<Row> executeDirectives(NamespacedId id, List<String> directives,
-                                                            Function<List<Row>, List<Row>> sample,
-                                                            Visitor<E> grammarVisitor) {
+      Function<List<Row>, List<Row>> sample,
+      Visitor<E> grammarVisitor) {
     return TransactionRunners.run(getContext(), ctx -> {
       WorkspaceDataset ws = WorkspaceDataset.get(ctx);
 
@@ -1086,7 +1118,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       // Extract rows from the workspace.
       List<Row> rows = fromWorkspace(workspace);
       return executeDirectives(id.getNamespace().getName(), directives, sample.apply(rows),
-                               grammarVisitor);
+          grammarVisitor);
     });
   }
 }
