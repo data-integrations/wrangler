@@ -22,6 +22,8 @@ import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.JexlConfigurationDeserializer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,6 +72,7 @@ public class DirectiveConfigTest {
   private static final Gson GSON = new GsonBuilder()
       .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
       .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
       .create();
 
   @Test

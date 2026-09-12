@@ -36,6 +36,8 @@ import io.cdap.wrangler.api.ErrorRecordBase;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.JexlConfigurationDeserializer;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RemoteDirectiveResponse;
 import io.cdap.wrangler.api.Row;
@@ -73,6 +75,7 @@ public class RemoteExecutionTask implements RunnableTask {
           .registerTypeAdapter(Schema.class, new SchemaTypeAdapter())
           .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
           .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+          .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
           .create();
 
   @Override

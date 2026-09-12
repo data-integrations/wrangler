@@ -33,6 +33,7 @@ public class DirectiveConfigDeserializerTest {
   private static final Gson GSON = new GsonBuilder()
       .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
       .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
       .create();
 
   @Test
@@ -40,13 +41,16 @@ public class DirectiveConfigDeserializerTest {
     String json = "{\n"
         + "  \"exclusions\": [\"drop\"],\n"
         + "  \"aliases\": {\"p\": \"parse-as-json\"},\n"
-        + "  \"jexlAllowlist\": [\n"
-        + "    {\n"
-        + "      \"className\": \"java.lang.String\",\n"
-        + "      \"methods\": [\"*\"],\n"
-        + "      \"properties\": [\"*\"]\n"
-        + "    }\n"
-        + "  ]\n"
+        + "  \"jexlConfiguration\": {\n"
+        + "    \"jexlAllowlistEnabled\": true,\n"
+        + "    \"jexlAllowlist\": [\n"
+        + "      {\n"
+        + "        \"className\": \"java.lang.String\",\n"
+        + "        \"methods\": [\"*\"],\n"
+        + "        \"properties\": [\"*\"]\n"
+        + "      }\n"
+        + "    ]\n"
+        + "  }\n"
         + "}";
 
     DirectiveConfig config = GSON.fromJson(json, DirectiveConfig.class);
@@ -55,10 +59,12 @@ public class DirectiveConfigDeserializerTest {
     Assert.assertEquals("parse-as-json", config.getAliasName("p"));
     Assert.assertEquals(Collections.singleton("drop"), config.getExclusions());
     Assert.assertEquals(Collections.singletonMap("p", "parse-as-json"), config.getAliases());
-    Assert.assertNotNull(config.getJexlAllowlist());
-    Assert.assertEquals(1, config.getJexlAllowlist().size());
+    Assert.assertNotNull(config.getJexlConfiguration());
+    Assert.assertTrue(config.getJexlConfiguration().isJexlAllowlistEnabled());
+    Assert.assertNotNull(config.getJexlConfiguration().getJexlAllowlist());
+    Assert.assertEquals(1, config.getJexlConfiguration().getJexlAllowlist().size());
 
-    JexlAllowlist allowlist = config.getJexlAllowlist().get(0);
+    JexlAllowlist allowlist = config.getJexlConfiguration().getJexlAllowlist().get(0);
     Assert.assertEquals("java.lang.String", allowlist.getClassName());
     Assert.assertTrue(allowlist.allowAllMethods());
     Assert.assertTrue(allowlist.allowAllProperties());
@@ -69,13 +75,16 @@ public class DirectiveConfigDeserializerTest {
     String json = "{\n"
         + "  \"exclusions\": [\"drop\"],\n"
         + "  \"aliases\": {\"p\": \"parse-as-json\"},\n"
-        + "  \"jexlAllowlist\": [\n"
-        + "    {\n"
-        + "      \"className\": \"java.lang.String\",\n"
-        + "      \"methods\": [\"trim\", \"substring\"],\n"
-        + "      \"properties\": [\"bytes\"]\n"
-        + "    }\n"
-        + "  ]\n"
+        + "  \"jexlConfiguration\": {\n"
+        + "    \"jexlAllowlistEnabled\": false,\n"
+        + "    \"jexlAllowlist\": [\n"
+        + "      {\n"
+        + "        \"className\": \"java.lang.String\",\n"
+        + "        \"methods\": [\"trim\", \"substring\"],\n"
+        + "        \"properties\": [\"bytes\"]\n"
+        + "      }\n"
+        + "    ]\n"
+        + "  }\n"
         + "}";
 
     DirectiveConfig config = GSON.fromJson(json, DirectiveConfig.class);
@@ -84,10 +93,12 @@ public class DirectiveConfigDeserializerTest {
     Assert.assertEquals("parse-as-json", config.getAliasName("p"));
     Assert.assertEquals(Collections.singleton("drop"), config.getExclusions());
     Assert.assertEquals(Collections.singletonMap("p", "parse-as-json"), config.getAliases());
-    Assert.assertNotNull(config.getJexlAllowlist());
-    Assert.assertEquals(1, config.getJexlAllowlist().size());
+    Assert.assertNotNull(config.getJexlConfiguration());
+    Assert.assertFalse(config.getJexlConfiguration().isJexlAllowlistEnabled());
+    Assert.assertNotNull(config.getJexlConfiguration().getJexlAllowlist());
+    Assert.assertEquals(1, config.getJexlConfiguration().getJexlAllowlist().size());
 
-    JexlAllowlist allowlist = config.getJexlAllowlist().get(0);
+    JexlAllowlist allowlist = config.getJexlConfiguration().getJexlAllowlist().get(0);
     Assert.assertEquals("java.lang.String", allowlist.getClassName());
     Assert.assertEquals(Arrays.asList("trim", "substring"), allowlist.getMethods());
     Assert.assertEquals(Arrays.asList("bytes"), allowlist.getProperties());
@@ -103,19 +114,21 @@ public class DirectiveConfigDeserializerTest {
     Assert.assertNotNull(config);
     Assert.assertTrue(config.getExclusions().isEmpty());
     Assert.assertTrue(config.getAliases().isEmpty());
-    Assert.assertNull(config.getJexlAllowlist());
+    Assert.assertNull(config.getJexlConfiguration());
   }
 
   @Test(expected = JsonParseException.class)
   public void testDeserializeInvalidJexlAllowlistEntry() {
     String json = "{\n"
-        + "  \"jexlAllowlist\": [\n"
-        + "    {\n"
-        + "      \"className\": \"123InvalidClass\",\n"
-        + "      \"methods\": [\"*\"],\n"
-        + "      \"properties\": [\"*\"]\n"
-        + "    }\n"
-        + "  ]\n"
+        + "  \"jexlConfiguration\": {\n"
+        + "    \"jexlAllowlist\": [\n"
+        + "      {\n"
+        + "        \"className\": \"123InvalidClass\",\n"
+        + "        \"methods\": [\"*\"],\n"
+        + "        \"properties\": [\"*\"]\n"
+        + "      }\n"
+        + "    ]\n"
+        + "  }\n"
         + "}";
     GSON.fromJson(json, DirectiveConfig.class);
   }

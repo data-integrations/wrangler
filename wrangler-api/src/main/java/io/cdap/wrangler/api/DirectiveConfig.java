@@ -16,7 +16,6 @@
 
 package io.cdap.wrangler.api;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
@@ -48,33 +47,37 @@ import javax.annotation.Nullable;
  *      "json-parser" : "parse-as-json",
  *      "js-parser" : "parse-as-json"
  *   },
- *   "jexlAllowlist" : [
- *     {
- *       "className": "java.lang.Runtime",
- *       "methods": ["*"],
- *       "properties": ["*"]
- *     }
- *   ]
+ *   "jexlConfiguration" : {
+ *     "jexlAllowlistEnabled": true,
+ *     "jexlAllowlist" : [
+ *       {
+ *         "className": "java.lang.Runtime",
+ *         "methods": ["*"],
+ *         "properties": ["*"]
+ *       }
+ *     ]
+ *   }
  *  }
  */
 @Deprecated
 public final class DirectiveConfig {
-  public static final DirectiveConfig EMPTY = new DirectiveConfig(null, null, Collections.emptyList());
+  public static final DirectiveConfig EMPTY =
+      new DirectiveConfig(null, null, new JexlConfiguration(false, Collections.emptyList()));
   public static final String EXCLUSIONS_KEY = "exclusions";
   public static final String ALIASES_KEY = "aliases";
-  public static final String JEXL_ALLOWLIST_KEY = "jexlAllowlist";
+  public static final String JEXL_CONFIGURATION_KEY = "jexlConfiguration";
 
   private final ImmutableSet<String> exclusions;
   private final ImmutableMap<String, String> aliases;
-  @Nullable private final ImmutableList<JexlAllowlist> jexlAllowlist;
+  @Nullable private final JexlConfiguration jexlConfiguration;
 
   public DirectiveConfig(
       @Nullable Set<String> exclusions,
       @Nullable Map<String, String> aliases,
-      @Nullable List<JexlAllowlist> jexlAllowlist) {
+      @Nullable JexlConfiguration jexlConfiguration) {
     this.exclusions = exclusions != null ? ImmutableSet.copyOf(exclusions) : ImmutableSet.of();
     this.aliases = aliases != null ? ImmutableMap.copyOf(aliases) : ImmutableMap.of();
-    this.jexlAllowlist = jexlAllowlist != null ? ImmutableList.copyOf(jexlAllowlist) : null;
+    this.jexlConfiguration = jexlConfiguration;
   }
 
   /**
@@ -96,13 +99,13 @@ public final class DirectiveConfig {
   }
 
   /**
-   * Gets the list of JEXL inclusions.
+   * Gets the JEXL configuration.
    *
-   * @return the list of JEXL inclusions
+   * @return the JEXL configuration
    */
   @Nullable
-  public List<JexlAllowlist> getJexlAllowlist() {
-    return jexlAllowlist;
+  public JexlConfiguration getJexlConfiguration() {
+    return jexlConfiguration;
   }
 
   /**
@@ -160,7 +163,7 @@ public final class DirectiveConfig {
     JsonObject object = new JsonObject();
     object.add(EXCLUSIONS_KEY, gson.toJsonTree(exclusions));
     object.add(ALIASES_KEY, gson.toJsonTree(aliases));
-    object.add(JEXL_ALLOWLIST_KEY, gson.toJsonTree(jexlAllowlist));
+    object.add(JEXL_CONFIGURATION_KEY, gson.toJsonTree(jexlConfiguration));
     return object;
   }
 }
