@@ -24,6 +24,8 @@ import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.JexlConfigurationDeserializer;
 import io.cdap.wrangler.dataset.workspace.RequestDeserializer;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.Request;
@@ -44,6 +46,7 @@ public final class RequestExtractor {
     .registerTypeAdapter(Request.class, new RequestDeserializer())
     .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
     .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+    .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
     .create();
   private final HttpServiceRequest request;
   public static final String CONTENT_TYPE_HEADER = PropertyIds.CONTENT_TYPE;

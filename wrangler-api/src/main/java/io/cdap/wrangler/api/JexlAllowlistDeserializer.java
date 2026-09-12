@@ -26,6 +26,7 @@ import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 import java.lang.reflect.Type;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Custom GSON deserializer for {@link JexlAllowlist}.
@@ -55,13 +56,10 @@ public final class JexlAllowlistDeserializer implements JsonDeserializer<JexlAll
     }
   }
 
+  @Nullable
   private static <T> T deserializeProperty(
-      JsonObject obj, String key, Type type, T defaultValue, JsonDeserializationContext ctx) {
+      JsonObject obj, String key, Type type, @Nullable T defaultValue, JsonDeserializationContext ctx) {
     JsonElement element = obj.get(key);
-    if (element == null || element.isJsonNull()) {
-      return defaultValue;
-    }
-    T result = ctx.deserialize(element, type);
-    return result != null ? result : defaultValue;
+    return (element != null && !element.isJsonNull()) ? ctx.deserialize(element, type) : defaultValue;
   }
 }

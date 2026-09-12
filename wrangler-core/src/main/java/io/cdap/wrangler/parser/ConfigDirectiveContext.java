@@ -21,6 +21,7 @@ import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
 
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * This class {@link ConfigDirectiveContext} manages the context for directive
@@ -29,21 +30,25 @@ import java.util.List;
  */
 public class ConfigDirectiveContext implements DirectiveContext {
   private final DirectiveConfig config;
-  private final boolean jexlAllowlistEnabled;
+  private final boolean isJexlAllowlistFeatureFlagEnabled;
 
-  public ConfigDirectiveContext(DirectiveConfig config, boolean jexlAllowlistEnabled) {
+  public ConfigDirectiveContext(DirectiveConfig config, boolean isJexlAllowlistFeatureFlagEnabled) {
     this.config = config;
-    this.jexlAllowlistEnabled = jexlAllowlistEnabled;
+    this.isJexlAllowlistFeatureFlagEnabled = isJexlAllowlistFeatureFlagEnabled;
   }
 
+  @Nullable
   @Override
   public List<JexlAllowlist> getJexlAllowlist() {
-    return config.getJexlAllowlist();
+    return config.getJexlConfiguration() != null
+        ? config.getJexlConfiguration().getJexlAllowlist()
+        : null;
   }
 
   @Override
   public boolean isJexlAllowlistEnabled() {
-    return jexlAllowlistEnabled;
+    return isJexlAllowlistFeatureFlagEnabled
+        && config.getJexlConfiguration().isJexlAllowlistEnabled();
   }
 
   /**
