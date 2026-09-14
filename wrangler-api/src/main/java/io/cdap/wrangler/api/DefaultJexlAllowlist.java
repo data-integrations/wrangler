@@ -19,7 +19,6 @@ package io.cdap.wrangler.api;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +42,15 @@ public final class DefaultJexlAllowlist {
       "java.time.Duration", "java.time.format.DateTimeFormatter",
 
       // Utilities
-      "java.util.Arrays", "java.util.Collections", "java.util.UUID", "java.util.Base64");
+      "java.util.Arrays", "java.util.Collections", "java.util.UUID", "java.util.Base64",
+
+      // Commonly used default registered functions in EL
+      "io.cdap.functions.Global", "io.cdap.functions.DateAndTime", "io.cdap.functions.Dates",
+      "io.cdap.functions.JsonFunctions", "io.cdap.wrangler.utils.DecimalTransform",
+      "io.cdap.wrangler.utils.ArithmeticOperations", "org.apache.commons.lang.StringUtils",
+      "com.google.common.base.Strings", "org.apache.commons.lang3.StringEscapeUtils",
+      "io.cdap.functions.DataQuality", "io.cdap.functions.DDL", "io.cdap.functions.GeoFences",
+      "io.cdap.functions.Logical", "io.cdap.functions.NumberFunctions");
 
   private static final List<JexlAllowlist> ALLOWLIST = Collections.unmodifiableList(
       DEFAULT_CLASSES.stream()
