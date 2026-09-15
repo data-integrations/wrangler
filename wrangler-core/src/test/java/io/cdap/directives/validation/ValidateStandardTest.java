@@ -55,11 +55,11 @@ public class ValidateStandardTest {
     CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
     if (src != null) {
       File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
+              Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
 
       if (!schemasRoot.isDirectory()) {
         throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
+                String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
       }
 
       for (File f : schemasRoot.listFiles()) {
