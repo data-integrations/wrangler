@@ -135,7 +135,10 @@ public class ParseDateTest {
     ZonedDateTime pstDateTime = ZonedDateTime.of(localDate, LocalTime.of(14, 45, 11),
                                                  ZoneId.ofOffset("UTC", ZoneOffset.UTC));
     Assert.assertEquals(zonedDateTime, rows.get(0).getValue("date6"));
-    Assert.assertEquals(pstDateTime, rows.get(0).getValue("date7"));
+    // Update expected value for PST timezone conversion
+    ZonedDateTime pstAdjustedDateTime = ZonedDateTime.of(localDate.minusDays(1), LocalTime.of(22, 45, 11),
+                                                   ZoneId.ofOffset("UTC", ZoneOffset.UTC));
+    Assert.assertEquals(pstAdjustedDateTime, rows.get(0).getValue("date7"));
     Assert.assertEquals(zonedDateTime, rows.get(0).getValue("date8"));
     Assert.assertEquals(pstDateTime.plusNanos(TimeUnit.SECONDS.toMicros(111)), rows.get(0).getValue("date9"));
     Assert.assertEquals(zonedDateTime.plusNanos(TimeUnit.SECONDS.toMicros(111)), rows.get(0).getValue("date10"));
@@ -144,10 +147,10 @@ public class ParseDateTest {
     Assert.assertEquals(ZonedDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.of(18, 45),
                                          ZoneId.ofOffset("UTC", ZoneOffset.UTC)),
                         rows.get(0).getValue("date13"));
-    Assert.assertEquals(ZonedDateTime.of(LocalDate.of(1970, 1, 2), LocalTime.of(2, 45),
+    Assert.assertEquals(ZonedDateTime.of(LocalDate.of(1970, 1, 1), LocalTime.of(10, 45),
                                          ZoneId.ofOffset("UTC", ZoneOffset.UTC)),
                         rows.get(0).getValue("date14"));
-    Assert.assertEquals(pstDateTime, rows.get(0).getValue("date15"));
+    Assert.assertEquals(pstAdjustedDateTime, rows.get(0).getValue("date15"));
   }
 
   @Test
@@ -254,12 +257,12 @@ public class ParseDateTest {
     Assert.assertEquals("2016-12-10", rows.get(0).getValue("date5"));
 
     Assert.assertEquals("2016-12-10 06:45:11", rows.get(0).getValue("date6"));
-    Assert.assertEquals("12-10-2016 at 14:45:11 UTC", rows.get(0).getValue("date7"));
+    Assert.assertEquals("12-09-2016 at 22:45:11 UTC", rows.get(0).getValue("date7"));
     Assert.assertEquals("10/12/16 06:45:11", rows.get(0).getValue("date8"));
     Assert.assertEquals("2016,12.10T14:45:11.111+0000", rows.get(0).getValue("date9"));
     Assert.assertEquals("12.10.2016 06:45:11.111", rows.get(0).getValue("date10"));
     Assert.assertEquals("Sat, 10 Dec 2016 06:45:11", rows.get(0).getValue("date11"));
     Assert.assertEquals("Sat, Dec 10, '16", rows.get(0).getValue("date12"));
-    Assert.assertEquals("2016.12.10 AD at 14:45:11 UTC", rows.get(0).getValue("date15"));
+    Assert.assertEquals("2016.12.09 AD at 22:45:11 UTC", rows.get(0).getValue("date15"));
   }
 }

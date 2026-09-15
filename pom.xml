@@ -296,7 +296,17 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14.1</version>
+        <version>3.1.2</version>
+        <configuration>
+          <argLine>
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --add-opens java.base/java.util=ALL-UNNAMED
+            --add-opens java.base/java.nio=ALL-UNNAMED
+            --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED
+            --add-opens java.xml/com.sun.org.apache.xerces.internal.util=ALL-UNNAMED
+            --add-exports java.xml/com.sun.org.apache.xerces.internal.util=ALL-UNNAMED
+          </argLine>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

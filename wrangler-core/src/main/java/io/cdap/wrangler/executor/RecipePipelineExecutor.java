@@ -18,6 +18,7 @@ package io.cdap.wrangler.executor;
 
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
+import io.cdap.directives.aggregates.AggregateSizeDuration;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveExecutionException;
 import io.cdap.wrangler.api.ErrorRecord;
@@ -159,6 +160,22 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         }
         ++i;
       }
+      
+      // Call finalize for directives that implement it
+      for (Directive directive : directives) {
+        if (directive instanceof AggregateSizeDuration) {
+          AggregateSizeDuration aggregateDirective = (AggregateSizeDuration) directive;
+          try {
+            List<Row> finalizedRows = aggregateDirective.finalize(context);
+            if (finalizedRows != null && !finalizedRows.isEmpty()) {
+              results.addAll(finalizedRows);
+            }
+          } catch (DirectiveExecutionException e) {
+            throw new RecipeException(e.getMessage(), e, i, directiveIndex);
+          }
+        }
+      }
+      
     } catch (DirectiveExecutionException e) {
       throw new RecipeException(e.getMessage(), e, i, directiveIndex);
     }

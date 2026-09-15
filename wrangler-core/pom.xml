@@ -46,6 +46,7 @@
       <artifactId>wrangler-api</artifactId>
       <version>${project.version}</version>
     </dependency>
+    
     <dependency>
       <groupId>io.cdap.wrangler</groupId>
       <artifactId>wrangler-proto</artifactId>
@@ -68,6 +69,8 @@
       <version>${cdap.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    
 
     <!-- Test -->
 

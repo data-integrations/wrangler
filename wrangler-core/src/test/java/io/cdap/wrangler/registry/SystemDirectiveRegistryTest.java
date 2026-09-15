@@ -25,7 +25,17 @@ public class SystemDirectiveRegistryTest {
 
   @Test
   public void testLoadingDefaults() throws Exception {
-    new SystemDirectiveRegistry();
+    try {
+      // Attempt to initialize with debug output
+      System.out.println("Starting registry initialization test...");
+      SystemDirectiveRegistry registry = new SystemDirectiveRegistry();
+      System.out.println("Registry initialization successful. Number of directives: " + 
+                       registry.list("").spliterator().estimateSize());
+    } catch (Exception e) {
+      System.err.println("Registry initialization failed with error: " + e.getMessage());
+      e.printStackTrace();
+      throw e;
+    }
   }
 
 }

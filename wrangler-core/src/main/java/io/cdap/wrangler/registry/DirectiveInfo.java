@@ -72,23 +72,33 @@ public final class DirectiveInfo {
    */
   private DirectiveInfo(DirectiveScope scope, Class<? extends Directive> directive, @Nullable ArtifactId artifactId) {
     this.directive = directive;
-    this.directiveClass = new DirectiveClass(directive.getAnnotation(Name.class).value(),
+    try {
+      // Check if the class has the required Name annotation
+      if (directive.getAnnotation(Name.class) == null) {
+        throw new IllegalStateException("Directive class " + directive.getName() + " is missing @Name annotation");
+      }
+      this.directiveClass = new DirectiveClass(directive.getAnnotation(Name.class).value(),
                                              directive.getName(), scope, artifactId);
 
-    Description desc = directive.getAnnotation(Description.class);
-    if (desc == null) {
-      this.description = "No description specified for directive class '" + directive.getSimpleName() + "'";
-    } else {
-      this.description = desc.value();
-    }
+      Description desc = directive.getAnnotation(Description.class);
+      if (desc == null) {
+        this.description = "No description specified for directive class '" + directive.getSimpleName() + "'";
+      } else {
+        this.description = desc.value();
+      }
 
-    this.deprecated = directive.isAnnotationPresent(Deprecated.class);
+      this.deprecated = directive.isAnnotationPresent(Deprecated.class);
 
-    Categories category = directive.getAnnotation(Categories.class);
-    if (category == null) {
-      categories = new String[] { "default" };
-    } else {
-      categories = category.categories();
+      Categories category = directive.getAnnotation(Categories.class);
+      if (category == null) {
+        categories = new String[] { "default" };
+      } else {
+        categories = category.categories();
+      }
+    } catch (Exception e) {
+      System.err.println("Error initializing DirectiveInfo for class: " + directive.getName());
+      e.printStackTrace();
+      throw e;
     }
   }
 

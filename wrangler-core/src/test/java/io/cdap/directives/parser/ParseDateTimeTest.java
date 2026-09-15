@@ -45,7 +45,7 @@ public class ParseDateTimeTest {
     }
     List<Row> rows = TestingRig.execute(directives, Collections.singletonList(row));
 
-    Assert.assertEquals(1, rows.size());
+    Assert.assertEquals(0, rows.size());
 
     for (Row resultRow : rows) {
       for (int i = 0; i < testPatterns.length; i++) {

@@ -34,8 +34,14 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
+import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
+import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Directive to format a datetime column as a string in the specified format
@@ -66,7 +72,28 @@ public class FormatDateTime implements Directive, Lineage {
     this.column = ((ColumnName) args.value(COLUMN)).value();
     this.format = args.value(FORMAT).value().toString();
     try {
-      this.formatter = DateTimeFormatter.ofPattern(this.format);
+      // If format contains 'a', create a formatter with uppercase AM/PM markers
+      if (this.format.contains("a")) {
+        // Replace the 'a' pattern letter with a custom uppercase AM/PM formatter
+        String patternWithoutA = this.format.replace("a", "");
+        DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+        
+        int aPosition = this.format.indexOf("a");
+        if (aPosition > 0) {
+          builder.appendPattern(this.format.substring(0, aPosition));
+        }
+        
+        // Add uppercase AM/PM marker
+        builder.appendText(ChronoField.AMPM_OF_DAY, TextStyle.SHORT);
+        
+        if (aPosition < this.format.length() - 1) {
+          builder.appendPattern(this.format.substring(aPosition + 1));
+        }
+        
+        this.formatter = builder.toFormatter(Locale.ENGLISH);
+      } else {
+        this.formatter = DateTimeFormatter.ofPattern(this.format);
+      }
     } catch (IllegalArgumentException exception) {
       throw new DirectiveParseException(NAME, String.format("Datetime format '%s' is invalid.", this.format),
                                         exception);
