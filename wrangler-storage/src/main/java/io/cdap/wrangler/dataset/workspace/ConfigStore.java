@@ -33,6 +33,8 @@ import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.JexlConfigurationDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +56,9 @@ import java.util.Optional;
 public class ConfigStore {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigStore.class);
   private static final Gson GSON = new GsonBuilder()
-    .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
     .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
+    .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+    .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
     .create();
   private static final String KEY_COL = "key";
   private static final String VAL_COL = "value";
@@ -78,10 +81,11 @@ public class ConfigStore {
 
     if (config == null) {
       LOG.info("Initializing Directive config with default values");
-      updateConfig(new DirectiveConfig(null, null, DefaultJexlAllowlist.get()));
-    } else if (config.getJexlAllowlist() == null) {
-      LOG.info("Directive config is configured without JEXL allowlist, adding default JEXL allowlist.");
-      updateConfig(new DirectiveConfig(config.getExclusions(), config.getAliases(), DefaultJexlAllowlist.get()));
+      updateConfig(new DirectiveConfig(null, null, new JexlConfiguration(true, DefaultJexlAllowlist.get())));
+    } else if (config.getJexlConfiguration() == null) {
+      LOG.info("Directive config is configured without JEXL configuration, adding default JEXL configuration.");
+      updateConfig(new DirectiveConfig(config.getExclusions(), config.getAliases(),
+                                       new JexlConfiguration(true, DefaultJexlAllowlist.get())));
     }
   }
 
