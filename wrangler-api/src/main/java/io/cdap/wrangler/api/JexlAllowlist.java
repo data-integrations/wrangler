@@ -84,9 +84,14 @@ public final class JexlAllowlist {
   }
 
   private static boolean isValidIdentifier(String name) {
-    if (Strings.isNullOrEmpty(name)) {
+    if (name == null) {
       return false;
     }
+
+    if (name.isEmpty()) {
+      return true;
+    }
+
     return SourceVersion.isIdentifier(name);
   }
 
