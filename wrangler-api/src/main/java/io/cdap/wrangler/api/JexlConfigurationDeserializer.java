@@ -29,31 +29,24 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * Custom GSON deserializer for {@link JexlAllowlist}.
- * Invokes the parameterized constructor to guarantee validation is executed.
+ * Custom GSON deserializer for {@link JexlConfiguration}.
  */
 @PublicEvolving
-public final class JexlAllowlistDeserializer implements JsonDeserializer<JexlAllowlist> {
-
-  private static final String CLASS_NAME_KEY = "className";
-  private static final String METHODS_KEY = "methods";
-  private static final String PROPERTIES_KEY = "properties";
-
-  private static final Type STRING_LIST_TYPE = new TypeToken<List<String>>() { }.getType();
+public final class JexlConfigurationDeserializer implements JsonDeserializer<JexlConfiguration> {
+  private static final Type JEXL_ALLOWLIST_LIST_TYPE = new TypeToken<List<JexlAllowlist>>() { }.getType();
 
   @Override
-  public JexlAllowlist deserialize(JsonElement allowlistJson, Type typeOfT, JsonDeserializationContext ctx)
+  public JexlConfiguration deserialize(JsonElement jexlConfigJson, Type typeOfT, JsonDeserializationContext ctx)
       throws JsonParseException {
-    JsonObject allowlistJsonObject = allowlistJson.getAsJsonObject();
-
-    try {
-      return new JexlAllowlist(
-          deserializeProperty(allowlistJsonObject, CLASS_NAME_KEY, String.class, "", ctx),
-          deserializeProperty(allowlistJsonObject, METHODS_KEY, STRING_LIST_TYPE, null, ctx),
-          deserializeProperty(allowlistJsonObject, PROPERTIES_KEY, STRING_LIST_TYPE, null, ctx));
-    } catch (IllegalArgumentException e) {
-      throw new JsonParseException(e.getMessage(), e);
+    if (!jexlConfigJson.isJsonObject()) {
+      throw new JsonParseException("Expected jexlConfiguration to be a JSON object.");
     }
+    JsonObject jexlConfigJsonObj = jexlConfigJson.getAsJsonObject();
+
+    return new JexlConfiguration(
+        deserializeProperty(jexlConfigJsonObj, JexlConfiguration.JEXL_ALLOWLIST_ENABLED_KEY, boolean.class, true, ctx),
+        deserializeProperty(
+            jexlConfigJsonObj, JexlConfiguration.JEXL_ALLOWLIST_KEY, JEXL_ALLOWLIST_LIST_TYPE, null, ctx));
   }
 
   @Nullable
