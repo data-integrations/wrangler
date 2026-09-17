@@ -49,7 +49,7 @@ import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.DirectiveClass;
 import io.cdap.wrangler.parser.GrammarWalker;
-import io.cdap.wrangler.parser.MapArgumentsWithContext;
+import io.cdap.wrangler.parser.MapArguments;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.ErrorRecordsException;
@@ -95,6 +95,11 @@ public class RemoteExecutionTask implements RunnableTask {
       boolean jexlAllowlistEnabled = systemAppContext != null 
           && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(systemAppContext);
       DirectiveContext directiveContext = new ConfigDirectiveContext(config, jexlAllowlistEnabled);
+
+      // Makes the JEXL allowlist configuration available to EL for the directives
+      // that are initialized below.
+      EL.initialize(directiveContext);
+
       GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), directiveContext);
       walker.walk(directiveRequest.getRecipe(), (command, tokenGroup) -> {
         DirectiveInfo info;
@@ -113,7 +118,7 @@ public class RemoteExecutionTask implements RunnableTask {
 
         Directive directive = info.instance();
         UsageDefinition definition = directive.define();
-        Arguments arguments = new MapArgumentsWithContext(definition, tokenGroup, directiveContext);
+        Arguments arguments = new MapArguments(definition, tokenGroup);
         directive.initialize(arguments);
         directives.add(directive);
       });
@@ -164,6 +169,8 @@ public class RemoteExecutionTask implements RunnableTask {
       }
     } catch (DirectiveParseException | ClassNotFoundException | CompileException e) {
       throw new BadRequestException(e.getMessage(), e);
+    } finally {
+      EL.reset();
     }
   }
 }
