@@ -34,7 +34,6 @@ import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Numeric;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.expression.CompileOptions;
 import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
@@ -72,7 +71,7 @@ public class IncrementTransientVariable implements Directive {
     this.incrementBy = ((Numeric) args.value("value")).value().longValue();
     String expression = ((Expression) args.value("condition")).value();
     try {
-      el = EL.compile(expression, CompileOptions.fromArguments(args));
+      el = EL.compile(expression);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }

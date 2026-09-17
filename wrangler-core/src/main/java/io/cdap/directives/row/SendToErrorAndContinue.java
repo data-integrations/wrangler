@@ -38,7 +38,6 @@ import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.expression.CompileOptions;
 import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
@@ -82,7 +81,7 @@ public class SendToErrorAndContinue implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     condition = ((Expression) args.value("condition")).value();
     try {
-      el = EL.compile(condition, CompileOptions.fromArguments(args));
+      el = EL.compile(condition);
     } catch (ELException e) {
       throw new DirectiveParseException(
         NAME, String.format("Invalid condition '%s'.", condition), e);

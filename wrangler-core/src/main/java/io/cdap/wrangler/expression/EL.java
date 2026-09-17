@@ -27,6 +27,7 @@ import io.cdap.functions.Global;
 import io.cdap.functions.JsonFunctions;
 import io.cdap.functions.Logical;
 import io.cdap.functions.NumberFunctions;
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.utils.ArithmeticOperations;
 import io.cdap.wrangler.utils.DecimalTransform;
@@ -56,6 +57,13 @@ public final class EL {
 
   private static volatile boolean used;
 
+  /**
+   * Options applied to every script compiled by this class, scoped to the thread that
+   * set them through {@link #initialize(DirectiveContext)}. Defaults to allowlist disabled.
+   */
+  private static final ThreadLocal<CompileOptions> COMPILE_OPTIONS =
+    ThreadLocal.withInitial(CompileOptions::getDefaultCompileOptions);
+
   private final Set<String> variables;
   private final JexlScript script;
 
@@ -67,41 +75,56 @@ public final class EL {
   }
 
   /**
-   * Same as calling {@link #compile(ELRegistration, String, CompileOptions)}
-   * using
-   * {@link DefaultFunctions}.
-   * Note: This defaults to allowlist disabled.
+   * Initializes the {@link CompileOptions} used by all subsequent calls to
+   * {@link #compile(String)} and {@link #compile(ELRegistration, String)}.
+   *
+   * <p>This is expected to be called once, before the directives of a recipe are
+   * initialized, so that the JEXL allowlist configuration does not have to be
+   * propagated to every individual directive.
+   *
+   * @param context the directive context holding the JEXL allowlist configuration.
    */
-  public static EL compile(String expression) throws ELException {
-    return compile(new DefaultFunctions(), expression, CompileOptions.getDefaultCompileOptions());
+  public static void initialize(DirectiveContext context) {
+    COMPILE_OPTIONS.set(CompileOptions.fromContext(context));
   }
 
   /**
-   * Compiles with specific JEXL allowlist settings.
+   * Resets the {@link CompileOptions} of the current thread back to the defaults.
    *
-   * @param expression the JEXL expression
-   * @param options    the compilation options
-   * @return the compiled EL
+   * <p>Should be called once a thread is done executing a recipe, so that the options
+   * are not leaked to the next recipe executed on the same (pooled) thread.
+   */
+  public static void reset() {
+    COMPILE_OPTIONS.remove();
+  }
+
+  /**
+   * Same as calling {@link #compile(ELRegistration, String)} using
+   * {@link DefaultFunctions}.
+   *
+   * @param expression to be compiled.
+   * @return a compiled {@link EL} object
    * @throws ELException if failed to compile
    */
-  public static EL compile(final String expression, final CompileOptions options) throws ELException {
-    return compile(new DefaultFunctions(), expression, options);
+  public static EL compile(String expression) throws ELException {
+    return compile(new DefaultFunctions(), expression);
   }
 
   /**
    * Compiles the expression and returns a executable expression.
    *
+   * <p>The expression is compiled using the {@link CompileOptions} set through
+   * {@link #initialize(DirectiveContext)}.
+   *
    * @param registration to be registered with the JEXL context.
    * @param expression   to be compiled.
-   * @param options      the compilation options
    * @return a compiled {@link EL} object
    * @throws ELException if failed to compile
    */
-  public static EL compile(final ELRegistration registration,
-      final String expression,
-      final CompileOptions options)
+  public static EL compile(final ELRegistration registration, final String expression)
       throws ELException {
     used = true;
+    CompileOptions options = COMPILE_OPTIONS.get();
     JexlSandbox sandbox = createSandbox(options.getJexlAllowlist(), options.isAllowlistEnabled());
     JexlEngine engine = new JexlBuilder()
       .sandbox(sandbox)
