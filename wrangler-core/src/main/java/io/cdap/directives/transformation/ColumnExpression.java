@@ -35,7 +35,6 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Expression;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
-import io.cdap.wrangler.expression.CompileOptions;
 import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.expression.ELContext;
 import io.cdap.wrangler.expression.ELException;
@@ -82,7 +81,7 @@ public class ColumnExpression implements Directive, Lineage {
     this.column = ((ColumnName) args.value("column")).value();
     this.expression = ((Expression) args.value("expression")).value();
     try {
-      el = EL.compile(expression, CompileOptions.fromArguments(args));
+      el = EL.compile(expression);
     } catch (ELException e) {
       throw new DirectiveParseException(NAME, e.getMessage(), e);
     }
