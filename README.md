@@ -216,3 +216,23 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+## 🔧 New Feature: Byte Size & Time Duration Parsing Support
+
+Wrangler now supports native parsing of **Byte Size** and **Time Duration** values directly within directives using the enhanced grammar and custom token types.
+
+### ✨ Supported Formats
+
+- **Byte Sizes**: `10KB`, `1.5MB`, `500B`, `2GB`, `3TB`, etc.
+- **Time Durations**: `100ms`, `1.5s`, `3h`, `2m`, etc.
+
+These values are parsed using the `ByteSize` and `TimeDuration` classes and automatically converted to base units (bytes and milliseconds) for processing.
+
+---
+
+### 🧪 Example Directive Usage
+
+```wrangler
+aggregate-stats :data_transfer :response_time total_size_mb total_time_sec
+

@@ -316,6 +316,24 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
+  
+  /**
+ * A Directive can contain a ByteSize literal (e.g., 10KB, 1.5MB).
+ */
+  @Override
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext ctx) {
+    builder.addToken(new io.cdap.wrangler.api.parser.ByteSize(ctx.getText()));
+    return builder;
+  }
+
+  /**
+ * A Directive can contain a TimeDuration literal (e.g., 100ms, 2s).
+ */
+  @Override
+  public RecipeSymbol.Builder visitTimeDuration(DirectivesParser.TimeDurationContext ctx) {
+    builder.addToken(new io.cdap.wrangler.api.parser.TimeDuration(ctx.getText()));
+    return builder;
+  }
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
