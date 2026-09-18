@@ -40,6 +40,8 @@ import java.io.Serializable;
  * @see Expression
  * @see Text
  * @see TextList
+ * @see ByteSize
+ * @see TimeDuration
  */
 @PublicEvolving
 public enum TokenType implements Serializable {
@@ -152,5 +154,19 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+  
+  /**
+   * Represents the enumerated type for the object of type {@code ByteSize} type.
+   * This type is associated with a numeric value followed by a byte unit (B, KB, MB, GB, TB, PB).
+   * For example: "10KB", "1.5MB", "2GB".
+   */
+  BYTE_SIZE,
+  
+  /**
+   * Represents the enumerated type for the object of type {@code TimeDuration} type.
+   * This type is associated with a numeric value followed by a time unit (ns, ms, s, m, h, d).
+   * For example: "100ms", "5s", "2.5h".
+   */
+  TIME_DURATION
 }
