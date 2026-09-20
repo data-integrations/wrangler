@@ -1,0 +1,13 @@
+Used multiple AI tools like Google AI-Studio for longer context, OpenAi, Claude
+
+1.  Break down the tasks required for the assignment 'Enhance Wrangler with Byte Size and Time Duration Units Parsers' based on the provided description.
+2.  Outline a step-by-step plan to implement the features, including grammar changes, API updates, core parser changes, new directive implementation, and testing.
+3.  Which modules in the 'data-integrations/wrangler' repository are likely involved (wrangler-api, wrangler-core)?
+4.  Where is the ANTLR grammar file located in this project structure?
+5.  Generate ANTLR4 lexer fragments for `BYTE_UNIT` (B, KB, MB, GB, TB, PB, case-insensitive) and `TIME_UNIT` (ns, us, ms, s, m, h, d and variants like seconds, millis, etc., case-insensitive).
+6.  Modify relevant parser rules (e.g., value, or create new specific rules like byteSizeArg, timeDurationArg) to accept BYTE_SIZE and TIME_DURATION tokens where appropriate for directive arguments.
+7.  Create new Java classes ByteSize.java and TimeDuration.java extending Token [wrangler-api/src/main/java/io/cdap/wrangler/api/parser/Token.java]
+8.  Implement the constructor for `ByteSize(String token)` to parse strings like '10KB', '1.5MB' (case-insensitive unit, optional space) using regex. Throw `IllegalArgumentException` on invalid format and all the nessary functions
+9.  Generate a similar Java class `TimeDuration` extending `Token` use the directives.g4 files for units consderation.
+10. Generate AggregateStats and AggregateStatsTest java code in necessary locations for creating aggreagate fucntions like sum, avg, std, variance, etc of byte unit and time Duration
+11. write the unit tests for ByteSize, TimeDuration, GrammarBasedParser also provide the necessary paths to generate the files
