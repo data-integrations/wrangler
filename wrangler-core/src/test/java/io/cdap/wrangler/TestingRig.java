@@ -20,6 +20,7 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
@@ -35,6 +36,7 @@ import io.cdap.wrangler.api.parser.SyntaxError;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.parser.GrammarBasedParser;
 import io.cdap.wrangler.parser.MigrateToV2;
+import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
@@ -120,12 +122,17 @@ public final class TestingRig {
 
   public static RecipePipeline execute(String[] recipe)
     throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
+    return execute(recipe, new NoOpDirectiveContext());
+  }
+
+  public static RecipePipeline execute(String[] recipe, DirectiveContext directiveContext)
+    throws RecipeException, DirectiveParseException, DirectiveLoadException, DirectiveNotFoundException {
     CompositeDirectiveRegistry registry = new CompositeDirectiveRegistry(
       SystemDirectiveRegistry.INSTANCE
     );
 
     String migrate = new MigrateToV2(recipe).migrate();
-    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry);
+    RecipeParser parser = new GrammarBasedParser(Contexts.SYSTEM, migrate, registry, directiveContext);
     return new RecipePipelineExecutor(parser, new TestingPipelineContext());
   }
 

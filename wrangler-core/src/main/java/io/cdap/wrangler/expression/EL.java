@@ -66,6 +66,7 @@ public final class EL {
 
   private final Set<String> variables;
   private final JexlScript script;
+  private final boolean allowlistEnabled;
 
   /**
    * Returns {@code true} if this class has been used to execute JEXL script.
@@ -105,6 +106,7 @@ public final class EL {
    * @param expression to be compiled.
    * @return a compiled {@link EL} object
    * @throws ELException if failed to compile
+   * @throws ELPermissionException if the expression violates the JEXL sandbox permission rules
    */
   public static EL compile(String expression) throws ELException {
     return compile(new DefaultFunctions(), expression);
@@ -120,12 +122,14 @@ public final class EL {
    * @param expression   to be compiled.
    * @return a compiled {@link EL} object
    * @throws ELException if failed to compile
+   * @throws ELPermissionException if the expression violates the JEXL sandbox permission rules
    */
   public static EL compile(final ELRegistration registration, final String expression)
       throws ELException {
     used = true;
     CompileOptions options = COMPILE_OPTIONS.get();
-    JexlSandbox sandbox = createSandbox(options.getJexlAllowlist(), options.isAllowlistEnabled());
+    boolean allowlistEnabled = options.isAllowlistEnabled();
+    JexlSandbox sandbox = createSandbox(options.getJexlAllowlist(), allowlistEnabled);
     JexlEngine engine = new JexlBuilder()
       .sandbox(sandbox)
       .namespaces(registration.functions())
@@ -138,9 +142,9 @@ public final class EL {
     try {
       JexlScript script = engine.createScript(expression);
       Set<String> variables = extractVariables(script);
-      return new EL(script, variables);
+      return new EL(script, variables, allowlistEnabled);
     } catch (Exception e) {
-      throw handleException(e, expression);
+      throw handleException(e, expression, allowlistEnabled);
     }
   }
 
@@ -156,27 +160,53 @@ public final class EL {
         .collect(Collectors.toSet());
   }
 
-  private static ELException handleException(Exception e, String expression) {
+  private static ELException handleException(
+      Exception e, String expression, boolean allowlistEnabled) {
     if (e instanceof JexlException) {
-      JexlException jexlException = (JexlException) e;
-      JexlInfo info = jexlException.getInfo();
-      return new ELException(
-          String.format("Error encountered while evaluating '%s', at line '%d' and column '%d'. " +
-              "Make sure the JEXL transformation is valid and uses only allowlisted classes, methods, and properties.",
-              info == null || info.getDetail() == null ? expression : info.getDetail(),
-              info == null ? 0 : info.getLine(), info == null ? 0 : info.getColumn()),
-          e);
-    } else if (e instanceof NumberFormatException) {
-      return new ELException("Type mismatch. Change type of constant " +
-                              "or convert to right data type using conversion functions available. Reason : "
-                              + e.getMessage(), e);
-    } else {
-      if (e.getCause() != null) {
-        return new ELException(e.getCause().getMessage(), e);
-      } else {
-        return new ELException(e);
-      }
+      return handleJexlException((JexlException) e, expression, allowlistEnabled);
     }
+
+    if (e instanceof NumberFormatException) {
+      return new ELException("Type mismatch. Change type of constant "
+          + "or convert to right data type using conversion functions available. Reason : "
+          + e.getMessage(), e);
+    }
+
+    return e.getCause() != null
+        ? new ELException(e.getCause().getMessage(), e)
+        : new ELException(e);
+  }
+
+  /**
+   * Translates a {@link JexlException} into an {@link ELException}, or throws an
+   * {@link ELPermissionException} if the exception represents a JEXL sandbox permission violation.
+   *
+   * @param e                the JEXL exception to handle
+   * @param expression       the source expression being evaluated
+   * @param allowlistEnabled whether the JEXL allowlist sandbox is enabled
+   * @return an {@link ELException} describing the evaluation error
+   * @throws ELPermissionException if the exception is caused by a JEXL sandbox permission violation
+   */
+  private static ELException handleJexlException(
+      JexlException e, String expression, boolean allowlistEnabled) {
+    JexlInfo info = e.getInfo();
+    Object detail = (info == null || info.getDetail() == null) ? expression : info.getDetail();
+    int line = info == null ? 0 : info.getLine();
+    int column = info == null ? 0 : info.getColumn();
+    String baseErrorMessage = String.format(
+        "Error encountered while evaluating '%s', at line '%d' and column '%d'.",
+        detail, line, column);
+
+    if (isJexlPermissionViolation(e, allowlistEnabled)) {
+      throw new ELPermissionException(baseErrorMessage, e);
+    }
+
+    return new ELException(baseErrorMessage, e);
+  }
+
+  private static boolean isJexlPermissionViolation(JexlException e, boolean allowlistEnabled) {
+    return allowlistEnabled
+        && (e instanceof JexlException.Method || e instanceof JexlException.Property);
   }
 
   /**
@@ -241,9 +271,10 @@ public final class EL {
     }
   }
 
-  private EL(JexlScript script, Set<String> variables) {
+  private EL(JexlScript script, Set<String> variables, boolean allowlistEnabled) {
     this.script = script;
     this.variables = Collections.unmodifiableSet(variables);
+    this.allowlistEnabled = allowlistEnabled;
   }
 
   public Set<String> variables() {
@@ -254,6 +285,14 @@ public final class EL {
     return script.getParsedText();
   }
 
+  /**
+   * Executes the compiled JEXL script against the given {@link ELContext}.
+   *
+   * @param context the execution context containing variable bindings
+   * @return the {@link ELResult} holding the evaluated value
+   * @throws ELException         if an error occurs while evaluating the expression
+   * @throws ELPermissionException if the expression violates JEXL sandbox permissions
+   */
   public ELResult execute(ELContext context) throws ELException {
     try {
       // Null the missing fields
@@ -265,7 +304,7 @@ public final class EL {
       Object value = script.execute(context);
       return new ELResult(value);
     } catch (Exception e) {
-      throw handleException(e, script.getSourceText());
+      throw handleException(e, script.getSourceText(), allowlistEnabled);
     }
   }
 
