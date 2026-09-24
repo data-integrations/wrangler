@@ -502,13 +502,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       }
     } catch (Exception e) {
       getContext().getMetrics().count("failure", 1);
-      if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_PROCEED)) {
-        // Emit error record, if the Error flattener or error handlers are not connected, then
-        // the record is automatically omitted.
-        emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
-        return;
-      }
-      if (onErrorStrategy.equalsIgnoreCase(ON_ERROR_FAIL_PIPELINE)) {
+      if (shouldFailPipeline(e)) {
         emitter.emitAlert(ImmutableMap.of(
           "stage", getContext().getStageName(),
           "code", String.valueOf(1),
@@ -522,6 +516,11 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
             getContext().getStageName(), e.getClass().getName(), e.getMessage());
         throw WranglerErrorUtil.getProgramFailureExceptionDetailsFromChain(e, errorReason,
             errorMessage, ErrorType.UNKNOWN);
+      }
+      if (ON_ERROR_PROCEED.equalsIgnoreCase(onErrorStrategy)) {
+        // Emit error record, if the Error flattener or error handlers are not connected, then
+        // the record is automatically omitted.
+        emitter.emitError(new InvalidEntry<>(0, e.getMessage(), input));
       }
       // If it's 'skip-on-error' we continue processing and don't emit any error records.
       return;
@@ -549,6 +548,18 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       }
       emitter.emit(builder.build());
     }
+  }
+
+  /**
+   * Determines whether the pipeline should fail immediately for the given exception.
+   * Critical exceptions always fail the pipeline regardless of the configured on-error strategy.
+   *
+   * @param e the exception thrown during record transformation
+   * @return {@code true} if the pipeline should fail immediately, {@code false} otherwise
+   */
+  private boolean shouldFailPipeline(Exception e) {
+    return WranglerErrorUtil.isCriticalException(e)
+        || ON_ERROR_FAIL_PIPELINE.equalsIgnoreCase(onErrorStrategy);
   }
 
   /**

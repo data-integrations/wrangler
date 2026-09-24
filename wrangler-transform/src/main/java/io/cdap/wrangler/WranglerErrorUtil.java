@@ -28,6 +28,7 @@ import io.cdap.wrangler.api.DirectiveNotFoundException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.expression.ELException;
+import io.cdap.wrangler.expression.ELPermissionException;
 import io.cdap.wrangler.utils.RecordConvertorException;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,9 @@ public final class WranglerErrorUtil {
       .put(DirectiveLoadException.class.getName(), "Loading-Directive")
       .put(DirectiveNotFoundException.class.getName(), "Directive-Not-Found")
       .put(RecordConvertorException.class.getName(), "Record-Conversion")
-      .put(ELException.class.getName(), "ExpressionLanguage-Parsing").build();
+      .put(ELException.class.getName(), "ExpressionLanguage-Parsing")
+      .put(ELPermissionException.class.getName(), "ExpressionLanguage-Permission")
+      .build();
 
   private static final Map<String, String> NON_TERMINAL_EXCEPTIONS = ImmutableMap.<String, String>builder()
       .put(RecipeException.class.getName(), "Executing-Recipe").build();
@@ -59,6 +62,19 @@ public final class WranglerErrorUtil {
    */
   private WranglerErrorUtil() {
     throw new IllegalStateException("Utility class");
+  }
+
+  /**
+   * Checks whether the given {@link Throwable} or any cause in its causal chain is an
+   * {@link ELPermissionException}.
+   *
+   * @param e the {@link Throwable} to inspect
+   * @return {@code true} if {@link ELPermissionException} is present in the causal chain,
+       *     {@code false} otherwise
+   */
+  public static boolean isCriticalException(Throwable e) {
+    return e != null && Throwables.getCausalChain(e).stream()
+        .anyMatch(ELPermissionException.class::isInstance);
   }
 
   /**

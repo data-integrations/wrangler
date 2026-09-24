@@ -19,12 +19,21 @@ package io.cdap.wrangler.executor;
 import io.cdap.cdap.api.data.format.StructuredRecord;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveContext;
+import io.cdap.wrangler.api.ErrorRecord;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.expression.ELPermissionException;
+import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Tests {@link RecipePipelineExecutor}.
@@ -95,5 +104,46 @@ public class RecipePipelineExecutorTest {
     Assert.assertEquals("lperezqt@umn.edu", record.get("email"));
     Assert.assertEquals(1481666448L, record.<Long>get("timestamp").longValue());
     Assert.assertEquals(186.66f, record.get("weight"), 0.0001f);
+  }
+
+  @Test
+  public void testELPermissionExceptionFailsOnFirstRow() throws Exception {
+    DirectiveConfig config =
+        new DirectiveConfig(null, null, new JexlConfiguration(true, Collections.emptyList()));
+    DirectiveContext directiveContext = new ConfigDirectiveContext(config, true);
+    RecipePipeline<Row, StructuredRecord, ErrorRecord> pipeline =
+        TestingRig.execute(
+            new String[] {"send-to-error exp:{ a.toUpperCase() == 'VAL1' }"}, directiveContext);
+    try {
+      pipeline.execute(Arrays.asList(new Row("a", "val1"), new Row("a", "val2")));
+      Assert.fail("Expected RecipeException on first row when JEXL permission violation occurs");
+    } catch (RecipeException e) {
+      Assert.assertEquals(0, e.getRowIndex());
+      Assert.assertEquals(1, e.getDirectiveIndex());
+      Assert.assertTrue(e.getCause() instanceof ELPermissionException);
+      Assert.assertTrue(pipeline.errors().isEmpty());
+    }
+  }
+
+  @Test
+  public void testRowExceptionsProceedThroughAllRows() throws Exception {
+    DirectiveConfig config =
+        new DirectiveConfig(null, null, new JexlConfiguration(true, Collections.emptyList()));
+    DirectiveContext directiveContext = new ConfigDirectiveContext(config, true);
+    RecipePipeline<Row, StructuredRecord, ErrorRecord> pipeline =
+        TestingRig.execute(
+            new String[] {
+              "send-to-error exp:{ a == 'val1' }",
+              "send-to-error-and-continue exp:{ a == 'val2' }"
+            },
+            directiveContext);
+    List<Row> results =
+        pipeline.execute(
+            Arrays.asList(new Row("a", "val1"), new Row("a", "val2"), new Row("a", "val3")));
+    Assert.assertEquals(1, results.size());
+    Assert.assertEquals("val3", results.get(0).getValue("a"));
+    Assert.assertEquals(2, pipeline.errors().size());
+    Assert.assertEquals("val1", pipeline.errors().get(0).getRow().getValue("a"));
+    Assert.assertEquals("val2", pipeline.errors().get(1).getRow().getValue("a"));
   }
 }

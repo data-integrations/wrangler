@@ -30,6 +30,7 @@ import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.ReportErrorAndProceed;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.TransientVariableScope;
+import io.cdap.wrangler.expression.ELPermissionException;
 import io.cdap.wrangler.schema.DirectiveOutputSchemaGenerator;
 import io.cdap.wrangler.schema.DirectiveSchemaResolutionContext;
 import io.cdap.wrangler.schema.TransientStoreKeys;
@@ -159,7 +160,7 @@ public final class RecipePipelineExecutor implements RecipePipeline<Row, Structu
         }
         ++i;
       }
-    } catch (DirectiveExecutionException e) {
+    } catch (DirectiveExecutionException | ELPermissionException e) {
       throw new RecipeException(e.getMessage(), e, i, directiveIndex);
     }
     // Schema generation
