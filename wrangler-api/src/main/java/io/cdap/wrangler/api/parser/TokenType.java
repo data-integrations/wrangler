@@ -152,5 +152,15 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+  //changes made here -----------------------------
+  /**
+ * Represents the enumerated type for the object of {@code ByteSize} type.
+ */
+BYTE_SIZE,
+
+/**
+ * Represents the enumerated type for the object of {@code TimeDuration} type.
+ */
+  TIME_DURATION
 }
