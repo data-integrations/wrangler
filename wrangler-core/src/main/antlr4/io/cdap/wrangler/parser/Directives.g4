@@ -64,8 +64,19 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
+
+byteSizeArg
+  : BYTE_SIZE
+  ;
+
+timeDurationArg
+  : TIME_DURATION
+  ;
+
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -140,7 +151,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -255,6 +266,22 @@ Bool
 
 Number
  : Int ('.' Digit*)?
+ ;
+
+BYTE_SIZE
+ : Int BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Int TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'B'
+ ;
+
+fragment TIME_UNIT
+ : 'ms' | 's' | 'm' | 'h' | 'd'
  ;
 
 Identifier
