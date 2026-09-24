@@ -200,7 +200,7 @@ CDAP Users on Slack: [cdap-users team](https://cdap-users.herokuapp.com)
 
 ## License and Trademarks
 
-Copyright © 2016-2019 Cask Data, Inc.
+Copyright 2016-2019 Cask Data, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
 in compliance with the License. You may obtain a copy of the License at
@@ -216,3 +216,29 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+## Enhancements for Byte Size and Time Duration Parsing
+
+### Task 1: Grammar Modification
+- **What I Did**: I added new rules to the grammar file `Directives.g4` to recognize byte sizes and time durations like "10KB" or "150ms".
+- **Why I Did It**: This makes it easier to work with these units in recipes, so users don't have to manually convert them.
+
+### Task 2: API Updates
+- **What I Did**: I created two new Java classes, `ByteSize` and `TimeDuration`, in the `wrangler-api` module.
+- **Why I Did It**: These classes help in parsing strings like "10KB" and "5s" and convert them into numbers that the program can easily use.
+
+### Task 3: Core Parser Updates
+- **What I Did**: I updated the `RecipeVisitor.java` file to include methods that understand the new byte size and time duration tokens.
+- **Why I Did It**: This ensures that when the program reads a recipe, it knows how to handle these new types of data.
+
+### Task 4: New Directive Implementation
+- **What I Did**: I implemented a new directive called `AggregateDirective` that can sum up byte sizes and time durations.
+- **Why I Did It**: This directive allows users to easily calculate totals or averages of data sizes and times, which is useful for data analysis.
+
+### Task 5: Testing
+- **What I Did**: I wrote tests for the new classes and directive to make sure everything works as expected.
+- **Why I Did It**: Testing is important to catch any errors and ensure the program behaves correctly.
+
+### Using AI
+- **How I Used AI**: I used AI to help me understand the task requirements and guide me through the coding process.
+- **Prompts I Used**: I asked for help with understanding how to modify grammar files, how to implement new Java classes, and how to write effective tests.
