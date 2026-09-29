@@ -121,6 +121,11 @@ public class RecipePipelineExecutorTest {
       Assert.assertEquals(0, e.getRowIndex());
       Assert.assertEquals(1, e.getDirectiveIndex());
       Assert.assertTrue(e.getCause() instanceof ELPermissionException);
+      Assert.assertTrue(
+          e.getMessage()
+              .contains(
+                  "Make sure the JEXL transformation is valid and uses only allowlisted classes, "
+                      + "methods, and properties."));
       Assert.assertTrue(pipeline.errors().isEmpty());
     }
   }

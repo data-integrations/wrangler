@@ -198,10 +198,16 @@ public final class EL {
         detail, line, column);
 
     if (isJexlPermissionViolation(e, allowlistEnabled)) {
-      throw new ELPermissionException(baseErrorMessage, e);
+      throw new ELPermissionException(
+          String.format(
+              "%s Make sure the JEXL transformation is valid and uses only allowlisted classes, "
+                  + "methods, and properties.",
+              baseErrorMessage),
+          e);
     }
 
-    return new ELException(baseErrorMessage, e);
+    return new ELException(
+        String.format("%s Make sure the JEXL transformation is valid.", baseErrorMessage), e);
   }
 
   private static boolean isJexlPermissionViolation(JexlException e, boolean allowlistEnabled) {
