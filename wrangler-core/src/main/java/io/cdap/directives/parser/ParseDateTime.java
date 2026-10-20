@@ -63,8 +63,8 @@ public class ParseDateTime implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value(COLUMN)).value();
-    this.format = args.value(FORMAT).value().toString();
+    this.column = ((ColumnName) args.value(COLUMN, "MB")).value();
+    this.format = args.value(FORMAT, "MB").value().toString();
     try {
       this.formatter = DateTimeFormatter.ofPattern(this.format);
     } catch (IllegalArgumentException exception) {

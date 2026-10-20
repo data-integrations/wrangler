@@ -66,8 +66,8 @@ public final class FixedLengthParser implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.col = ((ColumnName) args.value("column")).value();
-    List<LazyNumber> numbers = ((NumericList) args.value("width")).value();
+    this.col = ((ColumnName) args.value("column", "MB")).value();
+    List<LazyNumber> numbers = ((NumericList) args.value("width", "MB")).value();
     this.widths = new int[numbers.size()];
     int idx = 0;
     int sum = 0;
@@ -78,7 +78,7 @@ public final class FixedLengthParser implements Directive, Lineage {
     }
     this.recordLength = sum;
     if (args.contains("padding")) {
-      this.padding = ((Text) args.value("padding")).value();
+      this.padding = ((Text) args.value("padding", "MB")).value();
     } else {
       this.padding = null;
     }

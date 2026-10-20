@@ -139,8 +139,14 @@ numberRange
  : Number ':' Number '=' value
  ;
 
+// Update the value rule to include BYTE_SIZE and TIME_DURATION
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
  ;
 
 ecommand
@@ -311,3 +317,14 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+ // Add BYTE_SIZE and TIME_DURATION lexer rules
+ BYTE_SIZE: Number BYTE_UNIT;
+ TIME_DURATION: Number TIME_UNIT;
+
+ // Helper fragments for units
+ fragment BYTE_UNIT: 'B' | 'KB' | 'MB' | 'GB' | 'TB';
+ fragment TIME_UNIT: 'ms' | 's' | 'm' | 'h' | 'd';
+
+
+

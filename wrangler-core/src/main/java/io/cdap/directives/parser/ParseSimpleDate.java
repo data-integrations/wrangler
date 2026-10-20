@@ -66,8 +66,8 @@ public class ParseSimpleDate implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    String format = ((Text) args.value("format")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    String format = ((Text) args.value("format", "MB")).value();
     this.formatter = new SimpleDateFormat(format);
     // CDAP-19615 Use pure Gregorian Calendar to avoid Julian date precision loss
     GregorianCalendar gc = new GregorianCalendar(TimeZone.getTimeZone("UTC"));

@@ -79,7 +79,7 @@ public class SendToErrorAndContinue implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    condition = ((Expression) args.value("condition")).value();
+    condition = ((Expression) args.value("condition", "MB")).value();
     try {
       el = EL.compile(condition);
     } catch (ELException e) {
@@ -87,10 +87,10 @@ public class SendToErrorAndContinue implements Directive, Lineage {
         NAME, String.format("Invalid condition '%s'.", condition), e);
     }
     if (args.contains("metric")) {
-      metric = ((Identifier) args.value("metric")).value();
+      metric = ((Identifier) args.value("metric", "MB")).value();
     }
     if (args.contains("message")) {
-      message = ((Text) args.value("message")).value();
+      message = ((Text) args.value("message", "MB")).value();
     }
   }
 

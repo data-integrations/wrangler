@@ -64,10 +64,10 @@ public class TextDistanceMeasure implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    String method = ((Text) args.value("method")).value();
-    this.column1 = ((ColumnName) args.value("column1")).value();
-    this.column2 = ((ColumnName) args.value("column2")).value();
-    this.destination = ((ColumnName) args.value("destination")).value();
+    String method = ((Text) args.value("method", "MB")).value();
+    this.column1 = ((ColumnName) args.value("column1", "MB")).value();
+    this.column2 = ((ColumnName) args.value("column2", "MB")).value();
+    this.destination = ((ColumnName) args.value("destination", "MB")).value();
     // defaults to : cosineSimilarity
     switch(method.toLowerCase()) {
       case "euclidean":

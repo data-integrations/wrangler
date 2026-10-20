@@ -56,7 +56,7 @@ public class TimestampToDateTime implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) {
-    this.column = ((ColumnName) args.value(COLUMN)).value();
+    this.column = ((ColumnName) args.value(COLUMN, "MB")).value();
   }
 
   @Override

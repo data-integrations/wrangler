@@ -55,7 +55,7 @@ public class TitleCase implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
   }
 
   @Override

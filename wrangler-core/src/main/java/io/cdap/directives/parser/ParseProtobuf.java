@@ -87,11 +87,11 @@ public class ParseProtobuf implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.schemaId = ((Identifier) args.value("schema-id")).value();
-    this.recordName = ((Text) args.value("record-name")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.schemaId = ((Identifier) args.value("schema-id", "MB")).value();
+    this.recordName = ((Text) args.value("record-name", "MB")).value();
     if (args.contains("version")) {
-      this.version = ((Numeric) args.value("version")).value().intValue();
+      this.version = ((Numeric) args.value("version", "MB")).value().intValue();
     } else {
       this.version = -1;
     }

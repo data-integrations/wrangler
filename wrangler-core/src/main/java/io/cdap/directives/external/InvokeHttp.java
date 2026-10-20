@@ -87,11 +87,11 @@ public class InvokeHttp implements Directive, Lineage {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     gson = new Gson();
-    this.url = ((Text) args.value("url")).value();
-    this.columns = ((ColumnNameList) args.value("column")).value();
+    this.url = ((Text) args.value("url", "MB")).value();
+    this.columns = ((ColumnNameList) args.value("column", "MB")).value();
     String hdrs = null;
     if (args.contains("header")) {
-      hdrs = ((Text) args.value("header")).value();
+      hdrs = ((Text) args.value("header", "MB")).value();
     }
     if (hdrs != null && !hdrs.isEmpty()) {
       String[] parsedHeaders = hdrs.split(",");

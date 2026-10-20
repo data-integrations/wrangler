@@ -61,8 +61,8 @@ public class ExtractRegexGroups implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.regex = ((Text) args.value("regex")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.regex = ((Text) args.value("regex", "MB")).value();
     pattern = Pattern.compile(regex);
   }
 

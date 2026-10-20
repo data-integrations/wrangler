@@ -60,8 +60,8 @@ public class Swap implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    left = ((ColumnName) args.value("left")).value();
-    right = ((ColumnName) args.value("right")).value();
+    left = ((ColumnName) args.value("left", "MB")).value();
+    right = ((ColumnName) args.value("right", "MB")).value();
   }
 
   @Override

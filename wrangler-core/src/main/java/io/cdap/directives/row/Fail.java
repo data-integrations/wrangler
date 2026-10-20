@@ -63,7 +63,7 @@ public class Fail implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    Expression expression = args.value("condition");
+    Expression expression = args.value("condition", "MB");
     if (expression.value().isEmpty()) {
       throw new DirectiveParseException(
         NAME, "No condition has been specified. Make sure condition is provided");

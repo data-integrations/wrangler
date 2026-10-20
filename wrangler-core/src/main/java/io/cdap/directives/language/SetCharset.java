@@ -64,8 +64,8 @@ public class SetCharset implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.charset = ((Text) args.value("charset")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.charset = ((Text) args.value("charset", "MB")).value();
   }
 
   @Override

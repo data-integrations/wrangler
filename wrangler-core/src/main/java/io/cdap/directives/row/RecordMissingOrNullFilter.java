@@ -56,7 +56,7 @@ public class RecordMissingOrNullFilter implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    List<String> cols = ((ColumnNameList) args.value("column")).value();
+    List<String> cols = ((ColumnNameList) args.value("column", "MB")).value();
     columns = new String[cols.size()];
     columns = cols.toArray(columns);
   }

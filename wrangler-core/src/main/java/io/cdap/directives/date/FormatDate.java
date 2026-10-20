@@ -64,8 +64,8 @@ public class FormatDate implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.format = ((Text) args.value("format")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.format = ((Text) args.value("format", "MB")).value();
     this.destinationFmt = DateTimeFormatter.ofPattern(this.format);
   }
 
