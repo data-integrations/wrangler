@@ -21,7 +21,14 @@ import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.api.service.worker.RemoteExecutionException;
+import io.cdap.cdap.features.Feature;
+import io.cdap.cdap.proto.element.EntityType;
+import io.cdap.cdap.proto.id.ConnectionEntityId;
+import io.cdap.cdap.proto.id.NamespaceId;
+import io.cdap.cdap.proto.security.StandardPermission;
+import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
 import io.cdap.cdap.security.spi.authorization.UnauthorizedException;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.api.RecipeException;
@@ -41,6 +48,9 @@ import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.StatusCodeException;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionType;
+import io.cdap.wrangler.proto.id.DirectiveConfigEntityId;
+import io.cdap.wrangler.proto.id.RecipeEntityId;
+import io.cdap.wrangler.proto.id.WorkspaceEntityId;
 import io.cdap.wrangler.proto.workspace.v2.RecipeExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +67,57 @@ import javax.annotation.Nullable;
  */
 public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWranglerHandler.class);
+  protected static final String ALL_ENTITIES = "*";
+
+  protected ContextAccessEnforcer contextAccessEnforcer;
+  protected boolean isWorkspaceAuthEnforcementEnabled;
+  protected boolean isRecipeAuthEnforcementEnabled;
+  protected boolean isDirectiveConfigAuthEnforcementEnabled;
+
+  @Override
+  public void initialize(SystemHttpServiceContext context) throws Exception {
+    super.initialize(context);
+    contextAccessEnforcer = context.getContextAccessEnforcer();
+    isWorkspaceAuthEnforcementEnabled = Feature.WRANGLER_WORKSPACE_AUTH_CHECK.isEnabled(context);
+    isRecipeAuthEnforcementEnabled = Feature.WRANGLER_RECIPE_AUTH_CHECK.isEnabled(context);
+    isDirectiveConfigAuthEnforcementEnabled = Feature.WRANGLER_DIRECTIVE_CONFIG_AUTH_CHECK.isEnabled(context);
+  }
+
+  protected void enforceWorkspacePermission(String namespace, String workspaceId, StandardPermission permission) {
+    if (isWorkspaceAuthEnforcementEnabled && contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforce(new WorkspaceEntityId(namespace, workspaceId), permission);
+    }
+  }
+
+  protected void enforceRecipePermission(String namespace, String recipeId, StandardPermission permission) {
+    if (isRecipeAuthEnforcementEnabled && contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforce(new RecipeEntityId(namespace, recipeId), permission);
+    }
+  }
+
+  protected void enforceDirectiveConfigPermission(StandardPermission permission) {
+    if (isDirectiveConfigAuthEnforcementEnabled && contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforce(new DirectiveConfigEntityId(), permission);
+    }
+  }
+
+  protected void enforceConnectionPermission(String namespace, String connectionId, StandardPermission permission) {
+    if (contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforce(new ConnectionEntityId(namespace, connectionId), permission);
+    }
+  }
+
+  protected void enforceNamespacePermission(String namespace, StandardPermission permission) {
+    if (contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforce(new NamespaceId(namespace), permission);
+    }
+  }
+
+  protected void enforceOnParentNamespace(String namespace, StandardPermission permission) {
+    if (isWorkspaceAuthEnforcementEnabled && contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforceOnParent(EntityType.SYSTEM_APP_ENTITY, new NamespaceId(namespace), permission);
+    }
+  }
 
   protected Workspace getWorkspace(NamespacedId workspaceId) {
     return TransactionRunners.run(getContext(), context -> {
@@ -158,6 +219,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
         new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (UnauthorizedException e) {
+      responder.sendJson(e.getStatusCode(), new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
       LOG.warn("Error processing {} {}, resulting in a 500 response.", request.getMethod(), request.getRequestURI(), t);
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));
@@ -179,24 +242,25 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    */
   protected void respond(HttpServiceResponder responder, String namespace,
                          NamespacedResponderRunnable runnable) {
-    // system namespace does not officially exist, so don't check existence for system namespace.
+    if (Contexts.SYSTEM.equalsIgnoreCase(namespace)) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+                         new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(
+                           "Operation in system namespace is currently not supported"));
+      return;
+    }
     NamespaceSummary namespaceSummary;
-    if (Contexts.SYSTEM.equals(namespace)) {
-      namespaceSummary = new NamespaceSummary(Contexts.SYSTEM, "", 0L);
-    } else {
-      try {
-        namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
-        if (namespaceSummary == null) {
-          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
-                             new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(
-                               String.format("Namespace '%s' does not exist", namespace)));
-          return;
-        }
-      } catch (IOException e) {
-        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR,
-                           new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
+    try {
+      namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
+      if (namespaceSummary == null) {
+        responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
+                           new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(
+                             String.format("Namespace '%s' does not exist", namespace)));
         return;
       }
+    } catch (IOException e) {
+      responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR,
+                         new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
+      return;
     }
 
     try {
@@ -248,22 +312,22 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    */
   protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, String namespace,
                              NamespacedResponder<T> callable) {
-    // system namespace does not officially exist, so don't check existence for system namespace.
+    if (Contexts.SYSTEM.equalsIgnoreCase(namespace)) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+                         new ServiceResponse<Void>("Operation in system namespace is currently not supported"));
+      return;
+    }
     NamespaceSummary namespaceSummary;
-    if (Contexts.SYSTEM.equals(namespace)) {
-      namespaceSummary = new NamespaceSummary(Contexts.SYSTEM, "", 0L);
-    } else {
-      try {
-        namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
-        if (namespaceSummary == null) {
-          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
-                             new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
-          return;
-        }
-      } catch (IOException e) {
-        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
+    try {
+      namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
+      if (namespaceSummary == null) {
+        responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
+                           new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
         return;
       }
+    } catch (IOException e) {
+      responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
+      return;
     }
 
     try {
@@ -276,6 +340,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
           new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (UnauthorizedException e) {
+      responder.sendJson(e.getStatusCode(), new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
       LOG.warn("Error processing {} {}, resulting in a 500 response.", request.getMethod(), request.getRequestURI(), t);
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));

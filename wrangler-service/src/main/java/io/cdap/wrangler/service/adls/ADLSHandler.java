@@ -29,6 +29,7 @@ import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -115,7 +116,8 @@ public class ADLSHandler extends AbstractWranglerHandler {
   public void testADLSConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                  @PathParam("context") String namespace) {
     // Extract the body of the request and transform it to the Connection object
-    respond(request, responder, () -> {
+    respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.ADLS);
       ConnectionType connectionType = connection.getType();
@@ -152,6 +154,7 @@ public class ADLSHandler extends AbstractWranglerHandler {
                                 @PathParam("connection-id") String connectionId,
                                 @Nullable @QueryParam("path") String path) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
       try {
         Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.ADLS);
         String defaultPath = "/";
@@ -228,6 +231,8 @@ public class ADLSHandler extends AbstractWranglerHandler {
         if (Strings.isNullOrEmpty(connectionId)) {
           throw new BadRequestException("Required path param 'connection-id' is missing in the input");
         }
+        enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
+        enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
         if (lines == 0) {
           throw new BadRequestException("The maximum number of sampled lines cannot be zero");
         }
@@ -393,37 +398,43 @@ public class ADLSHandler extends AbstractWranglerHandler {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("path") String path,
                             @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      ConnectionStore store = ConnectionStore.get(context);
-      WorkspaceDataset ws = WorkspaceDataset.get(context);
-      Format format = Format.TEXT;
-      NamespacedId namespacedWorkspaceId = new NamespacedId(ns, workspaceId);
-      String refName;
+    respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
       if (workspaceId != null) {
-        Map<String, String> config = ws.getWorkspace(namespacedWorkspaceId).getProperties();
-        String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
-        refName = config.getOrDefault(PropertyIds.NAME, Format.TEXT.name());
-        format = Format.valueOf(formatStr);
-      } else {
-        refName = "sample";
+        enforceWorkspacePermission(ns.getName(), workspaceId, StandardPermission.GET);
       }
+      return TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        Format format = Format.TEXT;
+        NamespacedId namespacedWorkspaceId = new NamespacedId(ns, workspaceId);
+        String refName;
+        if (workspaceId != null) {
+          Map<String, String> config = ws.getWorkspace(namespacedWorkspaceId).getProperties();
+          String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+          refName = config.getOrDefault(PropertyIds.NAME, Format.TEXT.name());
+          format = Format.valueOf(formatStr);
+        } else {
+          refName = "sample";
+        }
 
-      Connection conn = getValidatedConnection(store, new NamespacedId(ns, connectionId), ConnectionType.ADLS);
-      ADLSConfiguration adlsConfiguration = new ADLSConfiguration(conn.getProperties());
-      Map<String, String> properties = new HashMap<>();
-      properties.put("format", format.name().toLowerCase());
-      String pathURI = "adl://" + adlsConfiguration.getAccountFQDN() + path;
-      properties.put("path", pathURI);
-      properties.put("referenceName", ReferenceNames.cleanseReferenceName(refName));
-      properties.put("credentials", adlsConfiguration.getClientKey());
-      properties.put("clientId", adlsConfiguration.getADLSClientID());
-      properties.put("refreshTokenURL", adlsConfiguration.getEndpointURL());
-      properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedWorkspaceId)));
-      properties.put("schema", format.getSchema().toString());
+        Connection conn = getValidatedConnection(store, new NamespacedId(ns, connectionId), ConnectionType.ADLS);
+        ADLSConfiguration adlsConfiguration = new ADLSConfiguration(conn.getProperties());
+        Map<String, String> properties = new HashMap<>();
+        properties.put("format", format.name().toLowerCase());
+        String pathURI = "adl://" + adlsConfiguration.getAccountFQDN() + path;
+        properties.put("path", pathURI);
+        properties.put("referenceName", ReferenceNames.cleanseReferenceName(refName));
+        properties.put("credentials", adlsConfiguration.getClientKey());
+        properties.put("clientId", adlsConfiguration.getADLSClientID());
+        properties.put("refreshTokenURL", adlsConfiguration.getEndpointURL());
+        properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedWorkspaceId)));
+        properties.put("schema", format.getSchema().toString());
 
-      PluginSpec pluginSpec = new PluginSpec("AzureDataLakeStore", "source", properties);
-      return new ServiceResponse<>(pluginSpec);
-    }));
+        PluginSpec pluginSpec = new PluginSpec("AzureDataLakeStore", "source", properties);
+        return new ServiceResponse<>(pluginSpec);
+      });
+    });
   }
 
   /**
