@@ -23,6 +23,7 @@ import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.dataset.connections.ConnectionStore;
@@ -167,6 +168,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta();
@@ -211,6 +213,8 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void update(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.UPDATE);
+      checkNotPreconfiguredConnection(id, "update");
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta();
@@ -219,7 +223,11 @@ public class ConnectionHandler extends AbstractWranglerHandler {
       // it will throw an exception.
       TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
-        store.update(new NamespacedId(ns, id), connection);
+        NamespacedId namespacedId = new NamespacedId(ns, id);
+        if (store.connectionExists(ns, id) && store.get(namespacedId).isPreconfigured()) {
+          throw new UnauthorizedException(String.format("Cannot update admin controlled connection %s", id));
+        }
+        store.update(namespacedId, connection);
       });
       return new ServiceResponse<>(Collections.emptyList());
     });
@@ -237,6 +245,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.LIST);
       List<Connection> connections = TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
         return store.list(ns, input -> {
@@ -277,16 +286,15 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      List<Connection> preConfiguredConnections = connectionTypeConfig.getConnections();
-      // pre-configured connections provided as part of config only contains name and type of connection
-      // since connection id is derived from connection name, we get the connection-id for the
-      // pre-configured connection name and check with the input connection id.
-      if (preConfiguredConnections.stream().anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
-        throw new UnauthorizedException(String.format("Cannot delete admin controlled connection %s", id));
-      }
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.DELETE);
+      checkNotPreconfiguredConnection(id, "delete");
       TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
-        store.delete(new NamespacedId(ns, id));
+        NamespacedId namespacedId = new NamespacedId(ns, id);
+        if (store.connectionExists(ns, id) && store.get(namespacedId).isPreconfigured()) {
+          throw new UnauthorizedException(String.format("Cannot delete admin controlled connection %s", id));
+        }
+        store.delete(namespacedId);
       });
       return new ServiceResponse<Connection>(new ArrayList<>());
     });
@@ -304,7 +312,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, ns -> getConnection(new NamespacedId(ns, id)));
+    respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.GET);
+      return getConnection(new NamespacedId(ns, id));
+    });
   }
 
   /**
@@ -319,7 +330,10 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, ns -> getConnection(new NamespacedId(ns, id)).getProperties());
+    respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.GET);
+      return getConnection(new NamespacedId(ns, id)).getProperties();
+    });
   }
 
   /**
@@ -336,11 +350,16 @@ public class ConnectionHandler extends AbstractWranglerHandler {
                          @PathParam("context") String namespace, @PathParam("id") String id,
                          @QueryParam("key") String key, @QueryParam("value") String value) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.UPDATE);
+      checkNotPreconfiguredConnection(id, "update");
 
       NamespacedId namespacedId = new NamespacedId(ns, id);
       return TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
         Connection connection = store.get(namespacedId);
+        if (connection.isPreconfigured()) {
+          throw new UnauthorizedException(String.format("Cannot update admin controlled connection %s", id));
+        }
 
         ConnectionMeta updatedMeta = ConnectionMeta.builder(connection)
           .putProperty(key, value)
@@ -364,12 +383,26 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.GET);
       Connection connection = getConnection(new NamespacedId(ns, id));
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
         .build();
       return new ServiceResponse<>(clone);
     });
+  }
+
+  private void checkNotPreconfiguredConnection(String id, String action) throws UnauthorizedException {
+    if (connectionTypeConfig == null || connectionTypeConfig.getConnections() == null) {
+      return;
+    }
+    List<Connection> preConfiguredConnections = connectionTypeConfig.getConnections();
+    // pre-configured connections provided as part of config only contains name and type of connection
+    // since connection id is derived from connection name, we get the connection-id for the
+    // pre-configured connection name and check with the input connection id.
+    if (preConfiguredConnections.stream().anyMatch(c -> id.equals(ConnectionStore.getConnectionId(c.getName())))) {
+      throw new UnauthorizedException(String.format("Cannot %s admin controlled connection %s", action, id));
+    }
   }
 
   /**

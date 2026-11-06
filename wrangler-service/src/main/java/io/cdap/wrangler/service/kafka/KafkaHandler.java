@@ -21,6 +21,7 @@ import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -70,7 +71,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void test(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace) {
-    respond(request, responder, () -> {
+    respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -97,6 +99,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -126,59 +129,63 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @PathParam("id") String id, @PathParam("topic") String topic,
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      ConnectionStore store = ConnectionStore.get(context);
-      WorkspaceDataset ws = WorkspaceDataset.get(context);
-      Connection connection = getValidatedConnection(store, new NamespacedId(ns, id), ConnectionType.KAFKA);
+    respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.USE);
+      enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      return TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        Connection connection = getValidatedConnection(store, new NamespacedId(ns, id), ConnectionType.KAFKA);
 
-      KafkaConfiguration config = new KafkaConfiguration(connection);
-      KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
-      consumer.subscribe(Lists.newArrayList(topic));
+        KafkaConfiguration config = new KafkaConfiguration(connection);
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(config.get());
+        consumer.subscribe(Lists.newArrayList(topic));
 
-      Map<String, String> properties = new HashMap<>();
-      properties.put(PropertyIds.NAME, topic);
-      properties.put(PropertyIds.CONNECTION_ID, id);
-      properties.put(PropertyIds.TOPIC, topic);
-      properties.put(PropertyIds.BROKER, config.getConnection());
-      properties.put(PropertyIds.CONNECTION_TYPE, connection.getType().getType());
-      properties.put(PropertyIds.KEY_DESERIALIZER, config.getKeyDeserializer());
-      properties.put(PropertyIds.VALUE_DESERIALIZER, config.getValueDeserializer());
-      properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
-      WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(topic)
-        .setScope(scope)
-        .setProperties(properties)
-        .build();
-      NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
+        Map<String, String> properties = new HashMap<>();
+        properties.put(PropertyIds.NAME, topic);
+        properties.put(PropertyIds.CONNECTION_ID, id);
+        properties.put(PropertyIds.TOPIC, topic);
+        properties.put(PropertyIds.BROKER, config.getConnection());
+        properties.put(PropertyIds.CONNECTION_TYPE, connection.getType().getType());
+        properties.put(PropertyIds.KEY_DESERIALIZER, config.getKeyDeserializer());
+        properties.put(PropertyIds.VALUE_DESERIALIZER, config.getValueDeserializer());
+        properties.put(PropertyIds.SAMPLER_TYPE, SamplingMethod.FIRST.getMethod());
+        WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(topic)
+          .setScope(scope)
+          .setProperties(properties)
+          .build();
+        NamespacedId workspaceId = ws.createWorkspace(ns, workspaceMeta);
 
-      try {
-        boolean running = true;
-        List<Row> recs = new ArrayList<>();
-        int count = lines;
-        while (running) {
-          ConsumerRecords<String, String> records = consumer.poll(10000);
-          for (ConsumerRecord<String, String> record : records) {
-            Row rec = new Row();
-            rec.add("body", record.value());
-            recs.add(rec);
-            if (count < 0) {
-              break;
+        try {
+          boolean running = true;
+          List<Row> recs = new ArrayList<>();
+          int count = lines;
+          while (running) {
+            ConsumerRecords<String, String> records = consumer.poll(10000);
+            for (ConsumerRecord<String, String> record : records) {
+              Row rec = new Row();
+              rec.add("body", record.value());
+              recs.add(rec);
+              if (count < 0) {
+                break;
+              }
+              count--;
             }
-            count--;
+            running = false;
           }
-          running = false;
+
+          ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
+          byte[] data = serDe.toByteArray(recs);
+          ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
+
+          ConnectionSample sample = new ConnectionSample(workspaceId.getId(), topic, ConnectionType.KAFKA.getType(),
+                                                         SamplingMethod.FIRST.getMethod(), id);
+          return new ServiceResponse<>(sample);
+        } finally {
+          consumer.close();
         }
-
-        ObjectSerDe<List<Row>> serDe = new ObjectSerDe<>();
-        byte[] data = serDe.toByteArray(recs);
-        ws.updateWorkspaceData(workspaceId, DataType.RECORDS, data);
-
-        ConnectionSample sample = new ConnectionSample(workspaceId.getId(), topic, ConnectionType.KAFKA.getType(),
-                                                       SamplingMethod.FIRST.getMethod(), id);
-        return new ServiceResponse<>(sample);
-      } finally {
-        consumer.close();
-      }
-    }));
+      });
+    });
   }
 
   /**
@@ -196,6 +203,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {
     respond(request, responder, namespace, ns -> {
+      enforceConnectionPermission(ns.getName(), id, StandardPermission.USE);
       Connection conn = getValidatedConnection(new NamespacedId(ns, id), ConnectionType.KAFKA);
       Map<String, String> connProperties = conn.getProperties();
 
