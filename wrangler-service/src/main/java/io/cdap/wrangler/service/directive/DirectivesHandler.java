@@ -31,12 +31,9 @@ import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
-import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
-import io.cdap.cdap.proto.element.EntityType;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.cdap.proto.security.StandardPermission;
-import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -65,8 +62,6 @@ import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.WorkspaceIdentifier;
 import io.cdap.wrangler.proto.connection.ConnectionType;
-import io.cdap.wrangler.proto.id.DirectiveConfigEntityId;
-import io.cdap.wrangler.proto.id.WorkspaceEntityId;
 import io.cdap.wrangler.proto.workspace.DataModelInfo;
 import io.cdap.wrangler.proto.workspace.DirectiveArtifact;
 import io.cdap.wrangler.proto.workspace.DirectiveDescriptor;
@@ -131,9 +126,6 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   private static final String DATA_MODEL_MODEL_PROPERTY = "dataModelModel";
 
   private DirectiveRegistry composite;
-  private ContextAccessEnforcer contextAccessEnforcer;
-  private boolean isWorkspaceAuthEnforcementEnabled;
-  private boolean isDirectiveConfigAuthEnforcementEnabled;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -141,9 +133,6 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
     composite = new CompositeDirectiveRegistry(
         SystemDirectiveRegistry.INSTANCE,
         new UserDirectiveRegistry(context));
-    contextAccessEnforcer = context.getContextAccessEnforcer();
-    isWorkspaceAuthEnforcementEnabled = Feature.WRANGLER_WORKSPACE_AUTH_CHECK.isEnabled(context);
-    isDirectiveConfigAuthEnforcementEnabled = Feature.WRANGLER_DIRECTIVE_CONFIG_AUTH_CHECK.isEnabled(context);
   }
 
   /**
@@ -904,7 +893,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void usage(HttpServiceRequest request, HttpServiceResponder responder,
       @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceNamespacePermission(namespace, StandardPermission.USE);
+      enforceNamespacePermission(ns.getName(), StandardPermission.GET);
       // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
       DirectiveConfig config = configStore.getConfig();
@@ -1004,7 +993,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   public void directivesReload(HttpServiceRequest request, HttpServiceResponder responder,
       @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceNamespacePermission(ns.getName(), StandardPermission.USE);
+      enforceNamespacePermission(ns.getName(), StandardPermission.GET);
       composite.reload(namespace);
       return new ServiceResponse<Void>("Successfully reloaded all user defined directives.");
     });
@@ -1192,29 +1181,4 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
           grammarVisitor);
     });
   }
-
-  private void enforceWorkspacePermission(String namespace, String workspaceId, StandardPermission permission) {
-    if (isWorkspaceAuthEnforcementEnabled) {
-      contextAccessEnforcer.enforce(new WorkspaceEntityId(namespace, workspaceId), permission);
-    }
-  }
-
-  private void enforceNamespacePermission(String namespace, StandardPermission permission) {
-    if (isWorkspaceAuthEnforcementEnabled) {
-      contextAccessEnforcer.enforce(new NamespaceId(namespace), permission);
-    }
-  }
-
-  private void enforceOnParentNamespace(String namespace, StandardPermission permission) {
-    if (isWorkspaceAuthEnforcementEnabled) {
-      contextAccessEnforcer.enforceOnParent(EntityType.SYSTEM_APP_ENTITY, new NamespaceId(namespace), permission);
-    }
-  }
-
-  private void enforceDirectiveConfigPermission(StandardPermission permission) {
-    if (isDirectiveConfigAuthEnforcementEnabled) {
-      contextAccessEnforcer.enforce(new DirectiveConfigEntityId(), permission);
-    }
-  }
-
 }

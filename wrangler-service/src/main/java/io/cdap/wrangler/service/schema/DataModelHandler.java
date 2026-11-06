@@ -19,6 +19,7 @@ import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.datamodel.DataModelGlossary;
@@ -66,6 +67,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      enforceNamespacePermission(ns.getName(), StandardPermission.UPDATE);
       RequestExtractor handler = new RequestExtractor(request);
       DataModelUrlRequest dataModelUrl = handler.getContent("UTF-8", DataModelUrlRequest.class);
       if (dataModelUrl == null || dataModelUrl.getUrl() == null) {
@@ -96,21 +98,24 @@ public class DataModelHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void listSchemas(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      if (DataModelGlossary.getGlossary() == null) {
-        throw new NotFoundException("There is no data model initialized.");
-      }
-      Namespace defaultNamespace = new Namespace(Contexts.SYSTEM, 0L);
-      List<DataModelSchemaEntry> results = new ArrayList<>();
-      for (Schema schema : DataModelGlossary.getGlossary().getAll()) {
-        results.add(new DataModelSchemaEntry(new NamespacedId(defaultNamespace, schema.getFullName()),
-                                             schema.getName(),
-                                             schema.getDoc(),
-                                             Long.parseLong(schema.getProp("_revision"))
-        ));
-      }
-      return new ServiceResponse<>(results);
-    }));
+    respond(request, responder, namespace, ns -> {
+      enforceNamespacePermission(ns.getName(), StandardPermission.GET);
+      return TransactionRunners.run(getContext(), context -> {
+        if (DataModelGlossary.getGlossary() == null) {
+          throw new NotFoundException("There is no data model initialized.");
+        }
+        Namespace defaultNamespace = new Namespace(Contexts.SYSTEM, 0L);
+        List<DataModelSchemaEntry> results = new ArrayList<>();
+        for (Schema schema : DataModelGlossary.getGlossary().getAll()) {
+          results.add(new DataModelSchemaEntry(new NamespacedId(defaultNamespace, schema.getFullName()),
+                                               schema.getName(),
+                                               schema.getDoc(),
+                                               Long.parseLong(schema.getProp("_revision"))
+          ));
+        }
+        return new ServiceResponse<>(results);
+      });
+    });
   }
 
   /**
@@ -132,15 +137,18 @@ public class DataModelHandler extends AbstractWranglerHandler {
   public void listSchema(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace,
                          @PathParam("id") String id, @PathParam("revision") long revision) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      if (DataModelGlossary.getGlossary() == null) {
-        throw new NotFoundException("There is no data model initialized.");
-      }
-      Schema schema = DataModelGlossary.getGlossary().get(id, revision);
-      if (schema == null) {
-        throw new NotFoundException(String.format("unable to find schema %s revision %d", id, revision));
-      }
-      return new ServiceResponse<>(schema.toString());
-    }));
+    respond(request, responder, namespace, ns -> {
+      enforceNamespacePermission(ns.getName(), StandardPermission.GET);
+      return TransactionRunners.run(getContext(), context -> {
+        if (DataModelGlossary.getGlossary() == null) {
+          throw new NotFoundException("There is no data model initialized.");
+        }
+        Schema schema = DataModelGlossary.getGlossary().get(id, revision);
+        if (schema == null) {
+          throw new NotFoundException(String.format("unable to find schema %s revision %d", id, revision));
+        }
+        return new ServiceResponse<>(schema.toString());
+      });
+    });
   }
 }
