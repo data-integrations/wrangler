@@ -102,7 +102,7 @@ public class S3Handler extends AbstractWranglerHandler {
   public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.S3);
@@ -137,7 +137,7 @@ public class S3Handler extends AbstractWranglerHandler {
                               @QueryParam("path") String path,
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       try {
         Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.S3);
         String bucketName = "";
@@ -219,8 +219,8 @@ public class S3Handler extends AbstractWranglerHandler {
         if (Strings.isNullOrEmpty(key)) {
           throw new BadRequestException("Required query param 'key' is missing in the input");
         }
-        enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
-        enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+        accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
 
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
         NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);
@@ -263,9 +263,9 @@ public class S3Handler extends AbstractWranglerHandler {
                             @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       if (workspaceId != null) {
-        enforceWorkspacePermission(ns.getName(), workspaceId, StandardPermission.GET);
+        accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
       }
       return TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);

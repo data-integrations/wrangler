@@ -23,12 +23,6 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.api.service.worker.RemoteExecutionException;
-import io.cdap.cdap.features.Feature;
-import io.cdap.cdap.proto.element.EntityType;
-import io.cdap.cdap.proto.id.ConnectionEntityId;
-import io.cdap.cdap.proto.id.NamespaceId;
-import io.cdap.cdap.proto.security.StandardPermission;
-import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
 import io.cdap.cdap.security.spi.authorization.UnauthorizedException;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.api.RecipeException;
@@ -48,8 +42,6 @@ import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.StatusCodeException;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionType;
-import io.cdap.wrangler.proto.id.RecipeEntityId;
-import io.cdap.wrangler.proto.id.WorkspaceEntityId;
 import io.cdap.wrangler.proto.workspace.v2.RecipeExceptionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,48 +58,13 @@ import javax.annotation.Nullable;
  */
 public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWranglerHandler.class);
-  protected static final String ALL_ENTITIES = "*";
 
-  protected ContextAccessEnforcer contextAccessEnforcer;
-  protected boolean isWorkspaceAuthEnforcementEnabled;
-  protected boolean isRecipeAuthEnforcementEnabled;
+  protected WranglerAccessEnforcer accessEnforcer;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
     super.initialize(context);
-    contextAccessEnforcer = context.getContextAccessEnforcer();
-    isWorkspaceAuthEnforcementEnabled = Feature.WRANGLER_WORKSPACE_AUTH_CHECK.isEnabled(context);
-    isRecipeAuthEnforcementEnabled = Feature.WRANGLER_RECIPE_AUTH_CHECK.isEnabled(context);
-  }
-
-  protected void enforceWorkspacePermission(String namespace, String workspaceId, StandardPermission permission) {
-    if (isWorkspaceAuthEnforcementEnabled && contextAccessEnforcer != null) {
-      contextAccessEnforcer.enforce(new WorkspaceEntityId(namespace, workspaceId), permission);
-    }
-  }
-
-  protected void enforceRecipePermission(String namespace, String recipeId, StandardPermission permission) {
-    if (isRecipeAuthEnforcementEnabled && contextAccessEnforcer != null) {
-      contextAccessEnforcer.enforce(new RecipeEntityId(namespace, recipeId), permission);
-    }
-  }
-
-  protected void enforceConnectionPermission(String namespace, String connectionId, StandardPermission permission) {
-    if (contextAccessEnforcer != null) {
-      contextAccessEnforcer.enforce(new ConnectionEntityId(namespace, connectionId), permission);
-    }
-  }
-
-  protected void enforceNamespacePermission(String namespace, StandardPermission permission) {
-    if (contextAccessEnforcer != null) {
-      contextAccessEnforcer.enforce(new NamespaceId(namespace), permission);
-    }
-  }
-
-  protected void enforceOnParentNamespace(String namespace, StandardPermission permission) {
-    if (isWorkspaceAuthEnforcementEnabled && contextAccessEnforcer != null) {
-      contextAccessEnforcer.enforceOnParent(EntityType.SYSTEM_APP_ENTITY, new NamespaceId(namespace), permission);
-    }
+    accessEnforcer = new WranglerAccessEnforcer(context);
   }
 
   protected Workspace getWorkspace(NamespacedId workspaceId) {

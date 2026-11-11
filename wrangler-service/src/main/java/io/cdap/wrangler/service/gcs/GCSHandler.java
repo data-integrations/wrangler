@@ -113,7 +113,7 @@ public class GCSHandler extends AbstractWranglerHandler {
   public void testGCSConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                 @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.GCS);
@@ -139,7 +139,7 @@ public class GCSHandler extends AbstractWranglerHandler {
                          @QueryParam("path") String path,
                          @QueryParam("limit") @DefaultValue("1000") int objectLimit) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       String bucketName = "";
       String prefix = null;
 
@@ -262,8 +262,8 @@ public class GCSHandler extends AbstractWranglerHandler {
                          @QueryParam("blob") String blobPath,
                          @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
-      enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       String contentType = request.getHeader(PropertyIds.CONTENT_TYPE);
 
       if (blobPath == null || blobPath.isEmpty()) {
@@ -381,8 +381,8 @@ public class GCSHandler extends AbstractWranglerHandler {
       if (workspaceId == null) {
         throw new BadRequestException("Workspace ID must be passed as query parameter 'wid'.");
       }
-      enforceConnectionPermission(ns.getName(), connectionId, StandardPermission.USE);
-      enforceWorkspacePermission(ns.getName(), workspaceId, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
 
       return TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);

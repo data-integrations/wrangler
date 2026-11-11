@@ -72,7 +72,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   public void test(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -99,7 +99,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void list(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.KAFKA);
@@ -130,8 +130,8 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.USE);
-      enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       return TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
         WorkspaceDataset ws = WorkspaceDataset.get(context);
@@ -203,7 +203,7 @@ public final class KafkaHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @PathParam("id") String id, @PathParam("topic") String topic) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.USE);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
       Connection conn = getValidatedConnection(new NamespacedId(ns, id), ConnectionType.KAFKA);
       Map<String, String> connProperties = conn.getProperties();
 
