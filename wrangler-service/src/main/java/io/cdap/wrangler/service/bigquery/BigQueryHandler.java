@@ -41,6 +41,7 @@ import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -115,7 +116,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testBiqQueryConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                      @PathParam("context") String namespace) {
-    respond(request, responder, () -> {
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.BIGQUERY);
@@ -133,6 +135,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
   public void listDatasets(HttpServiceRequest request, HttpServiceResponder responder,
                            @PathParam("context") String namespace, @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.BIGQUERY);
 
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
@@ -169,6 +172,7 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                          @PathParam("connection-id") String connectionId,
                          @PathParam("dataset-id") String datasetStr) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId),
                                                      ConnectionType.BIGQUERY);
       BigQuery bigQuery = GCPUtils.getBigQueryService(connection);
@@ -215,6 +219,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                         @PathParam("table-id") String tableId,
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId),
                                                      ConnectionType.BIGQUERY);
 
@@ -276,6 +282,8 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                             @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
       Map<String, String> config = getWorkspace(new NamespacedId(ns, workspaceId)).getProperties();
 
       boolean isView = TableDefinition.Type.valueOf(config.get(TABLE_TYPE)).equals(

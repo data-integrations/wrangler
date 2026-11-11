@@ -33,6 +33,7 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.cdap.api.data.schema.UnsupportedTypeException;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -101,7 +102,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testSpannerConnection(HttpServiceRequest request, HttpServiceResponder responder,
                                     @PathParam("context") String namespace) {
-    respond(request, responder, () -> {
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.SPANNER);
@@ -121,6 +123,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("context") String namespace,
                                   @PathParam("connection-id") String connectionId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       List<SpannerInstance> instances = getInstances(connection);
       return new ServiceResponse<>(instances);
@@ -138,6 +141,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                   @PathParam("connection-id") String connectionId,
                                   @PathParam("instance-id") String instanceId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       List<SpannerDatabase> databases = getDatabases(connection, instanceId);
       return new ServiceResponse<>(databases);
@@ -159,6 +163,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
                                @PathParam("instance-id") String instanceId,
                                @PathParam("database-id") String databaseId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       List<SpannerTable> tables = getTables(connection, instanceId, databaseId);
       return new ServiceResponse<>(tables);
@@ -181,6 +186,8 @@ public class SpannerHandler extends AbstractWranglerHandler {
                         @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope,
                         @QueryParam("limit") @DefaultValue(DEFAULT_ROW_LIMIT) String limit) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.SPANNER);
       Schema schema = getTableSchema(connection, instanceId, databaseId, tableId);
       List<Row> data = getTableData(connection, instanceId, databaseId, tableId, schema, Long.parseLong(limit));
@@ -230,6 +237,7 @@ public class SpannerHandler extends AbstractWranglerHandler {
   public void specification(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace, @PathParam("workspace-id") String workspaceId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
       Map<String, String> config = getWorkspace(new NamespacedId(ns, workspaceId)).getProperties();
 
       // deserialize and send spanner source specification

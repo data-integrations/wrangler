@@ -27,6 +27,7 @@ import io.cdap.cdap.api.plugin.PluginProperties;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -219,6 +220,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       List<JDBCDriverInfo> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {
@@ -280,6 +282,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listAvailableDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                                    @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       List<AllowedDriverInfo> values = new ArrayList<>();
       for (DriverInfo driver : drivers.values()) {
         values.add(new AllowedDriverInfo(driver.className, driver.name, driver.tag, driver.tag,
@@ -295,6 +298,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void testConnection(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.DATABASE);
@@ -316,6 +320,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listDatabases(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta conn = extractor.getConnectionMeta(ConnectionType.DATABASE);
@@ -361,6 +366,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listTables(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
       List<Name> values = new ArrayList<>();
       Connection conn = getConnection(new NamespacedId(ns, id));
       loadAndExecute(ns, conn, connection -> {
@@ -414,6 +420,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                    @QueryParam("lines") int lines,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       AtomicReference<ConnectionSample> sampleRef = new AtomicReference<>();
       Connection conn = getConnection(new NamespacedId(ns, id));
 
@@ -495,6 +503,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("id") String id,
                             @PathParam("table") String table) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
       Connection conn = getConnection(new NamespacedId(ns, id));
 
       PluginSpec pluginSpec = new PluginSpec(String.format("Database - %s", table), "source",

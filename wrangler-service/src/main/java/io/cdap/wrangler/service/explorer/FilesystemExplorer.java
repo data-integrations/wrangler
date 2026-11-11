@@ -24,6 +24,7 @@ import io.cdap.cdap.api.service.http.HttpServiceContext;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.SamplingMethod;
@@ -86,7 +87,10 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @QueryParam("path") String path,
                    @QueryParam("hidden") boolean hidden) {
-    respond(request, responder, namespace, ns -> explorer.browse(path, hidden));
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
+      return explorer.browse(path, hidden);
+    });
   }
 
   /**
@@ -107,6 +111,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                    @QueryParam("fraction") double fraction,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       String header = request.getHeader(PropertyIds.CONTENT_TYPE);
 
       if (header == null) {
@@ -148,6 +153,11 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
+      if (workspaceId != null) {
+        accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
+      } else {
+        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.GET);
+      }
       NamespacedId namespacedId = new NamespacedId(ns, workspaceId);
 
       PluginSpec pluginSpec = TransactionRunners.run(getContext(), context -> {

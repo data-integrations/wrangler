@@ -41,10 +41,8 @@ import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
 import io.cdap.cdap.etl.proto.connection.SampleResponse;
 import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
-import io.cdap.cdap.proto.element.EntityType;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.cdap.proto.security.StandardPermission;
-import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
 import io.cdap.wrangler.api.DirectiveConfig;
@@ -61,7 +59,6 @@ import io.cdap.wrangler.parser.GrammarWalker;
 import io.cdap.wrangler.parser.MigrateToV2;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.BadRequestException;
-import io.cdap.wrangler.proto.id.WorkspaceEntityId;
 import io.cdap.wrangler.proto.recipe.v2.Recipe;
 import io.cdap.wrangler.proto.recipe.v2.RecipeId;
 import io.cdap.wrangler.proto.workspace.v2.Artifact;
@@ -128,8 +125,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   private WorkspaceStore wsStore;
   private RecipeStore recipeStore;
   private ConnectionDiscoverer discoverer;
-  private ContextAccessEnforcer contextAccessEnforcer;
-  private boolean authEnforcementEnabled;
 
   // Injected by CDAP
   @SuppressWarnings("unused")
@@ -141,8 +136,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     wsStore = new WorkspaceStore(context);
     recipeStore = new RecipeStore(context);
     discoverer = new ConnectionDiscoverer(context);
-    contextAccessEnforcer = context.getContextAccessEnforcer();
-    authEnforcementEnabled = Feature.WRANGLER_WORKSPACE_AUTH_CHECK.isEnabled(context);
   }
 
   @POST
@@ -156,10 +149,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       }
 
       WorkspaceId wsId = new WorkspaceId(ns);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.CREATE);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.CREATE);
       WorkspaceCreationRequest creationRequest =
         GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(), WorkspaceCreationRequest.class);
 
@@ -205,10 +195,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
         throw new BadRequestException("Listing workspaces in system namespace is currently not supported");
       }
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforceOnParent(EntityType.SYSTEM_APP_ENTITY, new NamespaceId(ns.getName()),
-                                              StandardPermission.LIST);
-      }
+      accessEnforcer.enforceOnParentNamespace(ns.getName(), StandardPermission.LIST);
       responder.sendString(GSON.toJson(new ServiceResponse<>(wsStore.listWorkspaces(ns))));
     });
   }
@@ -224,10 +211,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("Getting workspace in system namespace is currently not supported");
       }
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.GET);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.GET);
       responder.sendString(GSON.toJson(wsStore.getWorkspace(wsId)));
     });
   }
@@ -246,10 +230,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("Updating workspace in system namespace is currently not supported");
       }
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.UPDATE);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.UPDATE);
       WorkspaceUpdateRequest updateRequest =
         GSON.fromJson(StandardCharsets.UTF_8.decode(request.getContent()).toString(), WorkspaceUpdateRequest.class);
 
@@ -277,10 +258,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       }
 
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.UPDATE);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.UPDATE);
       Workspace currentWorkspace = wsStore.getWorkspace(wsId);
 
       String connectionName = currentWorkspace.getSampleSpec() == null ? null :
@@ -326,10 +304,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
         throw new BadRequestException("Deleting workspace in system namespace is currently not supported");
       }
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.DELETE);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.DELETE);
       wsStore.deleteWorkspace(wsId);
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
@@ -349,10 +324,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       }
 
       WorkspaceId id = new WorkspaceId(ns);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(id.getNamespace().getName(), id.getWorkspaceId()),
-                                      StandardPermission.CREATE);
-      }
+      accessEnforcer.enforceWorkspace(id.getNamespace().getName(), id.getWorkspaceId(), StandardPermission.CREATE);
       String name = request.getHeader(PropertyIds.FILE_NAME);
       if (name == null) {
         throw new BadRequestException("Name must be provided in the 'file' header");
@@ -401,10 +373,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     respond(responder, namespace, ns -> {
       validateNamespace(ns, "Executing directives in system namespace is currently not supported");
       WorkspaceId wsId =  new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.USE);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.USE);
       DirectiveExecutionResponse response = execute(ns, request, wsId, null);
       responder.sendJson(response);
     });
@@ -419,6 +388,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   public void getDirectives(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
+      validateNamespace(ns, "Getting directives in system namespace is currently not supported");
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
       List<DirectiveUsage> directives = new ArrayList<>();
@@ -449,10 +420,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       composite.reload(namespace);
 
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.GET);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.GET);
       WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
       List<String> directives = new ArrayList<>(detail.getWorkspace().getDirectives());
       UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
@@ -498,10 +466,8 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
     respond(responder, namespace, ns -> {
       validateNamespace(ns, "Executing directives in system namespace is currently not supported");
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      if (authEnforcementEnabled) {
-        contextAccessEnforcer.enforce(new WorkspaceEntityId(wsId.getNamespace().getName(), wsId.getWorkspaceId()),
-                                      StandardPermission.USE);
-      }
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.USE);
+      accessEnforcer.enforceRecipe(ns.getName(), recipeIdString, StandardPermission.GET);
       RecipeId recipeId = RecipeId.builder(ns).setRecipeId(recipeIdString).build();
       Recipe recipe = recipeStore.getRecipeById(recipeId);
 

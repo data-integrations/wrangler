@@ -35,6 +35,7 @@ import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -100,7 +101,8 @@ public class S3Handler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void testS3Connection(HttpServiceRequest request, HttpServiceResponder responder,
                                @PathParam("context") String namespace) {
-    respond(request, responder, () -> {
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta(ConnectionType.S3);
@@ -135,6 +137,7 @@ public class S3Handler extends AbstractWranglerHandler {
                               @QueryParam("path") String path,
                               @QueryParam("limit") @DefaultValue("1000") int bucketLimit) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       try {
         Connection connection = getValidatedConnection(new NamespacedId(ns, connectionId), ConnectionType.S3);
         String bucketName = "";
@@ -216,6 +219,8 @@ public class S3Handler extends AbstractWranglerHandler {
         if (Strings.isNullOrEmpty(key)) {
           throw new BadRequestException("Required query param 'key' is missing in the input");
         }
+        accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
 
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
         NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);
@@ -257,30 +262,36 @@ public class S3Handler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @PathParam("bucket-name") String bucketName, @QueryParam("key") String key,
                             @QueryParam("wid") String workspaceId) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      ConnectionStore store = ConnectionStore.get(context);
-      WorkspaceDataset ws = WorkspaceDataset.get(context);
-      Format format = Format.TEXT;
-      NamespacedId namespacedWorkspaceId = new NamespacedId(ns, workspaceId);
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       if (workspaceId != null) {
-        Map<String, String> config = ws.getWorkspace(namespacedWorkspaceId).getProperties();
-        String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
-        format = Format.valueOf(formatStr);
+        accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
       }
-      Connection conn = getValidatedConnection(store, new NamespacedId(ns, connectionId), ConnectionType.S3);
-      S3Configuration s3Configuration = new S3Configuration(conn.getProperties());
-      Map<String, String> properties = new HashMap<>();
-      properties.put("format", format.name().toLowerCase());
-      properties.put("accessID", s3Configuration.getAWSAccessKeyId());
-      properties.put("accessKey", s3Configuration.getAWSSecretKey());
-      properties.put("path", String.format("s3n://%s/%s", bucketName, key));
-      properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedWorkspaceId)));
-      properties.put("schema", format.getSchema().toString());
+      return TransactionRunners.run(getContext(), context -> {
+        ConnectionStore store = ConnectionStore.get(context);
+        WorkspaceDataset ws = WorkspaceDataset.get(context);
+        Format format = Format.TEXT;
+        NamespacedId namespacedWorkspaceId = new NamespacedId(ns, workspaceId);
+        if (workspaceId != null) {
+          Map<String, String> config = ws.getWorkspace(namespacedWorkspaceId).getProperties();
+          String formatStr = config.getOrDefault(PropertyIds.FORMAT, Format.TEXT.name());
+          format = Format.valueOf(formatStr);
+        }
+        Connection conn = getValidatedConnection(store, new NamespacedId(ns, connectionId), ConnectionType.S3);
+        S3Configuration s3Configuration = new S3Configuration(conn.getProperties());
+        Map<String, String> properties = new HashMap<>();
+        properties.put("format", format.name().toLowerCase());
+        properties.put("accessID", s3Configuration.getAWSAccessKeyId());
+        properties.put("accessKey", s3Configuration.getAWSSecretKey());
+        properties.put("path", String.format("s3n://%s/%s", bucketName, key));
+        properties.put("copyHeader", String.valueOf(shouldCopyHeader(ws, namespacedWorkspaceId)));
+        properties.put("schema", format.getSchema().toString());
 
-      PluginSpec pluginSpec = new PluginSpec("S3", "source", properties);
-      S3Spec spec = new S3Spec(pluginSpec);
-      return new ServiceResponse<>(spec);
-    }));
+        PluginSpec pluginSpec = new PluginSpec("S3", "source", properties);
+        S3Spec spec = new S3Spec(pluginSpec);
+        return new ServiceResponse<>(spec);
+      });
+    });
   }
 
   public static Map<String, String> getConnectorProperties(Map<String, String> config) {

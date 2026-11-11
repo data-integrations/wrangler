@@ -21,6 +21,7 @@ import io.cdap.cdap.api.NamespaceSummary;
 import io.cdap.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.api.service.worker.RemoteExecutionException;
 import io.cdap.cdap.security.spi.authorization.UnauthorizedException;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
@@ -57,6 +58,14 @@ import javax.annotation.Nullable;
  */
 public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractWranglerHandler.class);
+
+  protected WranglerAccessEnforcer accessEnforcer;
+
+  @Override
+  public void initialize(SystemHttpServiceContext context) throws Exception {
+    super.initialize(context);
+    accessEnforcer = new WranglerAccessEnforcer(context);
+  }
 
   protected Workspace getWorkspace(NamespacedId workspaceId) {
     return TransactionRunners.run(getContext(), context -> {
@@ -158,6 +167,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
         new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (UnauthorizedException e) {
+      responder.sendJson(e.getStatusCode(), new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
       LOG.warn("Error processing {} {}, resulting in a 500 response.", request.getMethod(), request.getRequestURI(), t);
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));
@@ -179,24 +190,25 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    */
   protected void respond(HttpServiceResponder responder, String namespace,
                          NamespacedResponderRunnable runnable) {
-    // system namespace does not officially exist, so don't check existence for system namespace.
+    if (Contexts.SYSTEM.equalsIgnoreCase(namespace)) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+                         new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(
+                           "Operation in system namespace is currently not supported"));
+      return;
+    }
     NamespaceSummary namespaceSummary;
-    if (Contexts.SYSTEM.equals(namespace)) {
-      namespaceSummary = new NamespaceSummary(Contexts.SYSTEM, "", 0L);
-    } else {
-      try {
-        namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
-        if (namespaceSummary == null) {
-          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
-                             new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(
-                               String.format("Namespace '%s' does not exist", namespace)));
-          return;
-        }
-      } catch (IOException e) {
-        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR,
-                           new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
+    try {
+      namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
+      if (namespaceSummary == null) {
+        responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
+                           new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(
+                             String.format("Namespace '%s' does not exist", namespace)));
         return;
       }
+    } catch (IOException e) {
+      responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR,
+                         new io.cdap.wrangler.proto.workspace.v2.ServiceResponse<>(e.getMessage()));
+      return;
     }
 
     try {
@@ -248,22 +260,22 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    */
   protected <T> void respond(HttpServiceRequest request, HttpServiceResponder responder, String namespace,
                              NamespacedResponder<T> callable) {
-    // system namespace does not officially exist, so don't check existence for system namespace.
+    if (Contexts.SYSTEM.equalsIgnoreCase(namespace)) {
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST,
+                         new ServiceResponse<Void>("Operation in system namespace is currently not supported"));
+      return;
+    }
     NamespaceSummary namespaceSummary;
-    if (Contexts.SYSTEM.equals(namespace)) {
-      namespaceSummary = new NamespaceSummary(Contexts.SYSTEM, "", 0L);
-    } else {
-      try {
-        namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
-        if (namespaceSummary == null) {
-          responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
-                             new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
-          return;
-        }
-      } catch (IOException e) {
-        responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
+    try {
+      namespaceSummary = getContext().getAdmin().getNamespaceSummary(namespace);
+      if (namespaceSummary == null) {
+        responder.sendJson(HttpURLConnection.HTTP_NOT_FOUND,
+                           new ServiceResponse<Void>(String.format("Namespace '%s' does not exist", namespace)));
         return;
       }
+    } catch (IOException e) {
+      responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(e.getMessage()));
+      return;
     }
 
     try {
@@ -276,6 +288,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
           new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (UnauthorizedException e) {
+      responder.sendJson(e.getStatusCode(), new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
       LOG.warn("Error processing {} {}, resulting in a 500 response.", request.getMethod(), request.getRequestURI(), t);
       responder.sendJson(HttpURLConnection.HTTP_INTERNAL_ERROR, new ServiceResponse<Void>(t.getMessage()));
