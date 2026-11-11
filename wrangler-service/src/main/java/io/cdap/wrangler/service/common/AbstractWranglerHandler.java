@@ -48,7 +48,6 @@ import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.StatusCodeException;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionType;
-import io.cdap.wrangler.proto.id.DirectiveConfigEntityId;
 import io.cdap.wrangler.proto.id.RecipeEntityId;
 import io.cdap.wrangler.proto.id.WorkspaceEntityId;
 import io.cdap.wrangler.proto.workspace.v2.RecipeExceptionResponse;
@@ -72,7 +71,6 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   protected ContextAccessEnforcer contextAccessEnforcer;
   protected boolean isWorkspaceAuthEnforcementEnabled;
   protected boolean isRecipeAuthEnforcementEnabled;
-  protected boolean isDirectiveConfigAuthEnforcementEnabled;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -80,7 +78,6 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
     contextAccessEnforcer = context.getContextAccessEnforcer();
     isWorkspaceAuthEnforcementEnabled = Feature.WRANGLER_WORKSPACE_AUTH_CHECK.isEnabled(context);
     isRecipeAuthEnforcementEnabled = Feature.WRANGLER_RECIPE_AUTH_CHECK.isEnabled(context);
-    isDirectiveConfigAuthEnforcementEnabled = Feature.WRANGLER_DIRECTIVE_CONFIG_AUTH_CHECK.isEnabled(context);
   }
 
   protected void enforceWorkspacePermission(String namespace, String workspaceId, StandardPermission permission) {
@@ -92,12 +89,6 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
   protected void enforceRecipePermission(String namespace, String recipeId, StandardPermission permission) {
     if (isRecipeAuthEnforcementEnabled && contextAccessEnforcer != null) {
       contextAccessEnforcer.enforce(new RecipeEntityId(namespace, recipeId), permission);
-    }
-  }
-
-  protected void enforceDirectiveConfigPermission(StandardPermission permission) {
-    if (isDirectiveConfigAuthEnforcementEnabled && contextAccessEnforcer != null) {
-      contextAccessEnforcer.enforce(new DirectiveConfigEntityId(), permission);
     }
   }
 

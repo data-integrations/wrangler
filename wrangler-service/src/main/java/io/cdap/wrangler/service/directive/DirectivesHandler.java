@@ -31,6 +31,7 @@ import io.cdap.cdap.api.plugin.PluginClass;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.cdap.proto.security.StandardPermission;
@@ -62,6 +63,7 @@ import io.cdap.wrangler.proto.Request;
 import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.WorkspaceIdentifier;
 import io.cdap.wrangler.proto.connection.ConnectionType;
+import io.cdap.wrangler.proto.id.DirectiveConfigEntityId;
 import io.cdap.wrangler.proto.workspace.DataModelInfo;
 import io.cdap.wrangler.proto.workspace.DirectiveArtifact;
 import io.cdap.wrangler.proto.workspace.DirectiveDescriptor;
@@ -126,6 +128,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
   private static final String DATA_MODEL_MODEL_PROPERTY = "dataModelModel";
 
   private DirectiveRegistry composite;
+  private boolean isDirectiveConfigAuthEnforcementEnabled;
 
   @Override
   public void initialize(SystemHttpServiceContext context) throws Exception {
@@ -133,6 +136,7 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
     composite = new CompositeDirectiveRegistry(
         SystemDirectiveRegistry.INSTANCE,
         new UserDirectiveRegistry(context));
+    isDirectiveConfigAuthEnforcementEnabled = Feature.WRANGLER_DIRECTIVE_CONFIG_AUTH_CHECK.isEnabled(context);
   }
 
   /**
@@ -1180,5 +1184,11 @@ public class DirectivesHandler extends AbstractDirectiveHandler {
       return executeDirectives(id.getNamespace().getName(), directives, sample.apply(rows),
           grammarVisitor);
     });
+  }
+
+  private void enforceDirectiveConfigPermission(StandardPermission permission) {
+    if (isDirectiveConfigAuthEnforcementEnabled && contextAccessEnforcer != null) {
+      contextAccessEnforcer.enforce(new DirectiveConfigEntityId(), permission);
+    }
   }
 }
