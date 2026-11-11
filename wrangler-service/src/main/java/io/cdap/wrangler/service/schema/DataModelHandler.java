@@ -67,7 +67,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceNamespacePermission(ns.getName(), StandardPermission.UPDATE);
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.UPDATE);
       RequestExtractor handler = new RequestExtractor(request);
       DataModelUrlRequest dataModelUrl = handler.getContent("UTF-8", DataModelUrlRequest.class);
       if (dataModelUrl == null || dataModelUrl.getUrl() == null) {
@@ -99,7 +99,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
   public void listSchemas(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceNamespacePermission(ns.getName(), StandardPermission.GET);
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       return TransactionRunners.run(getContext(), context -> {
         if (DataModelGlossary.getGlossary() == null) {
           throw new NotFoundException("There is no data model initialized.");
@@ -138,7 +138,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
                          @PathParam("context") String namespace,
                          @PathParam("id") String id, @PathParam("revision") long revision) {
     respond(request, responder, namespace, ns -> {
-      enforceNamespacePermission(ns.getName(), StandardPermission.GET);
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       return TransactionRunners.run(getContext(), context -> {
         if (DataModelGlossary.getGlossary() == null) {
           throw new NotFoundException("There is no data model initialized.");

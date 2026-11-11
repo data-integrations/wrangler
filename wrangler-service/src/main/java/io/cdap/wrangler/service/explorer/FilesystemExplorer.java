@@ -88,7 +88,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                    @PathParam("context") String namespace, @QueryParam("path") String path,
                    @QueryParam("hidden") boolean hidden) {
     respond(request, responder, namespace, ns -> {
-      enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       return explorer.browse(path, hidden);
     });
   }
@@ -111,7 +111,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                    @QueryParam("fraction") double fraction,
                    @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
-      enforceWorkspacePermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
       String header = request.getHeader(PropertyIds.CONTENT_TYPE);
 
       if (header == null) {
@@ -153,8 +153,11 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
                             @PathParam("context") String namespace,
                             @QueryParam("path") String path, @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
-      enforceWorkspacePermission(ns.getName(), workspaceId != null ? workspaceId : ALL_ENTITIES,
-                                 StandardPermission.GET);
+      if (workspaceId != null) {
+        accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
+      } else {
+        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.GET);
+      }
       NamespacedId namespacedId = new NamespacedId(ns, workspaceId);
 
       PluginSpec pluginSpec = TransactionRunners.run(getContext(), context -> {

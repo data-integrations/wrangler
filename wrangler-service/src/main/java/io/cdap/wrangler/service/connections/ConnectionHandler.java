@@ -168,7 +168,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void create(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.CREATE);
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.CREATE);
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
       ConnectionMeta connection = extractor.getConnectionMeta();
@@ -213,7 +213,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void update(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.UPDATE);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.UPDATE);
       checkNotPreconfiguredConnection(id, "update");
       // Extract the body of the request and transform it to the Connection object.
       RequestExtractor extractor = new RequestExtractor(request);
@@ -245,7 +245,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void list(HttpServiceRequest request, HttpServiceResponder responder,
                    @PathParam("context") String namespace, @DefaultValue(ALL_TYPES) @QueryParam("type") String type) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), ALL_ENTITIES, StandardPermission.LIST);
+      accessEnforcer.enforceConnection(ns.getName(), StandardPermission.LIST);
       List<Connection> connections = TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
         return store.list(ns, input -> {
@@ -286,7 +286,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.DELETE);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.DELETE);
       checkNotPreconfiguredConnection(id, "delete");
       TransactionRunners.run(getContext(), context -> {
         ConnectionStore store = ConnectionStore.get(context);
@@ -313,7 +313,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.GET);
       return getConnection(new NamespacedId(ns, id));
     });
   }
@@ -331,7 +331,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.GET);
       return getConnection(new NamespacedId(ns, id)).getProperties();
     });
   }
@@ -350,7 +350,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
                          @PathParam("context") String namespace, @PathParam("id") String id,
                          @QueryParam("key") String key, @QueryParam("value") String value) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.UPDATE);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.UPDATE);
       checkNotPreconfiguredConnection(id, "update");
 
       NamespacedId namespacedId = new NamespacedId(ns, id);
@@ -383,7 +383,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      enforceConnectionPermission(ns.getName(), id, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.GET);
       Connection connection = getConnection(new NamespacedId(ns, id));
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
