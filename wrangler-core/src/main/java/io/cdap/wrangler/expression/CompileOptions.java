@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
  * Holds options used during JEXL script compilation.
  */
 public class CompileOptions {
-  private static final CompileOptions DEFAULT = new CompileOptions(false, null);
+  private static final CompileOptions DEFAULT = new CompileOptions(true, null);
 
   private final boolean allowlistEnabled;
   private final ImmutableList<JexlAllowlist> jexlAllowlist;
