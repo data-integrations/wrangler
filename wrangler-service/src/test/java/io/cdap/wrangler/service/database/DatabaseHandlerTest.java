@@ -103,6 +103,28 @@ public class DatabaseHandlerTest {
   }
 
   @Test
+  public void testGetConnectorPropertiesRejectsDangerousJdbcUrlAndArguments() {
+    Map<String, String> badUrlConfig = new HashMap<>();
+    badUrlConfig.put("url", "jdbc:mysql://localhost:3306/db?allowLoadLocalInfile=true");
+    try {
+      DatabaseHandler.getConnectorProperties(badUrlConfig);
+      Assert.fail("Expected IllegalArgumentException for dangerous JDBC URL");
+    } catch (IllegalArgumentException expected) {
+      // expected
+    }
+
+    Map<String, String> badArgsConfig = new HashMap<>();
+    badArgsConfig.put("url", "jdbc:mysql://localhost:3306/db");
+    badArgsConfig.put("connectionArguments", "autoDeserialize=true;allowLoadLocalInfile=true");
+    try {
+      DatabaseHandler.getConnectorProperties(badArgsConfig);
+      Assert.fail("Expected IllegalArgumentException for dangerous JDBC connectionArguments");
+    } catch (IllegalArgumentException expected) {
+      // expected
+    }
+  }
+
+  @Test
   public void databaseWithLogicalTypes() throws Exception {
     List<Row> expected = new ArrayList<>();
     Row row = new Row();

@@ -79,6 +79,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -506,8 +507,11 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   }
 
   public static Map<String, String> getSpecification(Connection conn, String table) {
+    String url = conn.getProperties().get("url");
+    JdbcConnectionValidator.validateUrl(url);
+    JdbcConnectionValidator.validateConnectionArgumentsString(conn.getProperties().get("connectionArguments"));
     Map<String, String> properties = new HashMap<>();
-    properties.put("connectionString", conn.getProperties().get("url"));
+    properties.put("connectionString", url);
     properties.put("referenceName", ReferenceNames.cleanseReferenceName(table));
     properties.put("user", conn.getProperties().get("username"));
     properties.put("password", conn.getProperties().get("password"));
@@ -519,8 +523,11 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   }
 
   public static Map<String, String> getConnectorProperties(Map<String, String> config) {
+    String url = config.get("url");
+    JdbcConnectionValidator.validateUrl(url);
+    JdbcConnectionValidator.validateConnectionArgumentsString(config.get("connectionArguments"));
     Map<String, String> properties = new HashMap<>();
-    properties.put("connectionString", config.get("url"));
+    properties.put("connectionString", url);
     properties.put("user", config.get("username"));
     properties.put("password", config.get("password"));
     properties.put("jdbcPluginType", config.get("type"));
@@ -563,6 +570,8 @@ public class DatabaseHandler extends AbstractWranglerHandler {
                               Executor executor, SystemHttpServiceContext context) throws Exception {
     String jdbcPluginName = connection.getProperties().get("name");
     String url = connection.getProperties().get("url");
+    JdbcConnectionValidator.validateUrl(url);
+    JdbcConnectionValidator.validateConnectionArgumentsString(connection.getProperties().get("connectionArguments"));
 
     PluginConfigurer pluginConfigurer = context.createPluginConfigurer(namespace.getName());
     Class<? extends Driver> driverClass = pluginConfigurer.usePluginClass(JDBC, jdbcPluginName,
@@ -577,6 +586,14 @@ public class DatabaseHandler extends AbstractWranglerHandler {
       Map<String, String> evaluated = evaluateMacros(connection, context, namespace.getName());
       String username = evaluated.get("username");
       String password = evaluated.get("password");
+      Properties properties = new Properties();
+      if (username != null) {
+        properties.setProperty("user", username);
+      }
+      if (password != null) {
+        properties.setProperty("password", password);
+      }
+      JdbcConnectionValidator.validateJdbcConnection(url, properties);
 
       java.sql.Connection conn = DriverManager.getConnection(url, username, password);
       executor.execute(conn);
@@ -601,6 +618,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
 
   private static DriverCleanup ensureJDBCDriverIsAvailable(Class<? extends Driver> classz, String url)
     throws IllegalAccessException, InstantiationException, SQLException {
+    JdbcConnectionValidator.validateUrl(url);
     try {
       DriverManager.getDriver(url);
       return new DriverCleanup(null);
