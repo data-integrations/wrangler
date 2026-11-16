@@ -16,76 +16,70 @@
 
 package io.cdap.wrangler;
 
+import com.google.common.base.Strings;
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.Row;
-import org.apache.commons.jexl3.scripting.JexlScriptEngine;
+import io.cdap.wrangler.expression.EL;
+import io.cdap.wrangler.expression.ELContext;
+import io.cdap.wrangler.expression.ELException;
+import io.cdap.wrangler.expression.ELPermissionException;
+import io.cdap.wrangler.expression.ELResult;
 
-import javax.script.Bindings;
-import javax.script.CompiledScript;
-import javax.script.ScriptContext;
-import javax.script.ScriptException;
-import javax.script.SimpleBindings;
-import javax.script.SimpleScriptContext;
+import javax.annotation.Nullable;
 
 /**
  * A precondition expression that filters data into the directives.
  */
 public class Precondition {
   private final String condition;
-  private final CompiledScript script;
-  // SimpleScriptContext is pretty expensive to construct due to all PrintWriter creation, so let's cache it
-  private final ThreadLocal<ScriptContext> contextCache = ThreadLocal.withInitial(this::createContext);
+  private final EL script;
 
   public Precondition(String condition) throws PreconditionException {
+    this(condition, null);
+  }
+
+  public Precondition(String condition, @Nullable DirectiveContext directiveContext)
+      throws PreconditionException {
     this.condition = condition;
-    JexlScriptEngine engine = new JexlScriptEngine();
+    if (Strings.isNullOrEmpty(condition) || condition.trim().isEmpty()) {
+      this.script = null;
+      return;
+    }
+    if (directiveContext != null) {
+      EL.initialize(directiveContext);
+    }
     try {
-      script = engine.compile(condition);
-    } catch (ScriptException e) {
-      if (e.getCause() != null) {
-        throw new PreconditionException(e.getCause().getMessage());
-      } else {
-        throw new PreconditionException(e.getMessage());
+      this.script = EL.compile(condition);
+    } catch (ELException | ELPermissionException e) {
+      throw new PreconditionException(e.getMessage(), e);
+    } finally {
+      if (directiveContext != null) {
+        EL.reset();
       }
     }
   }
 
-  public ScriptContext createContext() {
-    ScriptContext parent = script.getEngine().getContext();
-
-    SimpleScriptContext context = new SimpleScriptContext();
-    context.setBindings(parent.getBindings(ScriptContext.GLOBAL_SCOPE),
-                         ScriptContext.GLOBAL_SCOPE);
-    context.setWriter(parent.getWriter());
-    context.setReader(parent.getReader());
-    context.setErrorWriter(parent.getErrorWriter());
-    return context;
-  }
-
   public boolean apply(Row row) throws PreconditionException {
-    Bindings bindings = new SimpleBindings();
-    for (int i = 0; i < row.width(); ++i) {
-      bindings.put(row.getColumn(i), row.getValue(i));
+    if (script == null) {
+      return false;
     }
+    ELContext context = new ELContext();
+    for (int i = 0; i < row.width(); ++i) {
+      context.set(row.getColumn(i), row.getValue(i));
+    }
+    context.set("this", row);
 
     try {
-      ScriptContext scriptContext = contextCache.get();
-      scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-      Object result = script.eval(scriptContext);
+      ELResult elResult = script.execute(context);
+      Object result = elResult.getObject();
       if (!(result instanceof Boolean)) {
         throw new PreconditionException(
           String.format("Precondition '%s' does not result in true or false.", condition)
         );
       }
       return (Boolean) result;
-    } catch (ScriptException e) {
-      // Generally JexlException wraps the original exception, so it's good idea
-      // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-      // else just print the error message.
-      if (e.getCause() != null) {
-        throw new PreconditionException(e.getCause().getMessage());
-      } else {
-        throw new PreconditionException(e.getMessage());
-      }
+    } catch (ELException | ELPermissionException e) {
+      throw new PreconditionException(e.getMessage(), e);
     }
   }
 }

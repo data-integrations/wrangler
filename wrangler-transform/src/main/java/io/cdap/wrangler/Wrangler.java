@@ -382,7 +382,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
 
     // Parse DSL and initialize the wrangle pipeline.
     store = new DefaultTransientStore();
-    RecipeParser recipe = getRecipeParser(context);
+    DirectiveContext directiveContext = createDirectiveContext(context);
+    RecipeParser recipe = getRecipeParser(context, directiveContext);
 
     ExecutorContext ctx = new WranglerPipelineContext(ExecutorContext.Environment.TRANSFORM, context, store);
 
@@ -403,7 +404,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       if (PRECONDITION_LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
         && checkPreconditionNotEmpty(false)) {
         try {
-          condition = new Precondition(config.getPreconditionJEXL());
+          condition = new Precondition(config.getPreconditionJEXL(), directiveContext);
         } catch (Exception e) {
           String errorReason = "Failed to evaluate precondition due to an invalid JEXL expression.";
           throw WranglerErrorUtil.getProgramFailureExceptionDetailsFromChain(e, errorReason, null,
@@ -618,16 +619,24 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     return false;
   }
 
+  private DirectiveContext createDirectiveContext(StageContext context) {
+    DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
+    boolean jexlAllowlistEnabled = context != null && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
+    return new ConfigDirectiveContext(directiveConfig, jexlAllowlistEnabled);
+  }
+
   /**
    * Creates a {@link CompositeDirectiveRegistry} and initializes the {@link RecipeParser}
    * with {@link ConfigDirectiveContext} so that directive config is enforced.
    *
    * @param context the stage context
    * @return a {@link RecipeParser} configured with directive config
-   * @throws DirectiveLoadException if directives cannot be loaded
-   * @throws DirectiveParseException if directives cannot be parsed
    */
   private RecipeParser getRecipeParser(StageContext context) {
+    return getRecipeParser(context, createDirectiveContext(context));
+  }
+
+  private RecipeParser getRecipeParser(StageContext context, DirectiveContext directiveContext) {
 
     registry = new CompositeDirectiveRegistry(SystemDirectiveRegistry.INSTANCE, new UserDirectiveRegistry(context));
     try {
@@ -642,10 +651,6 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     if (config.getUDDs() != null && !config.getUDDs().trim().isEmpty()) {
       directives = String.format("#pragma load-directives %s;%s", config.getUDDs(), config.getDirectives());
     }
-
-    DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
-    boolean jexlAllowlistEnabled = context != null && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
-    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig, jexlAllowlistEnabled);
 
     try {
       return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),

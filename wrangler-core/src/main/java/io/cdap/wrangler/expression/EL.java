@@ -31,19 +31,29 @@ import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.utils.ArithmeticOperations;
 import io.cdap.wrangler.utils.DecimalTransform;
+import org.apache.commons.jexl3.JexlArithmetic;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlInfo;
+import org.apache.commons.jexl3.JexlOperator;
 import org.apache.commons.jexl3.JexlScript;
+import org.apache.commons.jexl3.introspection.JexlMethod;
+import org.apache.commons.jexl3.introspection.JexlPropertyGet;
+import org.apache.commons.jexl3.introspection.JexlPropertySet;
 import org.apache.commons.jexl3.introspection.JexlSandbox;
+import org.apache.commons.jexl3.introspection.JexlUberspect;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.logging.Log;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,9 +67,14 @@ public final class EL {
 
   private static volatile boolean used;
 
+  private static final Log NULL_LOGGER = new NullLogger();
+  private static final JexlUberspect SANDBOXED_UBERSPECT =
+      new SandboxedJexlUberspect(new JexlBuilder().logger(NULL_LOGGER).create().getUberspect());
+
   /**
    * Options applied to every script compiled by this class, scoped to the thread that
-   * set them through {@link #initialize(DirectiveContext)}. Defaults to allowlist disabled.
+   * set them through {@link #initialize(DirectiveContext)}. Defaults to allowlist enabled
+   * with {@link io.cdap.wrangler.api.DefaultJexlAllowlist}.
    */
   private static final ThreadLocal<CompileOptions> COMPILE_OPTIONS =
     ThreadLocal.withInitial(CompileOptions::getDefaultCompileOptions);
@@ -130,14 +145,17 @@ public final class EL {
     CompileOptions options = COMPILE_OPTIONS.get();
     boolean allowlistEnabled = options.isAllowlistEnabled();
     JexlSandbox sandbox = createSandbox(options.getJexlAllowlist(), allowlistEnabled);
-    JexlEngine engine = new JexlBuilder()
+    JexlBuilder builder = new JexlBuilder()
       .sandbox(sandbox)
       .namespaces(registration.functions())
       .silent(false)
       .cache(1024)
       .strict(true)
-      .logger(new NullLogger())
-      .create();
+      .logger(NULL_LOGGER);
+    if (allowlistEnabled) {
+      builder.uberspect(SANDBOXED_UBERSPECT);
+    }
+    JexlEngine engine = builder.create();
 
     try {
       JexlScript script = engine.createScript(expression);
@@ -432,6 +450,134 @@ public final class EL {
     @Override
     public void warn(Object o, Throwable throwable) {
 
+    }
+  }
+
+  /**
+   * Hardened {@link JexlUberspect} wrapper that blocks {@code Object.getClass()}, {@code .class}
+   * property access, constructor invocation ({@code new(...)}), and {@link Class} reflection
+   * methods on allowlisted classes and function namespace classes.
+   */
+  private static final class SandboxedJexlUberspect implements JexlUberspect {
+    private static final Set<String> BLOCKED_METHODS = Collections.unmodifiableSet(
+        new HashSet<>(Arrays.asList(
+            "getClass", "forName", "getClassLoader", "getContextClassLoader",
+            "newInstance", "wait", "notify", "notifyAll")));
+
+    private final JexlUberspect delegate;
+
+    private SandboxedJexlUberspect(JexlUberspect delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public void setClassLoader(ClassLoader loader) {
+      delegate.setClassLoader(loader);
+    }
+
+    @Override
+    public int getVersion() {
+      return delegate.getVersion();
+    }
+
+    @Override
+    public JexlMethod getConstructor(Object ctorHandle, Object... args) {
+      return null;
+    }
+
+    @Override
+    public JexlMethod getMethod(Object obj, String method, Object... args) {
+      if (obj == null || method == null || BLOCKED_METHODS.contains(method)) {
+        return null;
+      }
+      int argCount = args == null ? 0 : args.length;
+      if (obj instanceof Class<?> && !hasPublicStaticMethod((Class<?>) obj, method, argCount)) {
+        return null;
+      }
+      JexlMethod jexlMethod = delegate.getMethod(obj, method, args);
+      if (jexlMethod != null
+          && (jexlMethod.getReturnType() == Class.class
+              || jexlMethod.getReturnType() == ClassLoader.class)) {
+        return null;
+      }
+      return jexlMethod;
+    }
+
+    @Override
+    public List<PropertyResolver> getResolvers(JexlOperator op, Object obj) {
+      return delegate.getResolvers(op, obj);
+    }
+
+    @Override
+    public JexlPropertyGet getPropertyGet(Object obj, Object identifier) {
+      if (isBlockedPropertyAccess(obj, identifier)) {
+        return null;
+      }
+      return delegate.getPropertyGet(obj, identifier);
+    }
+
+    @Override
+    public JexlPropertyGet getPropertyGet(List<PropertyResolver> resolvers, Object obj, Object identifier) {
+      if (isBlockedPropertyAccess(obj, identifier)) {
+        return null;
+      }
+      return delegate.getPropertyGet(resolvers, obj, identifier);
+    }
+
+    @Override
+    public JexlPropertySet getPropertySet(Object obj, Object identifier, Object arg) {
+      if (isBlockedPropertyAccess(obj, identifier)) {
+        return null;
+      }
+      return delegate.getPropertySet(obj, identifier, arg);
+    }
+
+    @Override
+    public JexlPropertySet getPropertySet(
+        List<PropertyResolver> resolvers, Object obj, Object identifier, Object arg) {
+      if (isBlockedPropertyAccess(obj, identifier)) {
+        return null;
+      }
+      return delegate.getPropertySet(resolvers, obj, identifier, arg);
+    }
+
+    @Override
+    public Iterator<?> getIterator(Object obj) {
+      return delegate.getIterator(obj);
+    }
+
+    @Override
+    public JexlArithmetic.Uberspect getArithmetic(JexlArithmetic arithmetic) {
+      return delegate.getArithmetic(arithmetic);
+    }
+
+    private static boolean isBlockedPropertyAccess(Object obj, Object identifier) {
+      if (obj == null || identifier == null) {
+        return true;
+      }
+      if (obj instanceof Class<?>) {
+        return true;
+      }
+      String prop = identifier.toString();
+      return "class".equals(prop) || "TYPE".equals(prop);
+    }
+
+    private static boolean hasPublicStaticMethod(Class<?> clazz, String methodName, int argCount) {
+      if (clazz == null || clazz == Class.class || clazz == Object.class) {
+        return false;
+      }
+      for (Method m : clazz.getMethods()) {
+        if (m.getName().equals(methodName)
+            && Modifier.isStatic(m.getModifiers())
+            && m.getDeclaringClass() != Class.class
+            && m.getDeclaringClass() != Object.class
+            && (m.isVarArgs()
+                ? argCount >= m.getParameterCount() - 1
+                : m.getParameterCount() == argCount)) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 }

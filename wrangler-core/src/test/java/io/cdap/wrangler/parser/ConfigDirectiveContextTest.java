@@ -18,6 +18,7 @@ package io.cdap.wrangler.parser;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveConfigDeserializer;
@@ -151,6 +152,16 @@ public class ConfigDirectiveContextTest {
         "{\"jexlConfiguration\": {\"jexlAllowlistEnabled\": false}}", DirectiveConfig.class);
     Assert.assertFalse(new ConfigDirectiveContext(configFalse, true).isJexlAllowlistEnabled());
     Assert.assertFalse(new ConfigDirectiveContext(configFalse, false).isJexlAllowlistEnabled());
+
+    DirectiveConfig configNullJexl = GSON.fromJson(EMPTY, DirectiveConfig.class);
+    Assert.assertNull(configNullJexl.getJexlConfiguration());
+    Assert.assertTrue(new ConfigDirectiveContext(configNullJexl, true).isJexlAllowlistEnabled());
+    Assert.assertFalse(new ConfigDirectiveContext(configNullJexl, false).isJexlAllowlistEnabled());
+    Assert.assertEquals(
+        DefaultJexlAllowlist.get(), new ConfigDirectiveContext(configNullJexl, true).getJexlAllowlist());
+    Assert.assertFalse(new ConfigDirectiveContext(DirectiveConfig.EMPTY, true).isJexlAllowlistEnabled());
+    Assert.assertTrue(new ConfigDirectiveContext(null, true).isJexlAllowlistEnabled());
+    Assert.assertEquals(DefaultJexlAllowlist.get(), new ConfigDirectiveContext(null, true).getJexlAllowlist());
   }
 
 }

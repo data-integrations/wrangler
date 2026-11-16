@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.parser;
 
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
 import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
@@ -40,15 +41,20 @@ public class ConfigDirectiveContext implements DirectiveContext {
   @Nullable
   @Override
   public List<JexlAllowlist> getJexlAllowlist() {
-    return config.getJexlConfiguration() != null
-        ? config.getJexlConfiguration().getJexlAllowlist()
-        : null;
+    if (config != null
+        && config.getJexlConfiguration() != null
+        && config.getJexlConfiguration().getJexlAllowlist() != null) {
+      return config.getJexlConfiguration().getJexlAllowlist();
+    }
+    return DefaultJexlAllowlist.get();
   }
 
   @Override
   public boolean isJexlAllowlistEnabled() {
     return isJexlAllowlistFeatureFlagEnabled
-        && config.getJexlConfiguration().isJexlAllowlistEnabled();
+        && (config == null
+            || config.getJexlConfiguration() == null
+            || config.getJexlConfiguration().isJexlAllowlistEnabled());
   }
 
   /**
