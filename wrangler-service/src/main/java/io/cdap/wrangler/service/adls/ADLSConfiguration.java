@@ -17,6 +17,7 @@
 package io.cdap.wrangler.service.adls;
 
 import com.google.common.collect.ImmutableList;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
 
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,8 @@ public class ADLSConfiguration {
     clientSecret = properties.get("clientSecret");
     refreshURL = properties.get("refreshURL");
     accountFQDN = properties.get("accountFQDN");
+    OutboundUrlValidator.validateOutboundUrl(refreshURL);
+    OutboundUrlValidator.validateOutboundHost(accountFQDN);
   }
 
 

@@ -38,6 +38,7 @@ import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -47,13 +48,13 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -88,6 +89,11 @@ public class InvokeHttp implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     gson = new Gson();
     this.url = ((Text) args.value("url")).value();
+    try {
+      OutboundUrlValidator.validateOutboundUrl(this.url);
+    } catch (IllegalArgumentException e) {
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
+    }
     this.columns = ((ColumnNameList) args.value("column")).value();
     String hdrs = null;
     if (args.contains("header")) {
@@ -175,10 +181,11 @@ public class InvokeHttp implements Directive, Lineage {
 
   private Map<String, Object> invokeHttp(String url, Map<String, Object> parameters,
                                          Map<String, String> headers) throws IOException {
-    CloseableHttpClient client = null;
-    try {
+    URI validatedUri = OutboundUrlValidator.validateSyntaxAndHost(url);
+    try (CloseableHttpClient client = OutboundUrlValidator.createSafeHttpClient(
+      OutboundUrlValidator.DEFAULT_CONNECT_TIMEOUT_MS, OutboundUrlValidator.DEFAULT_READ_TIMEOUT_MS)) {
       String body = gson.toJson(parameters);
-      HttpPost post = new HttpPost(url);
+      HttpPost post = new HttpPost(validatedUri);
       post.addHeader("Content-type", "application/json; charset=UTF-8");
       for (Map.Entry<String, String> entry : headers.entrySet()) {
         post.addHeader(entry.getKey(), entry.getValue());
@@ -187,12 +194,7 @@ public class InvokeHttp implements Directive, Lineage {
       InputStream stream = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
       entity.setContent(stream);
       post.setEntity(entity);
-      client = HttpClients.createDefault();
       return client.execute(post, new ServiceResponseHandler());
-    } finally {
-      if (client != null) {
-        client.close();
-      }
     }
   }
 }
