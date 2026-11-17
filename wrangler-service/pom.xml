@@ -30,6 +30,7 @@
     <tika.version>1.14</tika.version>
     <hadoop.version>2.10.2</hadoop.version>
     <google.cloud.spanner.version>1.61.0</google.cloud.spanner.version>
+    <logback.version>1.2.13</logback.version>
   </properties>
 
   <dependencies>
@@ -72,6 +73,24 @@
       <groupId>io.cdap.cdap</groupId>
       <artifactId>cdap-etl-core</artifactId>
       <version>${cdap.version}</version>
+      <exclusions>
+        <!-- CDAP provides the logging backend at runtime; do not package logback in the app jar. -->
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!--
+      Logback is excluded from cdap-etl-core so that it is not packaged in the app jar. Keep it as the
+      SLF4J backend for unit tests only. It must stay ahead of hadoop-mapreduce-client-core on the
+      test classpath; otherwise slf4j-reload4j binds and collides with log4j-over-slf4j.
+    -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.cdap.cdap</groupId>
