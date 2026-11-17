@@ -508,6 +508,10 @@ public class WranglerAuthEnforcementTest {
       status -> gcsHandler.specification(request, createMockResponder(status), TEST_NS, "gcs1", "ws1"));
     Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "gcs1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
+    assertEndpointForbidden(
+      status -> gcsHandler.specification(request, createMockResponder(status), TEST_NS, "gcs1", null));
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "gcs1"), StandardPermission.USE),
+                        denyEnforcer.getLastCall());
 
     // SpannerHandler
     SpannerHandler spannerHandler = new SpannerHandler();
@@ -602,6 +606,10 @@ public class WranglerAuthEnforcementTest {
       status -> adlsHandler.specification(request, createMockResponder(status), TEST_NS, "a1", "/file", "ws1"));
     Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "a1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
+    assertEndpointForbidden(
+      status -> adlsHandler.specification(request, createMockResponder(status), TEST_NS, "a1", "/file", null));
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "a1"), StandardPermission.USE),
+                        denyEnforcer.getLastCall());
 
     // S3Handler
     S3Handler s3Handler = new S3Handler();
@@ -619,7 +627,16 @@ public class WranglerAuthEnforcementTest {
     Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "s31"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
     assertEndpointForbidden(
+      status -> s3Handler.loadObject(
+        request, createMockResponder(status), TEST_NS, "s31", "b1", "", 10, "FIRST", 1.0, "default"));
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "s31"), StandardPermission.USE),
+                        denyEnforcer.getLastCall());
+    assertEndpointForbidden(
       status -> s3Handler.specification(request, createMockResponder(status), TEST_NS, "s31", "b1", "k1", "ws1"));
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "s31"), StandardPermission.USE),
+                        denyEnforcer.getLastCall());
+    assertEndpointForbidden(
+      status -> s3Handler.specification(request, createMockResponder(status), TEST_NS, "s31", "b1", "k1", null));
     Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "s31"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
@@ -702,6 +719,51 @@ public class WranglerAuthEnforcementTest {
       status -> s3WsHandler.specification(request, createMockResponder(status), TEST_NS, "s31", "b1", "k1", "ws1"));
     Assert.assertEquals(new EnforceCall(new WorkspaceEntityId(TEST_NS, "ws1"), StandardPermission.GET),
                         denyWorkspaceOnlyEnforcer.getLastCall());
+  }
+
+  @Test
+  public void testConnectorSpecificationNullWorkspaceIdAllowPaths() throws Exception {
+    RecordingAccessEnforcer allowEnforcer = new RecordingAccessEnforcer(false);
+    SystemHttpServiceContext allowContext = createMockContext(allowEnforcer, true);
+    ConnectionTypeConfig emptyConfig = new ConnectionTypeConfig(Collections.emptySet(), Collections.emptyList(), null);
+    ConnectionHandler connHandler = createConnectionHandler(emptyConfig, allowEnforcer, true);
+    HttpServiceRequest emptyReq = createMockRequest("{}");
+
+    // GCS specification with null wid returns 400 after enforcing connection USE
+    GCSHandler gcsHandler = new GCSHandler();
+    gcsHandler.initialize(allowContext);
+    assertEndpointStatus(HttpURLConnection.HTTP_BAD_REQUEST,
+                         status -> gcsHandler.specification(emptyReq, createMockResponder(status),
+                                                            TEST_NS, "gcs1", null));
+
+    // S3 loadObject with empty key returns 400 after enforcing connection USE and workspace CREATE
+    S3Handler s3Handler = new S3Handler();
+    s3Handler.initialize(allowContext);
+    assertEndpointStatus(HttpURLConnection.HTTP_BAD_REQUEST,
+                         status -> s3Handler.loadObject(emptyReq, createMockResponder(status),
+                                                        TEST_NS, "s31", "b1", "", 10, "FIRST", 1.0, "default"));
+
+    // ADLS and S3 specification with null wid return 200 OK without WorkspaceEntityId NPE or shouldCopyHeader failure
+    HttpServiceRequest createAdlsReq = createMockRequest(
+      "{\"name\":\"adls_spec\",\"type\":\"ADLS\",\"properties\":{"
+      + "\"clientID\":\"cid\",\"clientSecret\":\"sec\",\"refreshURL\":\"https://login/token\","
+      + "\"accountFQDN\":\"acct.azuredatalakestore.net\"}}");
+    assertEndpointStatus(HttpURLConnection.HTTP_OK,
+                         status -> connHandler.create(createAdlsReq, createMockResponder(status), TEST_NS));
+    ADLSHandler adlsHandler = new ADLSHandler();
+    adlsHandler.initialize(allowContext);
+    assertEndpointStatus(HttpURLConnection.HTTP_OK,
+                         status -> adlsHandler.specification(emptyReq, createMockResponder(status),
+                                                             TEST_NS, "adls_spec", "/dir/file.csv", null));
+
+    HttpServiceRequest createS3Req = createMockRequest(
+      "{\"name\":\"s3_spec\",\"type\":\"S3\",\"properties\":{"
+      + "\"accessKeyId\":\"ak\",\"accessSecretKey\":\"sk\",\"region\":\"us-east-1\"}}");
+    assertEndpointStatus(HttpURLConnection.HTTP_OK,
+                         status -> connHandler.create(createS3Req, createMockResponder(status), TEST_NS));
+    assertEndpointStatus(HttpURLConnection.HTTP_OK,
+                         status -> s3Handler.specification(emptyReq, createMockResponder(status),
+                                                           TEST_NS, "s3_spec", "my-bucket", "dir/file.csv", null));
   }
 
   @Test
