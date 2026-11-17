@@ -67,7 +67,7 @@ public class DataModelHandler extends AbstractWranglerHandler {
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.UPDATE);
+      accessEnforcer.enforceInstance(StandardPermission.UPDATE);
       RequestExtractor handler = new RequestExtractor(request);
       DataModelUrlRequest dataModelUrl = handler.getContent("UTF-8", DataModelUrlRequest.class);
       if (dataModelUrl == null || dataModelUrl.getUrl() == null) {

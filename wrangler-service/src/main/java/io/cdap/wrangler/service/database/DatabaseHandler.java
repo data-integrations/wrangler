@@ -220,7 +220,7 @@ public class DatabaseHandler extends AbstractWranglerHandler {
   public void listDrivers(HttpServiceRequest request, HttpServiceResponder responder,
                           @PathParam("context") String namespace) {
     respond(request, responder, namespace, ns -> {
-      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
+      accessEnforcer.enforceArtifactOnParent(ns.getName(), StandardPermission.LIST);
       List<JDBCDriverInfo> values = new ArrayList<>();
       List<ArtifactInfo> artifacts = getContext().listArtifacts(namespace);
       for (ArtifactInfo artifact : artifacts) {

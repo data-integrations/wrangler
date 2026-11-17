@@ -27,6 +27,7 @@ import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
 import io.cdap.cdap.proto.security.StandardPermission;
+import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
 import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.BadRequestException;
@@ -106,8 +107,14 @@ public class RecipeHandler extends AbstractWranglerHandler {
                         @PathParam("context") String namespace,
                         @PathParam("recipe-name") String recipeName) {
     respond(responder, namespace, ns -> {
-      accessEnforcer.enforceRecipe(ns.getName(), recipeName, StandardPermission.GET);
-      Recipe recipe = recipeStore.getRecipeByName(ns, recipeName);
+      Recipe recipe;
+      try {
+        recipe = recipeStore.getRecipeByName(ns, recipeName);
+      } catch (RecipeNotFoundException e) {
+        accessEnforcer.enforceRecipe(ns.getName(), StandardPermission.LIST);
+        throw e;
+      }
+      accessEnforcer.enforceRecipe(ns.getName(), recipe.getRecipeId().getRecipeId(), StandardPermission.GET);
       responder.sendJson(recipe);
     });
   }
@@ -122,7 +129,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @QueryParam("sortBy")String sortBy,
                            @QueryParam("sortOrder") String sortOrder) {
     respond(responder, namespace, ns -> {
-      accessEnforcer.enforceOnParentNamespaceForRecipe(ns.getName(), StandardPermission.LIST);
+      accessEnforcer.enforceRecipe(ns.getName(), StandardPermission.LIST);
       RecipePageRequest pageRequest = RecipePageRequest.builder(ns)
         .setPageSize(pageSize)
         .setPageToken(pageToken)
