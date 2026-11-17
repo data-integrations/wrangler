@@ -216,11 +216,11 @@ public class S3Handler extends AbstractWranglerHandler {
                          @QueryParam("scope") @DefaultValue(WorkspaceDataset.DEFAULT_SCOPE) String scope) {
     respond(request, responder, namespace, ns -> {
       try {
+        accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
+        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
         if (Strings.isNullOrEmpty(key)) {
           throw new BadRequestException("Required query param 'key' is missing in the input");
         }
-        accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
-        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.CREATE);
 
         String header = request.getHeader(PropertyIds.CONTENT_TYPE);
         NamespacedId namespacedConnId = new NamespacedId(ns, connectionId);

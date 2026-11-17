@@ -378,10 +378,10 @@ public class GCSHandler extends AbstractWranglerHandler {
                             @PathParam("context") String namespace, @PathParam("connection-id") String connectionId,
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       if (workspaceId == null) {
         throw new BadRequestException("Workspace ID must be passed as query parameter 'wid'.");
       }
-      accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
       accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
 
       return TransactionRunners.run(getContext(), context -> {
