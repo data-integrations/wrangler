@@ -74,12 +74,18 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
     });
   }
 
+  protected boolean workspaceExists(NamespacedId workspaceId) {
+    return TransactionRunners.run(getContext(), context -> {
+      return WorkspaceDataset.get(context).hasWorkspace(workspaceId);
+    });
+  }
+
   /**
    * Return whether the header needs to be copied when creating the pipeline source for the specified workspace.
    * This just amounts to checking whether parse-as-csv with the first line as a header is used as a directive.
    */
   protected boolean shouldCopyHeader(WorkspaceDataset ws, @Nullable NamespacedId workspaceId) throws IOException {
-    if (workspaceId == null) {
+    if (workspaceId == null || workspaceId.getId() == null) {
       return false;
     }
     try {
@@ -148,7 +154,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    * If the callable throws a {@link StatusCodeException}, the exception's status code and message will be used
    * to create the response.
    * If a {@link JsonSyntaxException} is thrown, a 400 response will be sent.
-   * If anything else if thrown, a 500 response will be sent.
+   * If an {@link UnauthorizedException} is thrown, its status code (403) will be sent.
+   * If anything else is thrown, a 500 response will be sent.
    * If nothing is thrown, the result of the callable will be sent as json.
    *
    * @param request the http request
@@ -181,7 +188,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    * If the callable throws a {@link StatusCodeException}, the exception's status code and message will be used
    * to create the response.
    * If a {@link JsonSyntaxException} is thrown, a 400 response will be sent.
-   * If anything else if thrown, a 500 response will be sent.
+   * If an {@link UnauthorizedException} is thrown, its status code (403) will be sent.
+   * If anything else is thrown, a 500 response will be sent.
    * If nothing is thrown, the result of the callable will be sent as json.
    *
    * @param responder the http responder
@@ -250,7 +258,8 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
    * If the callable throws a {@link StatusCodeException}, the exception's status code and message will be used
    * to create the response.
    * If a {@link JsonSyntaxException} is thrown, a 400 response will be sent.
-   * If anything else if thrown, a 500 response will be sent.
+   * If an {@link UnauthorizedException} is thrown, its status code (403) will be sent.
+   * If anything else is thrown, a 500 response will be sent.
    * If nothing is thrown, the result of the callable will be sent as json.
    *
    * @param request the http request

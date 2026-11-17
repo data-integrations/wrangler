@@ -41,7 +41,6 @@ import io.cdap.cdap.etl.proto.connection.ConnectorDetail;
 import io.cdap.cdap.etl.proto.connection.SampleResponse;
 import io.cdap.cdap.features.Feature;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
-import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.wrangler.PropertyIds;
 import io.cdap.wrangler.RequestExtractor;
@@ -144,10 +143,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   public void createWorkspace(HttpServiceRequest request, HttpServiceResponder responder,
                               @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Creating workspace in system namespace is currently not supported");
-      }
-
       WorkspaceId wsId = new WorkspaceId(ns);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.CREATE);
       WorkspaceCreationRequest creationRequest =
@@ -192,10 +187,7 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   public void listWorkspaces(HttpServiceRequest request, HttpServiceResponder responder,
                              @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Listing workspaces in system namespace is currently not supported");
-      }
-      accessEnforcer.enforceOnParentNamespace(ns.getName(), StandardPermission.LIST);
+      accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.LIST);
       responder.sendString(GSON.toJson(new ServiceResponse<>(wsStore.listWorkspaces(ns))));
     });
   }
@@ -207,9 +199,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                            @PathParam("context") String namespace,
                            @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Getting workspace in system namespace is currently not supported");
-      }
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.GET);
       responder.sendString(GSON.toJson(wsStore.getWorkspace(wsId)));
@@ -226,9 +215,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                               @PathParam("context") String namespace,
                               @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Updating workspace in system namespace is currently not supported");
-      }
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.UPDATE);
       WorkspaceUpdateRequest updateRequest =
@@ -253,10 +239,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                                 @PathParam("context") String namespace,
                                 @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Resampling workspace in system namespace is currently not supported");
-      }
-
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.UPDATE);
       Workspace currentWorkspace = wsStore.getWorkspace(wsId);
@@ -300,9 +282,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                               @PathParam("context") String namespace,
                               @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Deleting workspace in system namespace is currently not supported");
-      }
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.DELETE);
       wsStore.deleteWorkspace(wsId);
@@ -319,10 +298,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   public void upload(HttpServiceRequest request, HttpServiceResponder responder,
                      @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Uploading data in system namespace is currently not supported");
-      }
-
       WorkspaceId id = new WorkspaceId(ns);
       accessEnforcer.enforceWorkspace(id.getNamespace().getName(), id.getWorkspaceId(), StandardPermission.CREATE);
       String name = request.getHeader(PropertyIds.FILE_NAME);
@@ -371,7 +346,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                       @PathParam("context") String namespace,
                       @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      validateNamespace(ns, "Executing directives in system namespace is currently not supported");
       WorkspaceId wsId =  new WorkspaceId(ns, workspaceId);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.USE);
       DirectiveExecutionResponse response = execute(ns, request, wsId, null);
@@ -388,7 +362,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
   public void getDirectives(HttpServiceRequest request, HttpServiceResponder responder,
                             @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
-      validateNamespace(ns, "Getting directives in system namespace is currently not supported");
       accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       // CDAP-15397 - reload must be called before it can be safely used
       composite.reload(namespace);
@@ -413,14 +386,11 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                             @PathParam("context") String namespace,
                             @PathParam("id") String workspaceId) {
     respond(responder, namespace, ns -> {
-      if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-        throw new BadRequestException("Getting specification in system namespace is currently not supported");
-      }
+      WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
+      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.USE);
+
       // reload to retrieve the wrangler transform
       composite.reload(namespace);
-
-      WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
-      accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.GET);
       WorkspaceDetail detail = wsStore.getWorkspaceDetail(wsId);
       List<String> directives = new ArrayList<>(detail.getWorkspace().getDirectives());
       UserDirectivesCollector userDirectivesCollector = new UserDirectivesCollector();
@@ -464,7 +434,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
                           @PathParam("id") String workspaceId,
                           @PathParam("recipe-id") String recipeIdString) {
     respond(responder, namespace, ns -> {
-      validateNamespace(ns, "Executing directives in system namespace is currently not supported");
       WorkspaceId wsId = new WorkspaceId(ns, workspaceId);
       accessEnforcer.enforceWorkspace(wsId.getNamespace().getName(), wsId.getWorkspaceId(), StandardPermission.USE);
       accessEnforcer.enforceRecipe(ns.getName(), recipeIdString, StandardPermission.GET);
@@ -474,12 +443,6 @@ public class WorkspaceHandler extends AbstractDirectiveHandler {
       DirectiveExecutionResponse response = execute(ns, request, wsId, recipe.getDirectives());
       responder.sendJson(response);
     });
-  }
-
-  private void validateNamespace(NamespaceSummary ns, String errorMessage) {
-    if (ns.getName().equalsIgnoreCase(NamespaceId.SYSTEM.getNamespace())) {
-      throw new BadRequestException(errorMessage);
-    }
   }
 
   private DirectiveExecutionResponse execute(NamespaceSummary ns, HttpServiceRequest request,

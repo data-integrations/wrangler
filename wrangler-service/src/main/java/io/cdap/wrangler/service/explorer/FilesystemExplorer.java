@@ -156,7 +156,7 @@ public class FilesystemExplorer extends AbstractWranglerHandler {
       if (workspaceId != null) {
         accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
       } else {
-        accessEnforcer.enforceWorkspace(ns.getName(), StandardPermission.GET);
+        accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
       }
       NamespacedId namespacedId = new NamespacedId(ns, workspaceId);
 

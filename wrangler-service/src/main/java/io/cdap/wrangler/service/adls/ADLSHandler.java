@@ -306,6 +306,7 @@ public class ADLSHandler extends AbstractWranglerHandler {
       properties.put(PropertyIds.CONNECTION_ID, connectionId.getId());
 
       NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
+      enforceUpdateIfWorkspaceExists(namespacedWorkspaceId);
       WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
               .setScope(scope)
               .setProperties(properties)
@@ -353,6 +354,8 @@ public class ADLSHandler extends AbstractWranglerHandler {
     String file = String.format("%s:%s", name, fileEntry.fullName);
     String identifier = ServiceUtils.generateMD5(file);
     String fileName = fileEntry.fullName;
+    NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
+    enforceUpdateIfWorkspaceExists(namespacedWorkspaceId);
 
     byte[] bytes = new byte[(int) fileEntry.length + 1];
     try (BufferedInputStream stream = new BufferedInputStream(inputStream)) {
@@ -370,7 +373,6 @@ public class ADLSHandler extends AbstractWranglerHandler {
     Format format = dataType == DataType.BINARY ? Format.BLOB : Format.TEXT;
     properties.put(PropertyIds.FORMAT, format.name());
 
-    NamespacedId namespacedWorkspaceId = new NamespacedId(connectionId.getNamespace(), identifier);
     WorkspaceMeta workspaceMeta = WorkspaceMeta.builder(fileName)
             .setScope(scope)
             .setProperties(properties)
@@ -435,6 +437,15 @@ public class ADLSHandler extends AbstractWranglerHandler {
         return new ServiceResponse<>(pluginSpec);
       });
     });
+  }
+
+  /**
+   * The workspace ID is derived from the file, so reading the same file again overwrites the existing
+   * workspace. {@code CREATE} is enforced before the file is read; this adds {@code UPDATE} for overwrites.
+   */
+  private void enforceUpdateIfWorkspaceExists(NamespacedId workspaceId) {
+    accessEnforcer.enforceWorkspaceUpdateIfExists(
+      workspaceId.getNamespace().getName(), workspaceId.getId(), () -> workspaceExists(workspaceId));
   }
 
   /**

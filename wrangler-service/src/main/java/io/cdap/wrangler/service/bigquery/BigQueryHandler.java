@@ -283,7 +283,9 @@ public class BigQueryHandler extends AbstractWranglerHandler {
                             @QueryParam("wid") String workspaceId) {
     respond(request, responder, namespace, ns -> {
       accessEnforcer.enforceConnection(ns.getName(), connectionId, StandardPermission.USE);
-      accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
+      if (workspaceId != null) {
+        accessEnforcer.enforceWorkspace(ns.getName(), workspaceId, StandardPermission.GET);
+      }
       Map<String, String> config = getWorkspace(new NamespacedId(ns, workspaceId)).getProperties();
 
       boolean isView = TableDefinition.Type.valueOf(config.get(TABLE_TYPE)).equals(
