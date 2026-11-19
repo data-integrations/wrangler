@@ -16,8 +16,11 @@
 
 package io.cdap.wrangler;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Macro;
 import io.cdap.cdap.api.annotation.Name;
@@ -51,24 +54,26 @@ import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.Directive;
+import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.EntityCountMetric;
 import io.cdap.wrangler.api.ErrorRecord;
 import io.cdap.wrangler.api.ExecutorContext;
-import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.RecipeSymbol;
 import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.api.TokenGroup;
 import io.cdap.wrangler.api.TransientStore;
 import io.cdap.wrangler.api.TransientVariableScope;
+import io.cdap.wrangler.clients.DataPrepServiceClient;
 import io.cdap.wrangler.executor.RecipePipelineExecutor;
 import io.cdap.wrangler.lineage.LineageOperations;
+import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import io.cdap.wrangler.parser.GrammarBasedParser;
+import io.cdap.wrangler.parser.GrammarWalker;
 import io.cdap.wrangler.parser.MigrateToV2;
-import io.cdap.wrangler.parser.NoOpDirectiveContext;
 import io.cdap.wrangler.parser.RecipeCompiler;
 import io.cdap.wrangler.proto.Contexts;
 import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
@@ -81,10 +86,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -109,15 +114,16 @@ import static io.cdap.wrangler.metrics.Constants.Tags.APP_ENTITY_TYPE_NAME;
 @Description("Wrangler - A interactive tool for data cleansing and transformation.")
 public class Wrangler extends Transform<StructuredRecord, StructuredRecord> implements LinearRelationalTransform {
   private static final Logger LOG = LoggerFactory.getLogger(Wrangler.class);
+  private static final Gson GSON = new Gson();
 
-  // Configuration specifying the dataprep application and service name.
-  private static final String APPLICATION_NAME = "dataprep";
-  private static final String SERVICE_NAME = "service";
-  private static final String CONFIG_METHOD = "config";
   private static final String ON_ERROR_DEFAULT = "fail-pipeline";
   private static final String ON_ERROR_FAIL_PIPELINE = "fail-pipeline";
   private static final String ON_ERROR_PROCEED = "send-to-error-port";
   private static final String ERROR_STRATEGY_DEFAULT = "wrangler.error.strategy.default";
+
+// Runtime argument key used to pass directive config from prepareRun to initialize,
+// avoiding HTTP service calls during task execution.
+  private static final String RUNTIME_ARG_DIRECTIVE_CONFIG = "wrangler.directive.config";
 
   // Directive usage metric
   public static final String DIRECTIVE_METRIC_NAME = "wrangler.directive.count";
@@ -229,21 +235,23 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
             // Create the registry that only interacts with system directives.
             registry = SystemDirectiveRegistry.INSTANCE;
 
-            Iterator<TokenGroup> iterator = symbols.iterator();
-            while (iterator.hasNext()) {
-              TokenGroup group = iterator.next();
-              if (group != null) {
-                String directive = (String) group.get(0).value();
-                DirectiveInfo directiveInfo = registry.get("", directive);
-                if (directiveInfo == null && !dynamicDirectives.contains(directive)) {
-                  collector.addFailure(
-                    String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
-                                    "user space.", directive),
-                    "Ensure the directive is loaded or the directive name is correct.")
-                    .withConfigProperty(Config.NAME_DIRECTIVES);
-                }
+            // During pipeline configure time, stage runtime context and directive config
+            // from
+            // service/arguments are not yet available. DirectiveConfig.EMPTY is used for
+            // compile-time
+            // grammar validation.
+            DirectiveContext directiveContext = new ConfigDirectiveContext(DirectiveConfig.EMPTY);
+            GrammarWalker walker = new GrammarWalker(new RecipeCompiler(), directiveContext);
+            walker.walk(new MigrateToV2(directives).migrate(), (command, tokenGroup) -> {
+              DirectiveInfo directiveInfo = registry.get("", command);
+              if (directiveInfo == null && !dynamicDirectives.contains(command)) {
+                collector.addFailure(
+                  String.format("Wrangler plugin has a directive '%s' that does not exist in system or " +
+                                  "user space.", command),
+                  "Ensure the directive is loaded or the directive name is correct.")
+                  .withConfigProperty(Config.NAME_DIRECTIVES);
               }
-            }
+            });
           }
         }
       } catch (CompileException e) {
@@ -306,6 +314,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   @Override
   public void prepareRun(StageSubmitterContext context) throws Exception {
     super.prepareRun(context);
+
+    DataPrepServiceClient client = new DataPrepServiceClient();
+    DirectiveConfig systemConfig = client.fetchDirectiveConfig(context);
+    String runtimeArgVal = GSON.toJson(systemConfig);
+    LOG.debug("Configuring wrangler directive runtime arguments.");
+    context.getArguments().set(RUNTIME_ARG_DIRECTIVE_CONFIG, runtimeArgVal);
 
     // Validate input schema. If there is no input schema available then there
     // is no transformations that can be applied to just return.
@@ -392,6 +406,8 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
     try {
       // Create the pipeline executor with context being set.
       pipeline = new RecipePipelineExecutor(recipe, ctx);
+      // Eagerly parse recipe during initialization to enforce directive exclusions before record processing.
+      recipe.parse();
     } catch (Exception e) {
       String errorReason = "Unable to compile the recipe and execute directives.";
       String errorMessage = String.format(
@@ -583,13 +599,13 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
   }
 
   /**
-   * This method creates a {@link CompositeDirectiveRegistry} and initializes the {@link RecipeParser}
-   * with {@link NoOpDirectiveContext}
+   * Creates a {@link CompositeDirectiveRegistry} and initializes the {@link RecipeParser}
+   * with {@link ConfigDirectiveContext} so that directive config is enforced.
    *
-   * @param context
-   * @return
-   * @throws DirectiveLoadException
-   * @throws DirectiveParseException
+   * @param context the stage context
+   * @return a {@link RecipeParser} configured with directive config
+   * @throws DirectiveLoadException if directives cannot be loaded
+   * @throws DirectiveParseException if directives cannot be parsed
    */
   private RecipeParser getRecipeParser(StageContext context) {
 
@@ -607,12 +623,53 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       directives = String.format("#pragma load-directives %s;%s", config.getUDDs(), config.getDirectives());
     }
 
+    DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
+    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig);
+
     try {
-      return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(), registry);
+      return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
+                                    registry, directiveContext);
     } catch (Exception e) {
       String errorReason = "Unable to parse the directives.";
       throw WranglerErrorUtil.getProgramFailureExceptionDetailsFromChain(e, errorReason, null,
           ErrorType.USER);
+    }
+  }
+
+  /**
+   * Fetches the system-level {@link DirectiveConfig} from pipeline runtime
+   * arguments.
+   *
+   * <p>
+   * This runtime argument is set by {@code prepareRun()} on the master, which
+   * fetches the config via HTTP from the Wrangler service and passes it to
+   * workers.
+   * Reading from runtime arguments avoids workers attempting HTTP calls to the
+   * Wrangler
+   * service where service endpoints are unreachable.
+   * </p>
+   *
+   * @param context the stage context
+   * @return the system-level {@link DirectiveConfig}
+   * @throws IllegalArgumentException if the context is null, or the runtime
+   *                                  argument is missing or invalid
+   */
+  DirectiveConfig getSystemDirectiveConfigFromRuntimeArgs(StageContext context) {
+    String runtimeConfigStr = null;
+    try {
+      Preconditions.checkArgument(context != null, "StageContext cannot be null.");
+      runtimeConfigStr = context.getArguments().get(RUNTIME_ARG_DIRECTIVE_CONFIG);
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(runtimeConfigStr),
+          "Directive configuration runtime argument '%s' is missing or empty.",
+          RUNTIME_ARG_DIRECTIVE_CONFIG);
+      DirectiveConfig configFromArg = GSON.fromJson(runtimeConfigStr, DirectiveConfig.class);
+      LOG.debug("Successfully parsed system directive configuration from runtime argument.");
+      return configFromArg;
+    } catch (JsonSyntaxException e) {
+      throw new IllegalArgumentException(
+          String.format("Failed to parse system directive configuration from pipeline runtime arguments: %s",
+              runtimeConfigStr),
+          e);
     }
   }
 
