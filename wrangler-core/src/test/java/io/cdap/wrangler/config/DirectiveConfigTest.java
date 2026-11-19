@@ -17,7 +17,11 @@
 package io.cdap.wrangler.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.DirectiveConfigDeserializer;
+import io.cdap.wrangler.api.JexlAllowlist;
+import io.cdap.wrangler.api.JexlAllowlistDeserializer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,9 +67,14 @@ public class DirectiveConfigTest {
 
   private static final String EMPTY = "{}";
 
+  private static final Gson GSON = new GsonBuilder()
+      .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
+      .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .create();
+
   @Test
   public void testParsingOfConfiguration() {
-    DirectiveConfig config = new Gson().fromJson(SPECIFICATION, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(SPECIFICATION, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertTrue(config.isExcluded("parse-as-csv"));
     Assert.assertFalse(config.isExcluded("parse-as-json"));
@@ -74,7 +83,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingOnlyExclusions() {
-    DirectiveConfig config = new Gson().fromJson(ONLY_EXCLUSIONS, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(ONLY_EXCLUSIONS, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertTrue(config.isExcluded("parse-as-csv"));
     Assert.assertFalse(config.isExcluded("parse-as-json"));
@@ -83,7 +92,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingOnlyAliases() {
-    DirectiveConfig config = new Gson().fromJson(ONLY_ALIASES, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(ONLY_ALIASES, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertFalse(config.isExcluded("parse-as-csv"));
     Assert.assertEquals("parse-as-json", config.getAliasName("json-parser"));
@@ -91,7 +100,7 @@ public class DirectiveConfigTest {
 
   @Test
   public void testParsingEmpty() {
-    DirectiveConfig config = new Gson().fromJson(EMPTY, DirectiveConfig.class);
+    DirectiveConfig config = GSON.fromJson(EMPTY, DirectiveConfig.class);
     Assert.assertNotNull(config);
     Assert.assertFalse(config.isExcluded("parse-as-csv"));
     Assert.assertNull(config.getAliasName("json-parser"));
