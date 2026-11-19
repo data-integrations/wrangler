@@ -146,4 +146,62 @@ public class JexlAllowlistDeserializerTest {
     String json = "[\"java.lang.Math\"]";
     GSON.fromJson(json, JexlAllowlist.class);
   }
+
+  @Test
+  public void testDeserializeEmptyStringInMethods() {
+    String json = "{\n"
+        + "  \"className\": \"java.lang.String\",\n"
+        + "  \"methods\": [\"\", \"xyz\", \"abc\"],\n"
+        + "  \"properties\": [\"*\"]\n"
+        + "}";
+    JexlAllowlist allowlist = GSON.fromJson(json, JexlAllowlist.class);
+    Assert.assertNotNull(allowlist);
+    Assert.assertEquals("java.lang.String", allowlist.getClassName());
+    Assert.assertEquals(Arrays.asList("", "xyz", "abc"), allowlist.getMethods());
+    Assert.assertEquals(Arrays.asList("*"), allowlist.getProperties());
+  }
+
+  @Test(expected = JsonParseException.class)
+  public void testDeserializeWhitespaceMethodName() {
+    String json = "{\n"
+        + "  \"className\": \"java.lang.String\",\n"
+        + "  \"methods\": [\"\", \"xyz\", \"abc\", \"         \"],\n"
+        + "  \"properties\": [\"*\"]\n"
+        + "}";
+    GSON.fromJson(json, JexlAllowlist.class);
+  }
+
+  @Test
+  public void testDeserializeEmptyStringInProperties() {
+    String json = "{\n"
+        + "  \"className\": \"java.lang.String\",\n"
+        + "  \"methods\": [\"*\"],\n"
+        + "  \"properties\": [\"\", \"xyz\", \"abc\"]\n"
+        + "}";
+    JexlAllowlist allowlist = GSON.fromJson(json, JexlAllowlist.class);
+    Assert.assertNotNull(allowlist);
+    Assert.assertEquals("java.lang.String", allowlist.getClassName());
+    Assert.assertEquals(Arrays.asList("*"), allowlist.getMethods());
+    Assert.assertEquals(Arrays.asList("", "xyz", "abc"), allowlist.getProperties());
+  }
+
+  @Test(expected = JsonParseException.class)
+  public void testDeserializeWhitespacePropertyName() {
+    String json = "{\n"
+        + "  \"className\": \"java.lang.String\",\n"
+        + "  \"methods\": [\"*\"],\n"
+        + "  \"properties\": [\"\", \"xyz\", \"abc\", \"         \"]\n"
+        + "}";
+    GSON.fromJson(json, JexlAllowlist.class);
+  }
+
+  @Test(expected = JsonParseException.class)
+  public void testDeserializeWhitespaceClassName() {
+    String json = "{\n"
+        + "  \"className\": \"         \",\n"
+        + "  \"methods\": [\"*\"],\n"
+        + "  \"properties\": [\"*\"]\n"
+        + "}";
+    GSON.fromJson(json, JexlAllowlist.class);
+  }
 }
