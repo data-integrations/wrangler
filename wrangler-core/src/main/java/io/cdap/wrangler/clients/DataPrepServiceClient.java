@@ -34,6 +34,8 @@ import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.JexlConfigurationDeserializer;
 import io.cdap.wrangler.proto.ServiceResponse;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -58,6 +60,7 @@ public class DataPrepServiceClient {
   private static final Gson GSON = new GsonBuilder()
       .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
       .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
       .create();
 
   private static final String SYSTEM_NAMESPACE = "system";

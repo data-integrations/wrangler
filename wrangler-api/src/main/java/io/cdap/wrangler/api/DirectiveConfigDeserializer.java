@@ -24,7 +24,6 @@ import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -35,7 +34,6 @@ import javax.annotation.Nullable;
 public final class DirectiveConfigDeserializer implements JsonDeserializer<DirectiveConfig> {
   private static final Type STRING_SET_TYPE = new TypeToken<Set<String>>() { }.getType();
   private static final Type STRING_MAP_TYPE = new TypeToken<Map<String, String>>() { }.getType();
-  private static final Type JEXL_ALLOWLIST_LIST_TYPE = new TypeToken<List<JexlAllowlist>>() { }.getType();
 
   @Override
   public DirectiveConfig deserialize(JsonElement configJson, Type typeOfT, JsonDeserializationContext ctx)
@@ -45,7 +43,7 @@ public final class DirectiveConfigDeserializer implements JsonDeserializer<Direc
     return new DirectiveConfig(
         deserializeProperty(configJsonObj, DirectiveConfig.EXCLUSIONS_KEY, STRING_SET_TYPE, ctx),
         deserializeProperty(configJsonObj, DirectiveConfig.ALIASES_KEY, STRING_MAP_TYPE, ctx),
-        deserializeProperty(configJsonObj, DirectiveConfig.JEXL_ALLOWLIST_KEY, JEXL_ALLOWLIST_LIST_TYPE, ctx));
+        deserializeProperty(configJsonObj, DirectiveConfig.JEXL_CONFIGURATION_KEY, JexlConfiguration.class, ctx));
   }
 
   @Nullable

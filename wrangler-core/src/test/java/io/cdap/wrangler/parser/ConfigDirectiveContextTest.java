@@ -23,6 +23,8 @@ import io.cdap.wrangler.api.DirectiveConfig;
 import io.cdap.wrangler.api.DirectiveConfigDeserializer;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.JexlConfigurationDeserializer;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.proto.Contexts;
@@ -58,6 +60,7 @@ public class ConfigDirectiveContextTest {
   private static final Gson GSON = new GsonBuilder()
       .registerTypeAdapter(DirectiveConfig.class, new DirectiveConfigDeserializer())
       .registerTypeAdapter(JexlAllowlist.class, new JexlAllowlistDeserializer())
+      .registerTypeAdapter(JexlConfiguration.class, new JexlConfigurationDeserializer())
       .create();
 
   @Test(expected = RecipeException.class)
@@ -131,6 +134,23 @@ public class ConfigDirectiveContextTest {
                                                      new ConfigDirectiveContext(config, false));
     List<Directive> steps = directives.parse();
     Assert.assertEquals(1, steps.size());
+  }
+
+  @Test
+  public void testJexlAllowlistEnabled() {
+    DirectiveConfig configDefault = GSON.fromJson("{\"jexlConfiguration\": {}}", DirectiveConfig.class);
+    Assert.assertTrue(new ConfigDirectiveContext(configDefault, true).isJexlAllowlistEnabled());
+    Assert.assertFalse(new ConfigDirectiveContext(configDefault, false).isJexlAllowlistEnabled());
+
+    DirectiveConfig configTrue = GSON.fromJson(
+        "{\"jexlConfiguration\": {\"jexlAllowlistEnabled\": true}}", DirectiveConfig.class);
+    Assert.assertTrue(new ConfigDirectiveContext(configTrue, true).isJexlAllowlistEnabled());
+    Assert.assertFalse(new ConfigDirectiveContext(configTrue, false).isJexlAllowlistEnabled());
+
+    DirectiveConfig configFalse = GSON.fromJson(
+        "{\"jexlConfiguration\": {\"jexlAllowlistEnabled\": false}}", DirectiveConfig.class);
+    Assert.assertFalse(new ConfigDirectiveContext(configFalse, true).isJexlAllowlistEnabled());
+    Assert.assertFalse(new ConfigDirectiveContext(configFalse, false).isJexlAllowlistEnabled());
   }
 
 }
