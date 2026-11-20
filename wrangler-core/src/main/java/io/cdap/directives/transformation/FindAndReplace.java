@@ -91,8 +91,8 @@ public class FindAndReplace implements Directive, Lineage {
             // If there is any issue, we pass it on without any transformation.
           }
         }
-        results.add(row);
       }
+      results.add(row); // Moved outside the column loop to prevent duplicate rows
     }
     return results;
   }

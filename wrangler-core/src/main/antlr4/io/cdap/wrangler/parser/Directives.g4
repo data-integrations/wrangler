@@ -57,6 +57,8 @@ directive
     | text
     | number
     | bool
+    | byteSize
+    | timeDuration
     | column
     | colList
     | numberList
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -165,6 +167,14 @@ number
 
 bool
  : Bool
+ ;
+
+byteSize
+ : ByteSize
+ ;
+
+timeDuration
+ : TimeDuration
  ;
 
 condition
@@ -253,6 +263,14 @@ Bool
  | 'false'
  ;
 
+ByteSize
+ : Number ByteUnit
+ ;
+
+TimeDuration
+ : Number TimeUnit
+ ;
+
 Number
  : Int ('.' Digit*)?
  ;
@@ -310,4 +328,22 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+fragment ByteUnit
+ : [kK][bB]  // Kilobyte
+ | [mM][bB]  // Megabyte
+ | [gG][bB]  // Gigabyte
+ | [tT][bB]  // Terabyte
+ | [pP][bB]  // Petabyte
+ | [bB]      // Byte
+ ;
+
+fragment TimeUnit
+ : [nN][sS]        // Nanoseconds
+ | [mM][sS]        // Milliseconds
+ | [sS]            // Seconds
+ | [mM]            // Minutes
+ | [hH]            // Hours
+ | [dD]            // Days
  ;
