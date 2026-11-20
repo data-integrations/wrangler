@@ -175,6 +175,75 @@ rates below are specified as *records/second*.
 | High (167 Directives) |      426      | 127,946,398 |  82,677,845,324 | 106,367.27 |
 | High (167 Directives) |      426      | 511,785,592 | 330,711,381,296 | 105,768.93 |
 
+## Byte Size and Time Duration Parsers
+
+The Wrangler library now supports parsing and manipulating byte sizes and time durations with units. This allows for easier handling of data sizes and time intervals in recipes.
+
+### Byte Size Units
+
+Byte sizes can be specified using the following units:
+- B (bytes)
+- KB or K (kilobytes)
+- MB or M (megabytes)
+- GB or G (gigabytes)
+- TB or T (terabytes)
+- PB or P (petabytes)
+
+Example byte size values:
+```
+10KB
+1.5MB
+2G
+1024B
+1PB
+```
+
+### Time Duration Units
+
+Time durations can be specified using the following units:
+- ns (nanoseconds)
+- us or µs (microseconds)
+- ms (milliseconds)
+- s (seconds)
+- m (minutes)
+- h (hours)
+- d (days)
+
+Example time duration values:
+```
+150ms
+2.1s
+5m
+1000ns
+1h
+```
+
+### Aggregate Stats Directive
+
+The `aggregate-stats` directive allows you to aggregate byte sizes and time durations from multiple rows into a single row with totals or averages.
+
+Usage:
+```
+aggregate-stats :size_column :time_column :total_size_column :total_time_column [size_unit] [time_unit] [aggregation_type]
+```
+
+Parameters:
+- `size_column`: Source column containing byte size values
+- `time_column`: Source column containing time duration values
+- `total_size_column`: Target column for the aggregated size
+- `total_time_column`: Target column for the aggregated time
+- `size_unit` (optional): Output unit for size (default: MB)
+- `time_unit` (optional): Output unit for time (default: s)
+- `aggregation_type` (optional): Type of aggregation - "total" or "average" (default: total)
+
+Example:
+```
+# Aggregate total size in MB and total time in seconds
+aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec
+
+# Aggregate average size in GB and average time in minutes
+aggregate-stats :data_transfer_size :response_time :avg_size_gb :avg_time_min GB min average
+```
 
 ## Contact
 
