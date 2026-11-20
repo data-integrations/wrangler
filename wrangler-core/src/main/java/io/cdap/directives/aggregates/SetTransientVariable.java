@@ -83,9 +83,14 @@ public class SetTransientVariable implements Directive {
 
   @Override
   public List<Row> execute(List<Row> rows, ExecutorContext context) throws DirectiveExecutionException {
+  
+    long totalSize = 0;
+    System.out.println("first time calling execute: : " + totalSize);
+
     for (Row row : rows) {
       // Move the fields from the row into the context.
       ELContext ctx = new ELContext(context, el, row);
+      System.out.println("  executing row: " + totalSize);
 
       // Execution of the script / expression based on the row data
       // mapped into context.
