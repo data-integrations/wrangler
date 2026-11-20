@@ -75,4 +75,36 @@ public class GrammarBasedParserTest {
     Assert.assertEquals(0, directives.size());
   }
 
+
+// One for the valid aggregate-stats directive parsing
+@Test
+public void testAggregateStatsDirectiveParsing() throws Exception {
+  String[] recipe = new String[] {
+    "#pragma version 2.0;",
+    "aggregate-stats :duration :size"
+  };
+
+  RecipeParser parser = TestingRig.parse(recipe);
+  List<Directive> directives = parser.parse();
+
+  Assert.assertEquals(1, directives.size());
+
+  Assert.assertEquals("aggregate-stats", directives.get(0).getDescriptor().name());
+}
+
+
+//  one for invalid syntax rejection
+
+@Test(expected = Exception.class)
+public void testInvalidDirectiveSyntax() throws Exception {
+  String[] recipe = new String[] {
+    "#pragma version 2.0;",
+    "aggregate-stat :duration :size" 
+  };
+
+  RecipeParser parser = TestingRig.parse(recipe);
+  parser.parse();
+}
+
+
 }
