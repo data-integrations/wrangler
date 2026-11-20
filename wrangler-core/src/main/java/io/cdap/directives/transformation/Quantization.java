@@ -65,9 +65,9 @@ public class Quantization implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.col1 = ((ColumnName) args.value("source")).value();
-    this.col2 = ((ColumnName) args.value("destination")).value();
-    List<Triplet<Numeric, Numeric, String>> ranges = ((Ranges) args.value("ranges")).value();
+    this.col1 = ((ColumnName) args.value("source", "MB")).value();
+    this.col2 = ((ColumnName) args.value("destination", "MB")).value();
+    List<Triplet<Numeric, Numeric, String>> ranges = ((Ranges) args.value("ranges", "MB")).value();
     for (Triplet<Numeric, Numeric, String> range : ranges) {
       double lower = range.getFirst().value().doubleValue();
       double upper = range.getSecond().value().doubleValue();

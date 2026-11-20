@@ -162,10 +162,11 @@ public class MapArguments implements Arguments {
    * method is expected to return <code>null</code></p>
    *
    * @param name of the token to be retrieved.
+   * @param mb
    * @return object that extends <code>Token</code>.
    */
   @Override
-  public <T extends Token> T value(String name) {
+  public <T extends Token> T value(String name, String mb) {
     return (T) tokens.get(name);
   }
 

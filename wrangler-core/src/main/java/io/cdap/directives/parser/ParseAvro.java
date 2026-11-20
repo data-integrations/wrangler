@@ -87,15 +87,15 @@ public class ParseAvro implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    this.schemaId = ((Identifier) args.value("schema-id")).value();
-    this.type = ((Identifier) args.value("encode-type")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    this.schemaId = ((Identifier) args.value("schema-id", "MB")).value();
+    this.type = ((Identifier) args.value("encode-type", "MB")).value();
     if (!"json".equalsIgnoreCase(type) && !"binary".equalsIgnoreCase(type)) {
       throw new DirectiveParseException(
         NAME, String.format("Invalid encoding type '%s'. The type must be either 'json' or 'binary'.", type));
     }
     if (args.contains("version")) {
-      this.version = ((Numeric) args.value("version")).value().intValue();
+      this.version = ((Numeric) args.value("version", "MB")).value().intValue();
     } else {
       this.version = -1;
     }

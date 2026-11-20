@@ -41,11 +41,12 @@ public interface Arguments {
    * <p>If the <code>name</code> doesn't exist in this object, then this
    * method is expected to return <code>null</code></p>
    *
+   * @param <T>  type the token need to casted to.
    * @param name of the token to be retrieved.
-   * @param <T> type the token need to casted to.
+   * @param mb
    * @return object that extends <code>Token</code>.
    */
-  <T extends Token> T value(String name);
+  <T extends Token> T value(String name, String mb);
 
   /**
    * Returns the number of tokens that are mapped to arguments.

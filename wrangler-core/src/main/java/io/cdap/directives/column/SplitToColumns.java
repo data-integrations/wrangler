@@ -62,8 +62,8 @@ public class SplitToColumns implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    column = ((ColumnName) args.value("column")).value();
-    regex = ((Text) args.value("regex")).value();
+    column = ((ColumnName) args.value("column", "MB")).value();
+    regex = ((Text) args.value("regex", "MB")).value();
   }
 
   @Override

@@ -60,7 +60,7 @@ public class Keep implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    ColumnNameList cols = args.value("column");
+    ColumnNameList cols = args.value("column", "MB");
     for (String col : cols.value()) {
       keep.add(col);
     }

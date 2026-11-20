@@ -78,25 +78,25 @@ public final class SetType implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    col = ((ColumnName) args.value("column")).value();
-    type = ((Identifier) args.value("type")).value();
+    col = ((ColumnName) args.value("column", "MB")).value();
+    type = ((Identifier) args.value("type", "MB")).value();
     if (type.equalsIgnoreCase("decimal")) {
       precision = args.contains("precision") ? (Integer) ((HashMap<String, Numeric>) args.
-          value("precision").value()).get("precision").value().intValue() : null;
+          value("precision", "MB").value()).get("precision").value().intValue() : null;
       if (precision != null && precision < 1) {
         throw new DirectiveParseException("precision cannot be less than 1");
       }
-      scale = args.contains("scale") ? ((Numeric) args.value("scale")).value().intValue() : null;
+      scale = args.contains("scale") ? ((Numeric) args.value("scale", "MB")).value().intValue() : null;
       if (scale == null && precision == null && args.contains("rounding-mode")) {
         throw new DirectiveParseException("'rounding-mode' can only be specified when a 'scale' or 'precision' is set");
       }
       try {
         roundingMode = args.contains("rounding-mode") ?
-          RoundingMode.valueOf(((Text) args.value("rounding-mode")).value()) :
+          RoundingMode.valueOf(((Text) args.value("rounding-mode", "MB")).value()) :
           (scale == null && precision == null ? RoundingMode.UNNECESSARY : RoundingMode.HALF_EVEN);
       } catch (IllegalArgumentException e) {
         throw new DirectiveParseException(String.format(
-          "Specified rounding-mode '%s' is not a valid Java rounding mode", args.value("rounding-mode").value()), e);
+          "Specified rounding-mode '%s' is not a valid Java rounding mode", args.value("rounding-mode", "MB").value()), e);
       }
     }
   }

@@ -27,7 +27,6 @@ import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.Row;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
-import io.cdap.wrangler.api.lineage.Many;
 import io.cdap.wrangler.api.lineage.Mutation;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Text;
@@ -61,9 +60,9 @@ public class CharacterCut implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.source = ((ColumnName) args.value("source")).value();
-    this.destination = ((ColumnName) args.value("destination")).value();
-    this.range = ((Text) args.value("ranges")).value();
+    this.source = ((ColumnName) args.value("source", "MB")).value();
+    this.destination = ((ColumnName) args.value("destination", "MB")).value();
+    this.range = ((Text) args.value("ranges", "MB")).value();
   }
 
   @Override

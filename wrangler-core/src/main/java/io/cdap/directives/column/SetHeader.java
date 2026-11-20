@@ -62,7 +62,7 @@ public class SetHeader implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    columns = ((ColumnNameList) args.value("column")).value();
+    columns = ((ColumnNameList) args.value("column", "MB")).value();
   }
 
   @Override

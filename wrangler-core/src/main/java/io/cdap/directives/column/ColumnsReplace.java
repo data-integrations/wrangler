@@ -62,7 +62,7 @@ public class ColumnsReplace implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    sed = ((Text) args.value("sed-expression")).value();
+    sed = ((Text) args.value("sed-expression", "MB")).value();
   }
 
   @Override

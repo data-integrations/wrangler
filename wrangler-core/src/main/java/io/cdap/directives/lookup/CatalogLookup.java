@@ -68,8 +68,8 @@ public class CatalogLookup implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.column = ((ColumnName) args.value("column")).value();
-    String type = ((Text) args.value("catalog")).value();
+    this.column = ((ColumnName) args.value("column", "MB")).value();
+    String type = ((Text) args.value("catalog", "MB")).value();
     if (!type.equalsIgnoreCase("ICD-9") && !type.equalsIgnoreCase("ICD-10-2016") &&
       !type.equalsIgnoreCase("ICD-10-2017")) {
       throw new DirectiveParseException(

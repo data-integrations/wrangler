@@ -55,7 +55,7 @@ public class LeftTrim implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    this.col = ((ColumnName) args.value("column")).value();
+    this.col = ((ColumnName) args.value("column", "MB")).value();
   }
 
   @Override

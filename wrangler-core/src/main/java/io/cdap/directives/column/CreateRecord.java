@@ -59,8 +59,8 @@ public class CreateRecord implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    List<String> cols = ((ColumnNameList) args.value("columns")).value();
-    targetColumn = args.value("target_column").value().toString();
+    List<String> cols = ((ColumnNameList) args.value("columns", "MB")).value();
+    targetColumn = args.value("target_column", "MB").value().toString();
     columns = cols.toArray(new String[0]);
   }
 

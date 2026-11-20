@@ -58,7 +58,7 @@ public class Drop implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
-    ColumnNameList cols = args.value("column");
+    ColumnNameList cols = args.value("column", "MB");
     columns = cols.value();
   }
 

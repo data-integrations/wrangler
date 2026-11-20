@@ -65,7 +65,7 @@ public class CompositeDirectiveRegistryTest {
 
     @Override
     public void initialize(Arguments args) {
-      column = ((ColumnName) args.value("column")).value();
+      column = ((ColumnName) args.value("column", "MB")).value();
     }
 
     @Override

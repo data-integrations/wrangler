@@ -59,9 +59,9 @@ public final class Rename implements Directive, Lineage {
 
   @Override
   public void initialize(Arguments args) {
-    source = args.value("source");
+    source = args.value("source", "MB");
     if (args.contains("target")) {
-      target = args.value("target");
+      target = args.value("target", "MB");
     }
   }
 
