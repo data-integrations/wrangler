@@ -93,3 +93,4 @@ public class Identifier implements Token {
     return object;
   }
 }
+
