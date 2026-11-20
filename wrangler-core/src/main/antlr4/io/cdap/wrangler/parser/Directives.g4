@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -141,6 +143,7 @@ numberRange
 
 value
  : String | Number | Column | Bool
+: String | Number | Column | Bool | ByteSize | TimeDuration
  ;
 
 ecommand
@@ -165,6 +168,14 @@ number
 
 bool
  : Bool
+ ;
+
+byteSize
+ : ByteSize
+ ;
+
+timeDuration
+ : TimeDuration
  ;
 
 condition
@@ -269,6 +280,14 @@ Column
  : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
  ;
 
+ByteSize
+ : Int ('.' Digit*)? ByteUnit
+ ;
+
+TimeDuration
+ : Int ('.' Digit*)? TimeUnit
+ ;
+
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
  | '"'  ( EscapeSequence | ~('"') )* '"'
@@ -279,6 +298,30 @@ EscapeSequence
    |   UnicodeEscape
    |   OctalEscape
    ;
+
+fragment
+TimeUnit
+ : 'ns'
+ | 'ms'
+ | 's'
+ | 'm'
+ | 'h'
+ | 'd'
+ ;
+
+fragment
+ByteUnit
+ : 'B'
+ | 'KB'
+ | 'MB'
+ | 'GB'
+ | 'TB'
+ | 'PB'
+ | 'EB'
+ | 'ZB'
+ | 'YB'
+ ;
+
 
 fragment
 OctalEscape
