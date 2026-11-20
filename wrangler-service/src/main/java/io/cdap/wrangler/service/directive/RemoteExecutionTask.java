@@ -33,6 +33,7 @@ import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.ErrorRecordBase;
+import io.cdap.wrangler.api.Executor;
 import io.cdap.wrangler.api.ExecutorContext;
 import io.cdap.wrangler.api.JexlAllowlist;
 import io.cdap.wrangler.api.JexlAllowlistDeserializer;
@@ -138,23 +139,6 @@ public class RemoteExecutionTask implements RunnableTask {
         transientStore.set(TransientVariableScope.GLOBAL, INPUT_SCHEMA, inputSchema);
       }
 
-      try (RecipePipelineExecutor executor = new RecipePipelineExecutor(() -> directives,
-                                                                        new ServicePipelineContext(
-                                                                          namespace,
-                                                                          ExecutorContext.Environment.SERVICE,
-                                                                          systemAppContext,
-                                                                          transientStore))) {
-        rows = executor.execute(rows);
-        List<ErrorRecordBase> errors = executor.errors().stream()
-            .filter(ErrorRecordBase::isShownInWrangler)
-            .collect(Collectors.toList());
-
-        if (!errors.isEmpty()) {
-          throw new ErrorRecordsException(errors);
-        }
-      } catch (RecipeException e) {
-        throw new BadRequestException(e.getMessage(), e);
-      }
 
       Schema outputSchema = transientStore.get(OUTPUT_SCHEMA);
       RemoteDirectiveResponse response = new RemoteDirectiveResponse(rows, outputSchema);

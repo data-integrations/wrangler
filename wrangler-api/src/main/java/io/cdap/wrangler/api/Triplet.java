@@ -9,9 +9,9 @@
  *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- *  License for the specific language governing permissions and limitations under
- *  the License.
+ *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
  */
 
 package io.cdap.wrangler.api;
@@ -29,11 +29,23 @@ import io.cdap.wrangler.api.annotations.Public;
  */
 @Public
 public final class Triplet<F, S, T> {
+  /** First element of the triplet. */
   private final F first;
+  
+  /** Second element of the triplet. */
   private final S second;
+  
+  /** Third element of the triplet. */
   private final T third;
 
-  public Triplet(F first, S second, T third) {
+  /**
+   * Creates a new triplet with the specified elements.
+   *
+   * @param first First element of the triplet
+   * @param second Second element of the triplet
+   * @param third Third element of the triplet
+   */
+  public Triplet(final F first, final S second, final T third) {
     this.first = first;
     this.second = second;
     this.third = third;

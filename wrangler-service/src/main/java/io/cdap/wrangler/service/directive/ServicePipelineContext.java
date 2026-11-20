@@ -143,4 +143,10 @@ class ServicePipelineContext implements ExecutorContext {
     }
     return Feature.WRANGLER_SCHEMA_MANAGEMENT.isEnabled(serviceContext);
   }
+
+  @Override
+  public boolean isLast() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'isLast'");
+  }
 }

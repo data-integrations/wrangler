@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -22,28 +22,38 @@ package io.cdap.wrangler.api;
  * that it reports error and continues processing.
  */
 public class ReportErrorAndProceed extends Exception {
-  // Message as to why the record errored.
-  private String message;
+  /** Message as to why the record errored. */
+  private final String errorMessage;
 
-  // Code associated with the error message.
-  private int code;
+  /** Code associated with the error message. */
+  private final int errorCode;
 
-  public ReportErrorAndProceed(String message, int code) {
-    this.message = message;
-    this.code = code;
+  /**
+   * Creates a new exception with error message and code.
+   *
+   * @param message Error message
+   * @param code Error code
+   */
+  public ReportErrorAndProceed(final String message, final int code) {
+    this.errorMessage = message;
+    this.errorCode = code;
   }
 
   /**
-   * @return Message as why the record errored.
+   * Returns the message why the record errored.
+   *
+   * @return Error message
    */
-  public String getMessage() {
-    return message;
+  public final String getMessage() {
+    return errorMessage;
   }
 
   /**
-   * @return code related to the message.
+   * Returns the code related to the message.
+   *
+   * @return Error code
    */
-  public int getCode() {
-    return code;
+  public final int getCode() {
+    return errorCode;
   }
 }

@@ -45,6 +45,7 @@ public final class TestingRig {
     // Avoid creation of this object.
   }
 
+  @SuppressWarnings("rawtypes")
   public static RecipePipeline pipeline(Class<? extends Directive> directive, TestRecipe recipe)
     throws RecipeException, DirectiveParseException, DirectiveLoadException {
     verify(directive);

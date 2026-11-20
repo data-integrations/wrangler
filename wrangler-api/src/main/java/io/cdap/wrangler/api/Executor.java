@@ -20,6 +20,8 @@ import io.cdap.cdap.api.data.schema.Schema;
 import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 import java.io.Serializable;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 /**
@@ -96,5 +98,10 @@ public interface Executor<I, O> extends Serializable {
   default Schema getOutputSchema(SchemaResolutionContext schemaResolutionContext) {
     // no op
     return null;
+  }
+
+  static List<Row> execute(List<Row> rows) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'execute'");
   }
 }
