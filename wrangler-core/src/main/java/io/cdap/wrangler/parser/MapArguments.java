@@ -84,7 +84,7 @@ public class MapArguments implements Arguments {
               tokens.put(specification.name(), new NumericList(values));
               pos = pos + 1;
               break;
-            } else if (specification.type() == TokenType.BOOLEAN_LIST && token.type() == TokenType.BOOLEAN) {
+            } else if (specification.type() == TokenType.BOOL_LIST && token.type() == TokenType.BOOLEAN) {
               List<Boolean> values = new ArrayList<>();
               values.add(((Bool) token).value());
               tokens.put(specification.name(), new BoolList(values));
