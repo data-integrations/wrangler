@@ -69,6 +69,40 @@ public class UsageDefinitionTest {
     usage = builder.build().toString();
     Assert.assertEquals("set-columns :cols [,:cols  ]*", usage);
     usages.add(usage);
+    public class ByteSize implements Token {
+    private final long bytes;
+
+    public ByteSize(String input) {
+        input = input.toUpperCase().trim();
+        if (input.endsWith("KB")) bytes = (long)(Double.parseDouble(input.replace("KB", "")) * 1024);
+        else if (input.endsWith("MB")) bytes = (long)(Double.parseDouble(input.replace("MB", "")) * 1024 * 1024);
+        else if (input.endsWith("GB")) bytes = (long)(Double.parseDouble(input.replace("GB", "")) * 1024 * 1024 * 1024);
+        else if (input.endsWith("TB")) bytes = (long)(Double.parseDouble(input.replace("TB", "")) * 1024L * 1024 * 1024 * 1024);
+        else if (input.endsWith("B")) bytes = Long.parseLong(input.replace("B", ""));
+        else throw new IllegalArgumentException("Invalid byte size format: " + input);
+    }
+
+    public long getBytes() {
+        return bytes;
+    }
+}
+public class TimeDuration implements Token {
+    private final long millis;
+
+    public TimeDuration(String input) {
+        input = input.trim();
+        if (input.endsWith("ms")) millis = Long.parseLong(input.replace("ms", ""));
+        else if (input.endsWith("s")) millis = Long.parseLong(input.replace("s", "")) * 1000;
+        else if (input.endsWith("m")) millis = Long.parseLong(input.replace("m", "")) * 60 * 1000;
+        else if (input.endsWith("h")) millis = Long.parseLong(input.replace("h", "")) * 3600 * 1000;
+        else throw new IllegalArgumentException("Invalid time format: " + input);
+    }
+
+    public long getMillis() {
+        return millis;
+    }
+}
+
 
     Assert.assertTrue(true);
   }
