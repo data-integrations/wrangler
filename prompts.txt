@@ -1,0 +1,72 @@
+Prompts I have used in :
+Assignment: Enhance Wrangler with Byte Size and Time Duration Units Parsers
+
+1. Task 1 : Grammar Modication (wrangler-core/src/main/antlr4/.../Directives.g4):
+prompts : a) what is lexer rules , what are .g4 files are used for and what do you mean by grammar modification.
+	  b) Add the lexer rules for BYTE_SIZE and TIME_DURATION (including helper
+	   fragments BYTE_UNIT, TIME_UNIT). and tell me why and how you do this and also tell me why its important.
+	  c) Double check that the modified file yuo have given to me is correct.
+	  d) explain the code for .g4
+
+2. Task2 : API Updates (wrangler-api module):
+prompts : a) Create new Java classes ByteSize.java and TimeDuration.java extending Token
+[wrangler-api/src/main/java/io/cdap/wrangler/api/parser/Token.java]
+
+■ These classes should parse the token string (e.g., "10KB", "150ms") in
+their constructor.
+■ Provide methods to retrieve the value in a canonical unit (e.g., long
+getBytes() for ByteSize)
+○ Add BYTE_SIZE and TIME_DURATION to the Token Types
+○ Update usage definition and token definition to support specifying these new
+
+token types as valid directive arguments.
+
+so this is the task2 if have been given i have few things to be explained to me by you:
+What does this Token.java file does
+where do i create my two files and whats the purpose of it explain me the whole code
+
+b) ok so first of all doble check this code you have give can you explain how you are extracting string and integer part.
+c)Ok understood also explain me how this task is connected to task1
+
+
+3. Task3 : Core Parser Updates (wrangler-core module):
+prompts :
+a) How should we add the visit methods inside RecipeVisitor.java?
+b) How do we use ctx.getText() properly to extract the token text from the parse context?
+c) Should we modify the visitValue() method or create new visit methods for the ByteSize and TimeDuration rules?
+d) Please provide the implementation code for visitByteSizeArg and visitTimeDurationArg methods.
+e) How do we add the ByteSize and TimeDuration instances into the TokenGroup?
+f) Rules have already been added in Directives.g4, now we need to implement their corresponding visit methods in the parser.
+
+4. Task4 : New Directive Implementation (wrangler-core module):
+prompts : 
+a)I need to create a new directive that performs aggregation on both ByteSize and TimeDuration columns.
+b) Do I need to implement the Directive interface for this?
+c) While aggregating, do I need to convert all values to a common unit like bytes or nanoseconds?
+d) How can I check whether the input column is of type ByteSize or TimeDuration?
+e) Do I only need to implement sum aggregation or other operations too (like average, max)?
+f) How are DirectiveContext, Row, and Arguments used inside the directive class?
+g) how is this task related to other three?
+
+5. Task5 : Testing (wrangler-core module):
+prompts:
+a) How to write unit tests for wrangler-core?
+b) How to test the new directive class?
+c) How to create test Row objects with ByteSize and TimeDuration?
+d) How to validate expected results after directive execution?
+e) Should edge cases like null/invalid values be tested?
+f) How to run tests using Maven?
+
+6. Task6
+prompts:
+a) How to use TestingRig.execute() with a custom directive?
+b) How to create Row objects with ByteSize and TimeDuration values?
+c) How to verify output with Assert.assertEquals() for float/double values?
+d) What’s the best way to simulate aggregation like total size in MB and time in seconds?
+e) How to convert units (e.g., bytes to MB, ns to sec) in test verification?
+f) How to test both average and sum aggregations with multiple rows?
+g) Should I test edge cases like empty input, null values, or invalid units?
+
+
+7. Can you Explain me how all tasks are interconnected and double check with 100% accurately that all the given code or updates are correct and also tell me things that i learned by doing this project
+
