@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -198,30 +200,29 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   /**
    * A Directive can consist of text field. These type of fields are enclosed within
    * a single-quote or a double-quote. This visitor method extracts the string value
-   * within the quotes and creates a token type <code>Text</code>.
+   * and creates a token of type <code>Text</code>.
    */
   @Override
   public RecipeSymbol.Builder visitText(DirectivesParser.TextContext ctx) {
-    String value = ctx.String().getText();
-    builder.addToken(new Text(value.substring(1, value.length() - 1)));
+    String text = ctx.String().getText();
+    builder.addToken(new Text(text.substring(1, text.length() - 1)));
     return builder;
   }
 
   /**
-   * A Directive can consist of numeric field. This visitor method extracts the
-   * numeric value <code>Numeric</code>.
+   * A Directive can consist of number. This visitor method extracts the number as
+   * <code>Numeric</code> token.
    */
   @Override
   public RecipeSymbol.Builder visitNumber(DirectivesParser.NumberContext ctx) {
-    LazyNumber number = new LazyNumber(ctx.Number().getText());
-    builder.addToken(new Numeric(number));
+    builder.addToken(new Numeric(new LazyNumber(ctx.Number().getText())));
     return builder;
   }
 
   /**
-   * A Directive can consist of Bool field. The Bool field is represented as
-   * either true or false. This visitor method extract the bool value into a
-   * token type <code>Bool</code>.
+   * A Directive can consist of boolean value 'true' and 'false'. This visitor method
+   * extracts the text as parsed by the <code>lexer</code> and wraps it around <code>Bool</code>
+   * token type.
    */
   @Override
   public RecipeSymbol.Builder visitBool(DirectivesParser.BoolContext ctx) {
@@ -230,25 +231,44 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can include a expression or a condition to be evaluated. When
-   * such a token type is found, the visitor extracts the expression and generates
-   * a token type <code>Expression</code> to be added to the <code>TokenGroup</code>
+   * A Directive can consist of a byte size value like "10KB" or "1.5MB". This visitor method
+   * extracts the text as parsed by the <code>lexer</code> and wraps it around <code>ByteSize</code>
+   * token type.
    */
   @Override
-  public RecipeSymbol.Builder visitCondition(DirectivesParser.ConditionContext ctx) {
-    int childCount = ctx.getChildCount();
-    StringBuilder sb = new StringBuilder();
-    for (int i = 1; i < childCount - 1; ++i) {
-      ParseTree child = ctx.getChild(i);
-      sb.append(child.getText()).append(" ");
-    }
-    builder.addToken(new Expression(sb.toString()));
+  public RecipeSymbol.Builder visitByteSize(DirectivesParser.ByteSizeContext ctx) {
+    builder.addToken(new ByteSize(ctx.ByteSize().getText()));
     return builder;
   }
 
   /**
-   * A Directive has name and in the parsing context it's called a command.
-   * This visitor methods extracts the command and creates a toke type <code>DirectiveName</code>
+   * A Directive can consist of a time duration value like "10ms" or "1.5s". This visitor method
+   * extracts the text as parsed by the <code>lexer</code> and wraps it around <code>TimeDuration</code>
+   * token type.
+   */
+  @Override
+  public RecipeSymbol.Builder visitTimeDuration(DirectivesParser.TimeDurationContext ctx) {
+    builder.addToken(new TimeDuration(ctx.TimeDuration().getText()));
+    return builder;
+  }
+
+  /**
+   * A Directive can consist of condition or an expression. This visitor method extracts
+   * the condition or expression within curly braces and creates a token of type <code>Expression</code>.
+   */
+  @Override
+  public RecipeSymbol.Builder visitCondition(DirectivesParser.ConditionContext ctx) {
+    int a = ctx.start.getStartIndex();
+    int b = ctx.stop.getStopIndex();
+    Interval interval = new Interval(a, b);
+    String expression = ctx.start.getInputStream().getText(interval);
+    builder.addToken(new Expression(expression));
+    return builder;
+  }
+
+  /**
+   * This visitor method extracts the directive name that is being specified
+   * for operation on data.
    */
   @Override
   public RecipeSymbol.Builder visitCommand(DirectivesParser.CommandContext ctx) {
@@ -257,73 +277,74 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * This visitor methods extracts the list of columns specified. It creates a token
-   * type <code>ColumnNameList</code> to be added to <code>TokenGroup</code>.
+   * This visitor method extractrs the collection of <code>ColumnName</code>s and
+   * wraps it in a token of type <code>ColumnNameList</code>.
    */
   @Override
   public RecipeSymbol.Builder visitColList(DirectivesParser.ColListContext ctx) {
-    List<TerminalNode> columns = ctx.Column();
-    List<String> names = new ArrayList<>();
-    for (TerminalNode column : columns) {
-      names.add(column.getText().substring(1));
+    List<String> columnNames = new ArrayList<>();
+    for (TerminalNode node : ctx.Column()) {
+      columnNames.add(node.getText().substring(1));
     }
-    builder.addToken(new ColumnNameList(names));
+    builder.addToken(new ColumnNameList(columnNames));
     return builder;
   }
 
   /**
-   * This visitor methods extracts the list of numeric specified. It creates a token
-   * type <code>NumericList</code> to be added to <code>TokenGroup</code>.
+   * This visitor method extracts the collection of <code>Numeric</code>s and
+   * wraps it in a token of type <code>NumericList</code>.
    */
   @Override
   public RecipeSymbol.Builder visitNumberList(DirectivesParser.NumberListContext ctx) {
-    List<TerminalNode> numbers = ctx.Number();
-    List<LazyNumber> numerics = new ArrayList<>();
-    for (TerminalNode number : numbers) {
-      numerics.add(new LazyNumber(number.getText()));
+    List<LazyNumber> lazyNumbers = new ArrayList<>();
+    for (TerminalNode node : ctx.Number()) {
+      lazyNumbers.add(new LazyNumber(node.getText()));
     }
-    builder.addToken(new NumericList(numerics));
+    builder.addToken(new NumericList(lazyNumbers));
     return builder;
   }
 
   /**
-   * This visitor methods extracts the list of booleans specified. It creates a token
-   * type <code>BoolList</code> to be added to <code>TokenGroup</code>.
+   * This visitor method extracts the collection of <code>Bool</code>s and
+   * wraps it in a token of type <code>BoolList</code>.
    */
   @Override
   public RecipeSymbol.Builder visitBoolList(DirectivesParser.BoolListContext ctx) {
-    List<TerminalNode> bools = ctx.Bool();
     List<Boolean> booleans = new ArrayList<>();
-    for (TerminalNode bool : bools) {
-      booleans.add(Boolean.parseBoolean(bool.getText()));
+    for (TerminalNode node : ctx.Bool()) {
+      booleans.add(Boolean.valueOf(node.getText()));
     }
     builder.addToken(new BoolList(booleans));
     return builder;
   }
 
   /**
-   * This visitor methods extracts the list of strings specified. It creates a token
-   * type <code>StringList</code> to be added to <code>TokenGroup</code>.
+   * This visitor method extracts the collection of <code>Text</code>s and
+   * wraps it in a token of type <code>TextList</code>.
    */
   @Override
   public RecipeSymbol.Builder visitStringList(DirectivesParser.StringListContext ctx) {
-    List<TerminalNode> strings = ctx.String();
-    List<String> strs = new ArrayList<>();
-    for (TerminalNode string : strings) {
-      String text = string.getText();
-      strs.add(text.substring(1, text.length() - 1));
+    List<String> textStrings = new ArrayList<>();
+    for (TerminalNode node : ctx.String()) {
+      String text = node.getText();
+      textStrings.add(text.substring(1, text.length() - 1));
     }
-    builder.addToken(new TextList(strs));
+    builder.addToken(new TextList(textStrings));
     return builder;
   }
 
+  /**
+   * This method provides the source of the node being visited.
+   */
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
-    int a = ctx.getStart().getStartIndex();
-    int b = ctx.getStop().getStopIndex();
+    int a = ctx.start.getStartIndex();
+    int b = ctx.stop.getStopIndex();
     Interval interval = new Interval(a, b);
     String text = ctx.start.getInputStream().getText(interval);
-    int lineno = ctx.getStart().getLine();
-    int column = ctx.getStart().getCharPositionInLine();
-    return new SourceInfo(lineno, column, text);
+    return new SourceInfo(ctx.start.getLine(),
+                            ctx.start.getCharPositionInLine(),
+                            ctx.stop.getLine(),
+                            ctx.stop.getCharPositionInLine(),
+                            text);
   }
 }
