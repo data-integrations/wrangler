@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -310,4 +310,33 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+// Byte size token for values like 10KB, 1.5MB, etc.
+BYTE_SIZE
+ : Int ('.' Digit*)? BYTE_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : ('B'|'b') // Bytes
+ | ('KB'|'kb'|'kB'|'Kb') // Kilobytes
+ | ('MB'|'mb'|'mB'|'Mb') // Megabytes 
+ | ('GB'|'gb'|'gB'|'Gb') // Gigabytes
+ | ('TB'|'tb'|'tB'|'Tb') // Terabytes
+ | ('PB'|'pb'|'pB'|'Pb') // Petabytes
+ ;
+
+// Time duration token for values like 10ms, 1.5s, etc.
+TIME_DURATION
+ : Int ('.' Digit*)? TIME_UNIT
+ ;
+
+fragment TIME_UNIT
+ : ('ns'|'NS') // Nanoseconds
+ | ('us'|'US'|'µs'|'µS') // Microseconds
+ | ('ms'|'MS') // Milliseconds
+ | ('s'|'S') // Seconds
+ | ('m'|'M') // Minutes
+ | ('h'|'H') // Hours
+ | ('d'|'D') // Days
  ;

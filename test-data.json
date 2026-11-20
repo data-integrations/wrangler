@@ -1,0 +1,9 @@
+{
+    "records": [
+      {"file_size": "1.5KB", "response_time": "250ms", "name": "file1.txt"},
+      {"file_size": "2.8MB", "response_time": "1.2s", "name": "file2.jpg"},
+      {"file_size": "512B", "response_time": "450ms", "name": "file3.txt"},
+      {"file_size": "15MB", "response_time": "3.5s", "name": "file4.mp4"},
+      {"file_size": "750KB", "response_time": "180ms", "name": "file5.pdf"}
+    ]
+  }
