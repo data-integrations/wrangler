@@ -1,0 +1,5 @@
+Prompt: "Create Java class to parse strings like 10KB, 1.5MB and return value in bytes"
+Prompt: "ANTLR grammar rule for parsing time duration like 5ms, 2s, 1.5m"
+Prompt: "JUnit test for parsing data sizes and time durations"
+Prompt: "Implement aggregation logic for byte sizes and time durations in Java"
+...

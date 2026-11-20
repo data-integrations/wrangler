@@ -215,4 +215,20 @@ public class RecipeCompilerTest {
     Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
     Assert.assertEquals(4, loadableDirectives.size());
   }
+  @Test
+public void testAggregateStatsDirective() throws Exception {
+    List<Row> rows = new ArrayList<>();
+    rows.add(new Row("data_transfer_size", "1MB").add("response_time", "500ms"));
+    rows.add(new Row("data_transfer_size", "512KB").add("response_time", "1500ms"));
+
+    String[] recipe = {
+        "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec"
+    };
+
+    List<Row> result = TestingRig.execute(recipe, rows);
+    Assert.assertEquals(1, result.size());
+    Assert.assertEquals(1.5, result.get(0).getValue("total_size_mb"), 0.001);
+    Assert.assertEquals(2.0, result.get(0).getValue("total_time_sec"), 0.001);
+}
+
 }
