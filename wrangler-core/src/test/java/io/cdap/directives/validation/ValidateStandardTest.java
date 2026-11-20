@@ -54,23 +54,26 @@ public class ValidateStandardTest {
     Map<String, Standard> schemas = new HashMap<>();
     CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
     if (src != null) {
-      File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
-
-      if (!schemasRoot.isDirectory()) {
+      // Use getResource instead of getLocation to handle both file and jar paths
+      String schemasPath = ValidateStandard.SCHEMAS_RESOURCE_PATH;
+      if (!schemasPath.startsWith("/")) {
+        schemasPath = "/" + schemasPath;
+      }
+      
+      InputStream schemasStream = ValidateStandard.class.getResourceAsStream(schemasPath);
+      if (schemasStream == null) {
         throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
+          String.format("Could not find schemas resource at %s", schemasPath));
       }
 
-      for (File f : schemasRoot.listFiles()) {
-        if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
-          continue;
-        }
+      // Read the manifest file
+      InputStream manifestStream = readResource(ValidateStandard.MANIFEST_PATH);
+      Manifest manifest = new Gson().getAdapter(Manifest.class)
+        .fromJson(new InputStreamReader(manifestStream));
 
-        String hash = calcHash(new FileInputStream(f));
-        schemas.put(
-          FilenameUtils.getBaseName(f.getName()),
-          new Standard(hash, FilenameUtils.getExtension(f.getName())));
+      // Add all standards from the manifest
+      for (Map.Entry<String, Standard> entry : manifest.getStandards().entrySet()) {
+        schemas.put(entry.getKey(), entry.getValue());
       }
     }
 

@@ -21,6 +21,9 @@ import io.cdap.cdap.api.artifact.ArtifactSummary;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.DirectiveLoadException;
 import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +65,8 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
   }
 
   // This is the default package in which the directives are searched for.
-  private static final String PACKAGE = "io.cdap.directives";
+  private static final String PACKAGE = "io.cdap.wrangler.api.directive";
+  private static final String DIRECTIVES_PACKAGE = "io.cdap.directives";
   private final Map<String, DirectiveInfo> registry;
 
   @VisibleForTesting
@@ -80,9 +84,14 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
     Map<String, DirectiveInfo> registry = new HashMap<>();
     namespaces.add(PACKAGE);
+    namespaces.add(DIRECTIVES_PACKAGE);
     for (String namespace : namespaces) {
       try {
-        Reflections reflections = new Reflections(namespace);
+        // Use ConfigurationBuilder to scan all subdirectories
+        ConfigurationBuilder config = new ConfigurationBuilder()
+          .setUrls(ClasspathHelper.forPackage(namespace))
+          .setScanners(new SubTypesScanner(false));
+        Reflections reflections = new Reflections(config);
         Set<Class<? extends Directive>> system = reflections.getSubTypesOf(Directive.class);
         for (Class<? extends Directive> directive : system) {
           DirectiveInfo info = DirectiveInfo.fromSystem(directive);

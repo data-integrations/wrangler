@@ -72,8 +72,9 @@ public final class DirectiveInfo {
    */
   private DirectiveInfo(DirectiveScope scope, Class<? extends Directive> directive, @Nullable ArtifactId artifactId) {
     this.directive = directive;
-    this.directiveClass = new DirectiveClass(directive.getAnnotation(Name.class).value(),
-                                             directive.getName(), scope, artifactId);
+    Name nameAnnotation = directive.getAnnotation(Name.class);
+    String name = nameAnnotation != null ? nameAnnotation.value() : directive.getSimpleName().toLowerCase();
+    this.directiveClass = new DirectiveClass(name, directive.getName(), scope, artifactId);
 
     Description desc = directive.getAnnotation(Description.class);
     if (desc == null) {
