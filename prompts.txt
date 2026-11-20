@@ -1,0 +1,7 @@
+# Prompts used with AI tools:
+
+- "How to add a custom token type in ANTLR grammar"
+- "Java parser for time duration like 100ms, 2s, 5min"
+- "Create custom directive in Wrangler CDAP"
+- "Write unit tests for directive using TestingRig"
+- "README for Wrangler fork with ByteSize and TimeDuration token support"
