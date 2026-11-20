@@ -1,3 +1,29 @@
+# CDAP Wrangler Enhancements
+
+![cdap-logo](https://example.com/logo.svg)  
+[![Build Status](https://travis-ci.org/cdapio/hydrator-plugins.svg?branch=develop)](https://travis-ci.org/cdapio/hydrator-plugins)  
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.cdap.wrangler/wrangler-core)
+
+## Overview
+
+This project extends CDAP Wrangler functionality to support new token types, including **BYTE_SIZE** and **TIME_DURATION**, and enhances the RecipeCompiler-based parser. It involves creating custom token classes, handling parsing for new types, and integrating them into the existing data wrangling framework.
+
+## Key Features
+
+- **BYTE_SIZE Token**: Parses byte size values (e.g., "10MB", "5GB") and handles various unit conversions.
+- **TIME_DURATION Token**: Parses time duration values (e.g., "5 minutes", "2 hours") and supports unit-based calculations.
+- **Custom Directives**: Implements custom directives for handling and aggregating byte size and time duration data.
+- **RecipeCompiler Enhancements**: Updates the RecipeCompiler to support new token types and parsing rules.
+- **Integration with Existing System**: Seamlessly integrates with the existing CDAP Wrangler system for enhanced data transformation capabilities.
+
+## Setup Instructions
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/cdapio/wrangler.git
+   cd wrangler
+
+
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
