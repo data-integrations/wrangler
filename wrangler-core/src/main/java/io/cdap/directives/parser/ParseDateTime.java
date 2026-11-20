@@ -36,13 +36,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Directive for parsing a string in the specified format to DateTime.
  */
 @Plugin(type = Directive.TYPE)
 @Name("parse-as-datetime")
-@Categories(categories = {"parser", "datetime"})
+@Categories(categories = { "parser", "datetime" })
 @Description("Parse a column value as datetime using the given format")
 public class ParseDateTime implements Directive, Lineage {
 
@@ -66,10 +67,10 @@ public class ParseDateTime implements Directive, Lineage {
     this.column = ((ColumnName) args.value(COLUMN)).value();
     this.format = args.value(FORMAT).value().toString();
     try {
-      this.formatter = DateTimeFormatter.ofPattern(this.format);
+      this.formatter = DateTimeFormatter.ofPattern(this.format, Locale.US);
     } catch (IllegalArgumentException exception) {
       throw new DirectiveParseException(NAME, String.format("'%s' is an invalid datetime format.", this.format),
-                                        exception);
+          exception);
     }
   }
 
@@ -91,7 +92,7 @@ public class ParseDateTime implements Directive, Lineage {
         row.setValue(idx, localDateTime);
       } catch (DateTimeParseException exception) {
         throw new ErrorRowException(NAME, String.format("Value %s for column %s is not in expected format %s",
-                                                        value.toString(), column, format), 2, exception);
+            value.toString(), column, format), 2, exception);
       }
     }
     return rows;
@@ -99,14 +100,14 @@ public class ParseDateTime implements Directive, Lineage {
 
   @Override
   public void destroy() {
-    //no op
+    // no op
   }
 
   @Override
   public Mutation lineage() {
     return Mutation.builder()
-      .readable("Parsed column '%s' in format '%s' as datetime", column, format)
-      .relation(column, column)
-      .build();
+        .readable("Parsed column '%s' in format '%s' as datetime", column, format)
+        .relation(column, column)
+        .build();
   }
 }
