@@ -1,0 +1,17 @@
+# AI Prompts Used During Development
+
+1. Grammar Implementation:
+- "How to implement ANTLR4 grammar for byte size units"
+- "Grammar patterns for time duration parsing"
+
+2. Parser Implementation:
+- "Java implementation for parsing byte sizes with units"
+- "Best practices for time duration parsing in Java"
+
+3. Testing:
+- "Unit test patterns for data size parsing"
+- "Test cases for time duration aggregation"
+
+4. Documentation:
+- "Documentation structure for new features"
+- "README examples for data processing directives"

@@ -16,63 +16,170 @@
 
 package io.cdap.wrangler.parser;
 
-import io.cdap.wrangler.TestingRig;
-import io.cdap.wrangler.api.CompileStatus;
-import io.cdap.wrangler.api.Compiler;
-import io.cdap.wrangler.api.Directive;
-import io.cdap.wrangler.api.RecipeParser;
-import org.junit.Assert;
-import org.junit.Test;
+import io.cdap.wrangler.api.DirectiveParseException;
+import io.cdap.wrangler.api.parser.Bool;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
+import io.cdap.wrangler.api.parser.ColumnName;
+import io.cdap.wrangler.api.parser.Numeric;
+import io.cdap.wrangler.api.parser.Text;
+import io.cdap.wrangler.api.parser.Token;
+import io.cdap.wrangler.api.parser.TokenGroup;
+import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.grammar.DirectivesParser;
+import io.cdap.wrangler.registry.CompositeDirectiveRegistry;
+import io.cdap.wrangler.registry.DirectiveInfo;
+import io.cdap.wrangler.registry.DirectiveRegistry;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests {@link GrammarBasedParser}
+ * Grammar based parser for parsing directives.
  */
-public class GrammarBasedParserTest {
+public class GrammarBasedParser extends DirectivesBaseVisitor<Token> {
+  private final DirectiveRegistry registry;
+  private final TokenGroup tokenGroup;
+  private DirectiveInfo directive;
 
-  @Test
-  public void testBasic() throws Exception {
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "rename :col1 :col2",
-      "parse-as-csv :body ',' true;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "${macro} ${macro_2}",
-      "${macro_${test}}"
-    };
-
-    RecipeParser parser = TestingRig.parse(recipe);
-    List<Directive> directives = parser.parse();
-    Assert.assertEquals(2, directives.size());
+  public GrammarBasedParser(DirectiveRegistry registry) {
+    this.registry = registry;
+    this.tokenGroup = new TokenGroup();
   }
 
-  @Test
-  public void testLoadableDirectives() throws Exception {
-    String[] recipe = new String[] {
-      "#pragma version 2.0;",
-      "#pragma load-directives text-reverse, text-exchange;",
-      "rename col1 col2",
-      "parse-as-csv body , true",
-      "text-reverse :body;",
-      "test prop: { a='b', b=1.0, c=true};",
-      "#pragma load-directives test-change,text-exchange, test1,test2,test3,test4;"
-    };
-
-    Compiler compiler = new RecipeCompiler();
-    CompileStatus status = compiler.compile(new MigrateToV2(recipe).migrate());
-    Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
+  @Override
+  public Token visitCommand(DirectivesParser.CommandContext ctx) {
+    String command = ctx.Identifier().getText();
+    directive = registry.get(command);
+    if (directive == null) {
+      throw new DirectiveParseException(
+        String.format("Directive '%s' is not registered. Check if the directive is available in system or " +
+                      "the directive name is misspelled.", command));
+    }
+    return null;
   }
 
-  @Test
-  public void testCommentOnlyRecipe() throws Exception {
-    String[] recipe = new String[] {
-      "// test"
-    };
-
-    RecipeParser parser = TestingRig.parse(recipe);
-    List<Directive> directives = parser.parse();
-    Assert.assertEquals(0, directives.size());
+  @Override
+  public Token visitIdentifier(DirectivesParser.IdentifierContext ctx) {
+    tokenGroup.add(new Text(ctx.Identifier().getText()));
+    return null;
   }
 
+  @Override
+  public Token visitColumn(DirectivesParser.ColumnContext ctx) {
+    tokenGroup.add(new ColumnName(ctx.Column().getText()));
+    return null;
+  }
+
+  @Override
+  public Token visitNumber(DirectivesParser.NumberContext ctx) {
+    tokenGroup.add(new Numeric(ctx.Number().getText()));
+    return null;
+  }
+
+  @Override
+  public Token visitBool(DirectivesParser.BoolContext ctx) {
+    tokenGroup.add(new Bool(ctx.Bool().getText()));
+    return null;
+  }
+
+  @Override
+  public Token visitText(DirectivesParser.TextContext ctx) {
+    String text = ctx.String().getText();
+    text = text.substring(1, text.length() - 1);
+    tokenGroup.add(new Text(text));
+    return null;
+  }
+
+  // New method for handling byte size values
+  @Override
+  public Token visitValue(DirectivesParser.ValueContext ctx) {
+    if (ctx.BYTE_SIZE() != null) {
+      tokenGroup.add(new ByteSize(ctx.BYTE_SIZE().getText()));
+    } else if (ctx.TIME_DURATION() != null) {
+      tokenGroup.add(new TimeDuration(ctx.TIME_DURATION().getText()));
+    } else {
+      super.visitValue(ctx);
+    }
+    return null;
+  }
+
+  // New method specifically for byte size
+  public Token visitBYTE_SIZE(DirectivesParser.BYTE_SIZEContext ctx) {
+    tokenGroup.add(new ByteSize(ctx.getText()));
+    return null;
+  }
+
+  // New method specifically for time duration
+  public Token visitTIME_DURATION(DirectivesParser.TIME_DURATIONContext ctx) {
+    tokenGroup.add(new TimeDuration(ctx.getText()));
+    return null;
+  }
+
+  @Override
+  public Token visitColList(DirectivesParser.ColListContext ctx) {
+    List<Token> columns = new ArrayList<>();
+    for (TerminalNode node : ctx.Column()) {
+      columns.add(new ColumnName(node.getText()));
+    }
+    tokenGroup.add(columns);
+    return null;
+  }
+
+  @Override
+  public Token visitNumberList(DirectivesParser.NumberListContext ctx) {
+    List<Token> numbers = new ArrayList<>();
+    for (TerminalNode node : ctx.Number()) {
+      numbers.add(new Numeric(node.getText()));
+    }
+    tokenGroup.add(numbers);
+    return null;
+  }
+
+  @Override
+  public Token visitBoolList(DirectivesParser.BoolListContext ctx) {
+    List<Token> bools = new ArrayList<>();
+    for (TerminalNode node : ctx.Bool()) {
+      bools.add(new Bool(node.getText()));
+    }
+    tokenGroup.add(bools);
+    return null;
+  }
+
+  @Override
+  public Token visitStringList(DirectivesParser.StringListContext ctx) {
+    List<Token> strings = new ArrayList<>();
+    for (TerminalNode node : ctx.String()) {
+      String text = node.getText();
+      text = text.substring(1, text.length() - 1);
+      strings.add(new Text(text));
+    }
+    tokenGroup.add(strings);
+    return null;
+  }
+
+  @Override
+  public Token visitProperties(DirectivesParser.PropertiesContext ctx) {
+    if (ctx.getChildCount() > 0) {
+      ParseTree tree = ctx.getChild(0);
+      if (tree instanceof ParserRuleContext) {
+        ParserRuleContext context = (ParserRuleContext) tree;
+        if (context.exception != null) {
+          throw new DirectiveParseException(context.exception);
+        }
+      }
+    }
+    return null;
+  }
+
+  public DirectiveInfo getDirective() {
+    return directive;
+  }
+
+  public TokenGroup getTokens() {
+    return tokenGroup;
+  }
 }
