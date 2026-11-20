@@ -41,6 +41,8 @@ public interface DirectiveRegistry extends Closeable {
    */
   Iterable<DirectiveInfo> list(String namespace);
 
+  registerDirective(new ParseTypes());
+
   /**
    * Given the name of the directive, returns the information related to the directive.
    *
@@ -65,6 +67,8 @@ public interface DirectiveRegistry extends Closeable {
   /**
    * Retrieve latest Wrangler transform artifact information
    */
-  @Nullable
+  @Nullable  
   ArtifactSummary getLatestWranglerArtifact();
 }
+
+
