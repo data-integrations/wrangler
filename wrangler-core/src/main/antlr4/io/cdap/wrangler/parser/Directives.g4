@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -140,8 +142,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
- ;
+ : String
+ | Number
+ | Column
+ | Bool
+ | byteSize
+ | timeDuration ;
 
 ecommand
  : '!' Identifier
@@ -193,6 +199,14 @@ stringList
 
 identifierList
  : Identifier (',' Identifier)*
+ ;
+
+byteSize
+ : Number Byte_Unit
+ ;
+
+timeDuration
+ : Number Time_Unit
  ;
 
 
@@ -274,6 +288,23 @@ String
  | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
 
+ fragment Byte_Unit
+  : 'B'
+  | 'KB'
+  | 'MB'
+  | 'GB'
+  | 'TB'
+  | 'PB'
+  ;
+
+ fragment Time_Unit
+  : 'ms'
+  | 's'
+  | 'm'
+  | 'h'
+  | 'd'
+  ;
+
 EscapeSequence
    :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
    |   UnicodeEscape
@@ -310,4 +341,12 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+BYTE_SIZE
+ : Int? [0-9]+ (('KB' | 'MB' | 'GB' | 'TB' | 'B') | ('kb' | 'mb' | 'gb' | 'tb' | 'b'))
+ ;
+
+TIME_DURATION
+ : Int? [0-9]+ (('MS' | 'S' | 'M' | 'H' | 'D') | ('ms' | 's' | 'm' | 'h' | 'd'))
  ;
