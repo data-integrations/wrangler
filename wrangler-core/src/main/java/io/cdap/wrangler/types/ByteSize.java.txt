@@ -1,0 +1,37 @@
+package io.cdap.wrangler.types;
+
+public class ByteSize {
+    private final double size;
+    private final String unit;
+
+    public ByteSize(double size, String unit) {
+        this.size = size;
+        this.unit = unit;
+    }
+
+    public double getSize() {
+        return size;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public long toBytes() {
+        switch (unit.toLowerCase()) {
+            case "kb":
+                return (long) (size * 1024);
+            case "mb":
+                return (long) (size * 1024 * 1024);
+            case "gb":
+                return (long) (size * 1024 * 1024 * 1024);
+            default:
+                throw new IllegalArgumentException("Unknown unit: " + unit);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return size + unit;
+    }
+}
