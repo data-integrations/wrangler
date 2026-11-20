@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | BYTE_SIZE
+    | TIME_DURATION
   )*?
   ;
 
@@ -140,7 +142,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -310,4 +312,12 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+BYTE_SIZE
+ : [0-9]+ ('.' [0-9]+)? ( 'KB' | 'MB' | 'GB' | 'KiB' | 'MiB' | 'GiB' | 'B' | 'kb' | 'mb' | 'gb' )
+ ;
+
+TIME_DURATION
+ : [0-9]+ ('.' [0-9]+)? ( 'ms' | 's' | 'seconds' | 'minutes' )
  ;
