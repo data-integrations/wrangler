@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -140,8 +142,9 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | ByteSize | TimeDuration
  ;
+
 
 ecommand
  : '!' Identifier
@@ -311,3 +314,11 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+ByteSize: Number Byte;
+fragment Byte : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'PB' | 'EB');
+TimeDuration: Number Time;
+fragment Time: ('ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd');
+
+byteSize: ByteSize;
+timeDuration: TimeDuration;
