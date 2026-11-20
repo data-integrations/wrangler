@@ -64,7 +64,7 @@ public class GrammarBasedParserTest {
     Assert.assertEquals(7, status.getSymbols().getLoadableDirectives().size());
   }
 
-  @Test
+    @Test
   public void testCommentOnlyRecipe() throws Exception {
     String[] recipe = new String[] {
       "// test"
@@ -72,7 +72,24 @@ public class GrammarBasedParserTest {
 
     RecipeParser parser = TestingRig.parse(recipe);
     List<Directive> directives = parser.parse();
-    Assert.assertEquals(0, directives.size());
+    Assert.assertTrue(directives.isEmpty());
   }
 
+  @Test
+  public void testValidByteSizeAndTimeDurationParsing() {
+    String[] recipe = new String[] {
+      "aggregate-stats :data_transfer_size :response_time :total_size_mb :total_time_sec"
+    };
+
+    TestingRig.compile(recipe);
+  }
+
+  @Test(expected = Exception.class)
+  public void testInvalidByteSizeSyntax() {
+    String[] recipe = new String[] {
+      "aggregate-stats :data_transfer_size :invalid_duration :total_size_mb :total_time_sec"
+    };
+
+    TestingRig.compile(recipe);
+  }
 }

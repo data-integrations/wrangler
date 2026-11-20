@@ -38,6 +38,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import io.cdap.wrangler.api.parser.ByteSize;
+import io.cdap.wrangler.api.parser.TimeDuration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -316,6 +318,22 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     builder.addToken(new TextList(strs));
     return builder;
   }
+
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    String raw = ctx.getText();
+    // ByteSize token class is expected to handle parsing from raw string to bytes
+    builder.addToken(new io.cdap.wrangler.api.parser.ByteSize(raw));
+    return builder;
+  }
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String raw = ctx.getText();
+    // TimeDuration token class should convert raw input (e.g., "5s", "100ms") to millis internally
+    builder.addToken(new io.cdap.wrangler.api.parser.TimeDuration(raw));
+    return builder;
+  }
+
 
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
