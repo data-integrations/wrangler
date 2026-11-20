@@ -50,8 +50,10 @@ public class ConvertStringTest {
     Assert.assertEquals(expected, convertString.removeTrailingAndLeading(expected + "\t", "\t"));
     Assert.assertEquals(expected, convertString.removeTrailingAndLeading('\u0009' + expected, "\t"));
     Assert.assertEquals(expected, convertString.removeTrailingAndLeading('\u0009' + expected, '\u0009' + ""));
-    Assert.assertEquals(expected, convertString.removeTrailingAndLeading('\u0009' + expected + '\u0009' + '\u0009',
-                                                                         "\t"));
+    Assert.assertEquals(
+  expected, 
+  convertString.removeTrailingAndLeading('\u0009' + expected + '\u0009' + '\u0009', "\t")
+);
 
     //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
     Assert.assertEquals("abc ", convertString.removeTrailingAndLeading("\t" + "abc ", "\t"));
