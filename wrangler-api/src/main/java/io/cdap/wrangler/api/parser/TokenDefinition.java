@@ -90,5 +90,18 @@ public final class TokenDefinition implements Serializable {
   public TokenType type() {
     return type;
   }
+  public static Token create(TokenType type, String value) {
+    switch (type) {
+      case BYTE_SIZE:
+        return new ByteSize(value);
+      case TIME_DURATION:
+        return new TimeDuration(value);
+      // ... other cases
+      default:
+        throw new UnsupportedOperationException("Unknown token type: " + type);
+    }
+  }
+  
 
 }
+
