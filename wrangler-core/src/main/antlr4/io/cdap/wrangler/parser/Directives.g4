@@ -140,7 +140,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -269,6 +269,31 @@ Column
  : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
  ;
 
+BYTE_SIZE
+ : Number BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Number TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [kK][bB]      // kilobytes
+ | [mM][bB]      // megabytes
+ | [gG][bB]      // gigabytes
+ | [tT][bB]      // terabytes
+ | [pP][bB]      // petabytes
+ | [bB]          // bytes
+ ;
+
+fragment TIME_UNIT
+ : [mM][sS]      // milliseconds
+ | [sS]          // seconds
+ | [mM]          // minutes
+ | [hH]          // hours
+ | [dD]          // days
+ ;
+ 
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
  | '"'  ( EscapeSequence | ~('"') )* '"'
