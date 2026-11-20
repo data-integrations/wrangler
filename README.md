@@ -216,3 +216,30 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+---
+
+##  Internship Assignment Submission
+
+This section contains the details of the completed **Software Engineer Intern Assignment** for CDAP Wrangler.
+
+### Implemented Features
+
+- **Byte Size Parser**: Converts values like `10 KB`, `2 MB` to raw bytes.
+- **Time Duration Parser**: Converts durations like `2 hours`, `3 mins` to milliseconds.
+- Unit tests were written and validated for both parsers.
+- All changes successfully passed `mvn clean install` and full test suite.
+
+###  File Locations
+
+- ByteSize Parser:
+    - `wrangler-api/src/main/java/io/cdap/wrangler/api/parser/ByteSize.java`
+    - `wrangler-core/src/test/java/io/cdap/wrangler/parser/ByteSizeTest.java`
+- Time Duration Parser:
+    - `wrangler-api/src/main/java/io/cdap/wrangler/parser/TimeDuration.java`
+    - `wrangler-core/src/test/java/io/cdap/wrangler/parser/TimeDurationTest.java`
+
+---
+
+*Submitted by Aadit Wadhwa*  
+*Assignment Reference: Software Engineer Intern - CDAP Wrangler Parser Enhancements*
