@@ -22,6 +22,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,6 +34,7 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
@@ -226,6 +228,53 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   @Override
   public RecipeSymbol.Builder visitBool(DirectivesParser.BoolContext ctx) {
     builder.addToken(new Bool(Boolean.valueOf(ctx.Bool().getText())));
+    return builder;
+  }
+
+  /**
+   * Visits a 'value' node in the parse tree, which can represent different literal types.
+   * Determines the specific type (String, Number, Column, Bool, ByteSize, TimeDuration)
+   * and creates the corresponding Token object.
+   */
+  @Override
+  public RecipeSymbol.Builder visitValue(DirectivesParser.ValueContext ctx) {
+    if (ctx.String() != null) {
+      String value = ctx.String().getText();
+      // Remove quotes
+      builder.addToken(new Text(value.substring(1, value.length() - 1)));
+    } else if (ctx.Number() != null) {
+      builder.addToken(new Numeric(new LazyNumber(ctx.Number().getText())));
+    } else if (ctx.Column() != null) {
+      // Assuming Column text includes the backtick or is an Identifier
+      String colText = ctx.Column().getText();
+      if (colText.startsWith("`") && colText.endsWith("`")) {
+        builder.addToken(new ColumnName(colText.substring(1, colText.length() - 1)));
+      } else {
+        builder.addToken(new ColumnName(colText)); // Handle identifier-based column names
+      }
+    } else if (ctx.Bool() != null) {
+      builder.addToken(new Bool(Boolean.valueOf(ctx.Bool().getText())));
+    } else if (ctx.BYTE_SIZE() != null) {
+      try {
+        builder.addToken(new ByteSize(ctx.BYTE_SIZE().getText()));
+      } catch (Exception e) {
+        // Handle potential parsing errors from ByteSize constructor
+        // TODO: Consider adding error context (line number, position)
+        throw new RuntimeException("Error parsing byte size token: '" + ctx.BYTE_SIZE().getText() + "'", e);
+      }
+    } else if (ctx.TIME_DURATION() != null) {
+      try {
+        builder.addToken(new TimeDuration(ctx.TIME_DURATION().getText()));
+      } catch (Exception e) {
+        // Handle potential parsing errors from TimeDuration constructor
+        // TODO: Consider adding error context (line number, position)
+        throw new RuntimeException("Error parsing time duration token: '" + ctx.TIME_DURATION().getText() + "'", e);
+      }
+    } else {
+      // Should not happen if grammar is correct
+      throw new IllegalStateException("Unknown token type found in 'value' context: " + ctx.getText());
+    }
+    // We are handling the leaf nodes here, so don't call super.visitValue
     return builder;
   }
 
