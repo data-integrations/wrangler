@@ -46,7 +46,7 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)* 
  ;
 
 directive
@@ -64,6 +64,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
 
@@ -196,79 +198,34 @@ identifierList
  ;
 
 
-/*
- * Following are the Lexer Rules used for tokenizing the recipe.
- */
-OBrace   : '{';
-CBrace   : '}';
-SColon   : ';';
-Or       : '||';
-And      : '&&';
-Equals   : '==';
-NEquals  : '!=';
-GTEquals : '>=';
-LTEquals : '<=';
-Match    : '=~';
-NotMatch : '!~';
-QuestionColon : '?:';
-StartsWith : '=^';
-NotStartsWith : '!^';
-EndsWith : '=$';
-NotEndsWith : '!$';
-PlusEqual : '+=';
-SubEqual : '-=';
-MulEqual : '*=';
-DivEqual : '/=';
-PerEqual : '%=';
-AndEqual : '&=';
-OrEqual  : '|=';
-XOREqual : '^=';
-Pow      : '^';
-External : '!';
-GT       : '>';
-LT       : '<';
-Add      : '+';
-Subtract : '-';
-Multiply : '*';
-Divide   : '/';
-Modulus  : '%';
-OBracket : '[';
-CBracket : ']';
-OParen   : '(';
-CParen   : ')';
-Assign   : '=';
-Comma    : ',';
-QMark    : '?';
-Colon    : ':';
-Dot      : '.';
-At       : '@';
-Pipe     : '|';
-BackSlash: '\\';
-Dollar   : '$';
-Tilde    : '~';
+// ---------------------- Lexer Rules ----------------------
 
+BYTE_SIZE: DIGIT+ ('.' DIGIT+)? BYTE_UNIT;
+fragment BYTE_UNIT: 'B' | 'KB' | 'MB' | 'GB' | 'TB';
 
+TIME_DURATION: DIGIT+ ('.' DIGIT+)? TIME_UNIT;
+fragment TIME_UNIT: 'ms' | 's' | 'm' | 'h';
+
+// You can include existing fragments like number, identifier, etc.
+fragment DIGIT : [0-9];
+fragment Letter : [a-zA-Z_];
+
+// Required tokens (if not defined elsewhere in your file)
+Dollar: '$';
+OBrace: '{';
+CBrace: '}';
+Macro: .*?;
+Identifier: Letter (Letter | DIGIT)*;
+Space: [ \t]+ -> skip;
+Number: DIGIT+ ('.' DIGIT+)?;
+Comment: '#' ~[\r\n]* -> skip;
 Bool
  : 'true'
  | 'false'
  ;
 
-Number
- : Int ('.' Digit*)?
- ;
-
-Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
- ;
-
-Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
- ;
-
 Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
- ;
-
+ : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]* ;
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
  | '"'  ( EscapeSequence | ~('"') )* '"'
@@ -311,3 +268,51 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+
+
+
+grammar Directives;
+
+options {
+  language = Java;
+}
+
+directive
+    : aggregateStatsDirective
+    ;
+
+aggregateStatsDirective
+    : 'aggregate-stats' directiveArguments
+    ;
+
+directiveArguments
+    : '(' argumentList? ')'
+    ;
+
+argumentList
+    : argument (',' argument)*
+    ;
+
+argument
+    : Identifier '=' literal
+    ;
+
+literal
+    : STRING
+    | BYTE_SIZE
+    | TIME_DURATION
+    | NUMBER
+    ;
+
+// Token definitions
+BYTE_SIZE    : DIGITS BYTE_UNIT;
+TIME_DURATION: DIGITS TIME_UNIT;
+NUMBER       : DIGITS;
+ 
+fragment DIGITS   : [0-9]+ ('.' [0-9]+)?;
+fragment BYTE_UNIT: ('B' | 'KB' | 'MB' | 'GB');
+fragment TIME_UNIT: ('ms' | 's' | 'm' | 'h');
+
+STRING      : '"' (~["\r\n])* '"';
+Identifier  : [a-zA-Z_][a-zA-Z_0-9]*;
+WS          : [ \t\r\n]+ -> skip;
