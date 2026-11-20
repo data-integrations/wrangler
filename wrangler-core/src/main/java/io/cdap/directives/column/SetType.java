@@ -33,6 +33,7 @@ import io.cdap.wrangler.api.SchemaResolutionContext;
 import io.cdap.wrangler.api.annotations.Categories;
 import io.cdap.wrangler.api.lineage.Lineage;
 import io.cdap.wrangler.api.lineage.Mutation;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.Identifier;
 import io.cdap.wrangler.api.parser.Numeric;
@@ -64,6 +65,7 @@ public final class SetType implements Directive, Lineage {
   private Integer scale;
   private RoundingMode roundingMode;
   private Integer precision;
+  private Long byteSize;
 
   @Override
   public UsageDefinition define() {
@@ -73,6 +75,7 @@ public final class SetType implements Directive, Lineage {
     builder.define("scale", TokenType.NUMERIC, Optional.TRUE);
     builder.define("rounding-mode", TokenType.TEXT, Optional.TRUE);
     builder.define("precision", TokenType.PROPERTIES, "prop:{precision=<precision>}", Optional.TRUE);
+    builder.define("size", TokenType.BYTE_SIZE, Optional.TRUE);
     return builder.build();
   }
 
@@ -80,6 +83,33 @@ public final class SetType implements Directive, Lineage {
   public void initialize(Arguments args) throws DirectiveParseException {
     col = ((ColumnName) args.value("column")).value();
     type = ((Identifier) args.value("type")).value();
+
+    if (type.equalsIgnoreCase("bytes") || type.equalsIgnoreCase("byte[]")) {
+      if (args.contains("size")) {
+        String sizeStr = ((ByteSize) args.value("size")).value();
+        // Extract numeric value and unit 
+        String numStr = sizeStr.replaceAll("[^0-9.]", "");
+        String unit = sizeStr.replaceAll("[0-9.]", "").toLowerCase();
+        double size = Double.parseDouble(numStr);
+        
+        switch(unit) {
+          case "kb":
+            size *= 1024;
+            break;
+          case "mb": 
+            size *= 1024 * 1024;
+            break;
+          case "gb":
+            size *= 1024 * 1024 * 1024;
+            break;
+          case "tb":
+            size *= 1024L * 1024L * 1024L * 1024L;
+            break;
+        }
+        this.byteSize = (long) size;
+      }
+    }
+
     if (type.equalsIgnoreCase("decimal")) {
       precision = args.contains("precision") ? (Integer) ((HashMap<String, Numeric>) args.
           value("precision").value()).get("precision").value().intValue() : null;
@@ -185,6 +215,6 @@ public final class SetType implements Directive, Lineage {
       precision = fieldSchema.getPrecision();
       scale = fieldSchema.getScale();
       }
-      return new Pair<Integer, Integer>(precision, scale);
+      return new Pair<Integer, Integer> (precision, scale);
     }
 }
