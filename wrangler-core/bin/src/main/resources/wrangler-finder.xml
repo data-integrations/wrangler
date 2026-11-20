@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<finders>
+  <finder>
+    <name>URL</name>
+    <pattern><![CDATA[a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>France Postal Code</name>
+    <pattern><![CDATA[^F-?\d{5}$]]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Canadian Postal Code</name>
+    <pattern><![CDATA[[a-z]\d[a-z][ \-]?\d[a-z]\d]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Email</name>
+    <pattern><![CDATA[[A-Z0-9._%+-]+@([A-Z0-9.-]+)\.([A-Z]{2,4})]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Email</name>
+    <pattern><![CDATA[[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Email</name>
+    <pattern><![CDATA[^([\w\.\-_]+)?\w+@[\w-_]+(\.\w+){1,}$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Date Time</name>
+    <pattern><![CDATA[^(19[0-9]{2}|2[0-9]{3})-(0[1-9]|1[012])-([123]0|[012][1-9]|31) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Mac Address</name>
+    <pattern><![CDATA[(([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2})|(([0-9A-Fa-f]{4}\.){2}[0-9A-Fa-f]{4})]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <class>io.dataapps.chlorine.pattern.CompositeCreditCardFinder</class>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>IPV4</name>
+    <pattern><![CDATA[(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Month</name>
+    <pattern>
+      <![CDATA[^(?:J(anuary|u(ne|ly))|February|Ma(rch|y)|A(pril|ugust)|(((Sept|Nov|Dec)em)|Octo)ber)$]]>
+    </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>US Postal Codes</name>
+    <pattern>
+      <![CDATA[^(A[LKSZRAEP]|C[AOT]|D[EC]|F[LM]|G[AU]|HI|I[ADLN]|K[SY]|LA|M[ADEHINOPST]|N[CDEHJMVY]|O[HKR]|P[ARW]|RI|S[CD]|T[NX]|UT|V[AIT]|W[AIVY])$]]>
+    </pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>US State</name>
+    <pattern><![CDATA[(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New\sHampshire|New\sJersey|New\sMexico|New\sYork|North\sCarolina|North\sDakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode\sIsland|South\sCarolina|South\sDakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West\sVirginia|Wisconsin|Wyoming)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>US State</name>
+    <pattern><![CDATA[^([Aa][LKSZRAEPlkszraep]|[Cc][AOTaot]|[Dd][ECec]|[Ff][LMlm]|[Gg][AUau]|[Hh][Ii]|[Ii][ADLNadln]|[Kk][SYsy]|[Ll][Aa]|[Mm][ADEHINOPSTadehinopst]|[Nn][CDEHJMVYcdehjmvy]|[Oo][HKRhkr]|[Pp][ARWarw]|[Rr][Ii]|[Ss][CDcd]|[Tt][NXnx]|[Uu][Tt]|[Vv][AITait]|[Ww][AIVYaivy])$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>SSN</name>
+    <pattern><![CDATA[[0-9]{3}\s[0-9]{2}\s[0-9]{4}]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>SSN</name>
+    <pattern><![CDATA[[0-9]{3}\-[0-9]{2}\-[0-9]{4}]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>IPV6</name>
+    <pattern><![CDATA[\b(?:(?:(?:[A-F0-9]{1,4}:){6}|(?=(?:[A-F0-9]{0,4}:){0,6}(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?![:.\w]))(([0-9A-F]{1,4}:){0,5}|:)((:[0-9A-F]{1,4}){1,5}:|:)|::(?:[A-F0-9]{1,4}:){5})(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}|(?=(?:[A-F0-9]{0,4}:){0,7}[A-F0-9]{0,4}(?![:.\w]))(([0-9A-F]{1,4}:){1,7}|:)((:[0-9A-F]{1,4}){1,7}|:)|(?:[A-F0-9]{1,4}:){7}:|:(:[A-F0-9]{1,4}){7})(?![:.\w])\b]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Text</name>
+    <pattern><![CDATA[^[a-zA-Z ]*$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Gender</name>
+    <pattern><![CDATA[^(?:m|M|male|Male|f|F|female|Female)$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Boolean</name>
+    <pattern><![CDATA[^(?i)(true|false|yes|no)$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>IBAN</name>
+    <pattern><![CDATA[[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern><![CDATA[^3[47][0-9]{13}$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern><![CDATA[^5[1-5][0-9]{14}$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern><![CDATA[^4[0-9]{12}(?:[0-9]{3})?$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern><![CDATA[^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14})$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern><![CDATA[^65[4-9][0-9]{13}|64[4-9][0-9]{13}|6011[0-9]{12}|(622(?:12[6-9]|1[3-9][0-9]|[2-8][0-9][0-9]|9[01][0-9]|92[0-5])[0-9]{10})$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Credit Card</name>
+    <pattern><![CDATA[^3(?:0[0-5]|[68][0-9])[0-9]{11}$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>ISBN</name>
+    <pattern><![CDATA[^(?:ISBN(?:-1[03])?:?●)?(?=[0-9X]{10}$|(?=(?:[0-9]+[-●]){3})[-●0-9X]{13}$|97[89][0-9]{10}$|(?=(?:[0-9]+[-●]){4})[-●0-9]{17}$)(?:97[89][-●]?)?[0-9]{1,5}[-●]?[0-9]+[-●]?[0-9]+[-●]?[0-9X]$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Integer</name>
+    <pattern><![CDATA[(?<=\s|^)\d+(?=\s|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Zip Code</name>
+    <pattern><![CDATA[^\d{5}(?:[-\s]\d{4})?$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Time</name>
+    <pattern><![CDATA[^([0-1][0-9]|[2][0-3]):([0-5][0-9])$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Time</name>
+    <pattern><![CDATA[^(([0-1]?[0-9])|([2][0-3])):([0-5]?[0-9])(:([0-5]?[0-9]))?$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Month/Year</name>
+    <pattern><![CDATA[^((0[1-9])|(1[0-2]))\/(\d{4})$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Date</name>
+    <pattern><![CDATA[^((0?[13578]|10|12)(-|\/)(([1-9])|(0[1-9])|([12])([0-9]?)|(3[01]?))(-|\/)((19)([2-9])(\d{1})|(20)([01])(\d{1})|([8901])(\d{1}))|(0?[2469]|11)(-|\/)(([1-9])|(0[1-9])|([12])([0-9]?)|(3[0]?))(-|\/)((19)([2-9])(\d{1})|(20)([01])(\d{1})|([8901])(\d{1})))$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Date</name>
+    <pattern><![CDATA[^((0[1-9]|[12][012345678]|19)\.(0[1-9]|1[012])|29\.(0[13-9]|1[012])|30\.(0[13-9]|1[012])|31\.(0[13578]|1[02]))\.(19|20)\d\d|29\.02\.(19|20)([02468][048]|[13579][26])$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Currency</name>
+    <pattern><![CDATA[^\D?\s*\d*([,.]?\d{3})*[,.]\d{2}$]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Email</name>
+    <pattern><![CDATA[(\D|^)[A-Z0-9._%+-]+@([A-Z0-9.-]+)\.([A-Z]{2,4})(\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>US Phone#Formatted</name>
+    <pattern><![CDATA[(\D|^)[0-9]{3}[\)\ \-\.]{1,2}[0-9]{3}[\-\ \.][0-9]{4}(\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>IPV4</name>
+    <pattern><![CDATA[([^\.^\d]|^)(?:[0-9]{1,3}\.){3}[0-9]{1,3}([^\.^\d]|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>Street Address</name>
+    <pattern><![CDATA[(\W|_|^)\d+(\s[A-Z0-9\.]+?){1,3}\s(RD|ROAD|DR|DRIVE|AVE|AVENUE|APT|APARTMENT|PL|PLACE|ST|STREET)(\W|_|$)]]></pattern>
+    <flags>10</flags>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>SSN-spaces</name>
+    <pattern><![CDATA[(\D|^)[0-9]{3}\s[0-9]{2}\s[0-9]{4}(\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>SSN-dashes</name>
+    <pattern><![CDATA[(\D|^)[0-9]{3}\-[0-9]{2}\-[0-9]{4}(\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>ZipCode</name>
+    <pattern><![CDATA[(\D|^)[0-9]{5}(?:-[0-9]{4})?(\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>URL</name>
+    <pattern><![CDATA[(\D|^)\b((https?|ftp|file)://|(www|ftp)\.)[-A-Z0-9+&@#/%?=~_|$!:,.;]*[A-Z0-9+&@#/%=~_|](\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+  <finder>
+    <name>IPV6</name>
+    <pattern><![CDATA[(\D|^)(?:(?:(?:[A-F0-9]{1,4}:){6}|(?=(?:[A-F0-9]{0,4}:){0,6}(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?![:.\w]))(([0-9A-F]{1,4}:){0,5}|:)((:[0-9A-F]{1,4}){1,5}:|:)|::(?:[A-F0-9]{1,4}:){5})(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}|(?=(?:[A-F0-9]{0,4}:){0,7}[A-F0-9]{0,4}(?![:.\w]))(([0-9A-F]{1,4}:){1,7}|:)((:[0-9A-F]{1,4}){1,7}|:)|(?:[A-F0-9]{1,4}:){7}:|:(:[A-F0-9]{1,4}){7})(?![:.\w])(\D|$)]]></pattern>
+    <enabled>true</enabled>
+  </finder>
+</finders>

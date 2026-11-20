@@ -58,6 +58,8 @@ directive
     | number
     | bool
     | column
+    | byteSizeArg
+    | timeDurationArg
     | colList
     | numberList
     | boolList
@@ -140,7 +142,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+  | Number
+  | BYTE_SIZE
+  | TIME_DURATION
+  | Column
+  | Bool
  ;
 
 ecommand
@@ -166,6 +173,14 @@ number
 bool
  : Bool
  ;
+
+byteSizeArg
+  : BYTE_SIZE
+  ;
+
+timeDurationArg
+  : TIME_DURATION
+  ;
 
 condition
  : OBrace (~CBrace | condition)* CBrace
@@ -307,6 +322,14 @@ fragment Int
  : '-'? [1-9] Digit* [L]*
  | '0'
  ;
+
+// Byte Size (e.g., 10KB, 15mb, 1.5GB)
+BYTE_SIZE: DIGIT+ ('.' DIGIT+)? BYTE_UNIT;
+fragment BYTE_UNIT: [KkMmGgTt][Bb];
+
+// Time Duration (e.g., 500ms, 2s, 1.5h)
+TIME_DURATION: DIGIT+ ('.' DIGIT+)? TIME_UNIT;
+fragment TIME_UNIT: [mM][sS] | [sS] | [hH] | [dD];
 
 fragment Digit
  : [0-9]

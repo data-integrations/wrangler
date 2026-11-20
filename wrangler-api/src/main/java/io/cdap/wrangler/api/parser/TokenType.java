@@ -31,8 +31,9 @@ import java.io.Serializable;
  * @see Bool
  * @see BoolList
  * @see ColumnName
- * @see ColumnNameList
  * @see DirectiveName
+ * @see BYTE_SIZE
+ * @see TIME_DURATION
  * @see Numeric
  * @see NumericList
  * @see Properties
@@ -127,6 +128,18 @@ public enum TokenType implements Serializable {
    * </code>
    */
   EXPRESSION,
+
+  /**
+   * Represents the enumerated type for the object of type {@code TimeDuration} type.
+   * This type is associated with tokens like "500ms", "2h", etc.
+   */
+  TIME_DURATION,
+
+  /**
+   * Represents the enumerated type for the object of type {@code ByteSize} type.
+   * This type is associated with tokens like "10KB", "1.5MB", etc.
+   */
+  BYTE_SIZE,
 
   /**
    * Represents the enumerated type for the object of type {@code Properties} type.
