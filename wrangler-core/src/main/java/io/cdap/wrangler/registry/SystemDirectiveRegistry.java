@@ -14,6 +14,7 @@
  *  the License.
  */
 
+
 package io.cdap.wrangler.registry;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -79,6 +80,10 @@ public final class SystemDirectiveRegistry implements DirectiveRegistry {
    */
   public SystemDirectiveRegistry(List<String> namespaces) throws DirectiveLoadException {
     Map<String, DirectiveInfo> registry = new HashMap<>();
+
+    // 👇 Add your custom directive package
+    namespaces.add("io.cdap.directives.aggregates");
+
     namespaces.add(PACKAGE);
     for (String namespace : namespaces) {
       try {
