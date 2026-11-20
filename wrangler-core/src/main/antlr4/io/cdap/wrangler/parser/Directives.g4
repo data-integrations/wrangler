@@ -311,3 +311,24 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+// Add these fragments for unit recognition
+fragment BYTE_UNIT: ('B'|'KB'|'MB'|'GB'|'TB'|'KIB'|'MIB'|'GIB'|'TIB');
+fragment TIME_UNIT: ('NS'|'MS'|'S'|'M'|'H'|'D');
+
+// Add lexer rules
+BYTE_SIZE: NUMBER WS* BYTE_UNIT;
+TIME_DURATION: NUMBER WS* TIME_UNIT;
+
+// Modify parser rules to accept these tokens
+value
+    : STRING
+    | NUMBER
+    | BOOLEAN
+    | NULL
+    | BYTE_SIZE
+    | TIME_DURATION
+    ;
+
+// Add specific argument types
+byteSizeArg: BYTE_SIZE;
+timeDurationArg: TIME_DURATION;
