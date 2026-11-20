@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright © 2017-2025 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -13,7 +13,6 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package io.cdap.wrangler.parser;
 
 import io.cdap.wrangler.api.LazyNumber;
@@ -22,6 +21,7 @@ import io.cdap.wrangler.api.SourceInfo;
 import io.cdap.wrangler.api.Triplet;
 import io.cdap.wrangler.api.parser.Bool;
 import io.cdap.wrangler.api.parser.BoolList;
+import io.cdap.wrangler.api.parser.ByteSize;
 import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.ColumnNameList;
 import io.cdap.wrangler.api.parser.DirectiveName;
@@ -33,7 +33,9 @@ import io.cdap.wrangler.api.parser.Properties;
 import io.cdap.wrangler.api.parser.Ranges;
 import io.cdap.wrangler.api.parser.Text;
 import io.cdap.wrangler.api.parser.TextList;
+import io.cdap.wrangler.api.parser.TimeDuration;
 import io.cdap.wrangler.api.parser.Token;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -45,41 +47,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class <code>RecipeVisitor</code> implements the visitor pattern
- * used during traversal of the AST tree. The <code>ParserTree#Walker</code>
- * invokes appropriate methods as call backs with information about the node.
- *
- * <p>In order to understand what's being invoked, please look at the grammar file
- * <tt>Directive.g4</tt></p>.
- *
- * <p>This class exposes a <code>getTokenGroups</code> method for retrieving the
- * <code>RecipeSymbol</code> after visiting. The <code>RecipeSymbol</code> represents
- * all the <code>TokenGroup</code> for all directives in a recipe. Each directive
- * will create a <code>TokenGroup</code></p>
- *
- * <p> As the <code>ParseTree</code> is walking through the call graph, it generates
- * one <code>TokenGroup</code> for each directive in the recipe. Each <code>TokenGroup</code>
- * contains parsed <code>Tokens</code> for that directive along with more information like
- * <code>SourceInfo</code>. A collection of <code>TokenGroup</code> consistutes a <code>RecipeSymbol</code>
- * that is returned by this function.</p>
+ * Implements the visitor pattern for traversing the AST of a recipe.
+ * <p>
+ * The parser's <code>ParseTreeWalker</code> invokes callback methods with node information.
+ * See the grammar file <tt>Directive.g4</tt> for details on the parsing structure.
+ * </p>
+ * <p>
+ * This class provides a <code>getCompiledUnit</code> method to retrieve the <code>RecipeSymbol</code>
+ * after visiting. The <code>RecipeSymbol</code> contains all <code>TokenGroup</code> objects for
+ * directives in the recipe. Each directive produces a <code>TokenGroup</code> with parsed
+ * <code>Token</code> objects and associated <code>SourceInfo</code>.
+ * </p>
  */
 public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Builder> {
   private RecipeSymbol.Builder builder = new RecipeSymbol.Builder();
 
   /**
-   * Returns a <code>RecipeSymbol</code> for the recipe being parsed. This
-   * object has all the tokens that were successfully parsed along with source
-   * information for each directive in the recipe.
+   * Returns the compiled <code>RecipeSymbol</code> for the parsed recipe.
+   * <p>
+   * Contains all successfully parsed tokens and source information for each directive.
+   * </p>
    *
-   * @return An compiled object after parsing the recipe.
+   * @return the compiled recipe symbol
    */
   public RecipeSymbol getCompiledUnit() {
     return builder.build();
   }
 
   /**
-   * A Recipe is made up of Directives and Directives is made up of each individual
-   * Directive. This method is invoked on every visit to a new directive in the recipe.
+   * Visits a directive in the recipe, creating a new <code>TokenGroup</code>.
    */
   @Override
   public RecipeSymbol.Builder visitDirective(DirectivesParser.DirectiveContext ctx) {
@@ -88,8 +84,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can include identifiers, this method extracts that token that is being
-   * identified as token of type <code>Identifier</code>.
+   * Extracts an identifier token.
    */
   @Override
   public RecipeSymbol.Builder visitIdentifier(DirectivesParser.IdentifierContext ctx) {
@@ -98,8 +93,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can include properties (which are a collection of key and value pairs),
-   * this method extracts that token that is being identified as token of type <code>Properties</code>.
+   * Extracts a properties token (key-value pairs).
    */
   @Override
   public RecipeSymbol.Builder visitPropertyList(DirectivesParser.PropertyListContext ctx) {
@@ -123,11 +117,10 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Pragma is an instruction to the compiler to dynamically load the directives being specified
-   * from the <code>DirectiveRegistry</code>. These do not affect the data flow.
-   *
-   * <p>E.g. <code>#pragma load-directives test1, test2, test3;</code> will collect the tokens
-   * test1, test2 and test3 as dynamically loadable directives. <p>
+   * Handles a pragma to load directives dynamically from the <code>DirectiveRegistry</code>.
+   * <p>
+   * Example: <code>#pragma load-directives test1, test2, test3;</code>
+   * </p>
    */
   @Override
   public RecipeSymbol.Builder visitPragmaLoadDirective(DirectivesParser.PragmaLoadDirectiveContext ctx) {
@@ -139,8 +132,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Pragma version is a informational directive to notify compiler about the grammar that is should
-   * be using to parse the directives below.
+   * Handles a pragma specifying the grammar version for parsing directives.
    */
   @Override
   public RecipeSymbol.Builder visitPragmaVersion(DirectivesParser.PragmaVersionContext ctx) {
@@ -149,9 +141,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can include number ranges like start:end=value[,start:end=value]*. This
-   * visitor method allows you to collect all the number ranges and create a token type
-   * <code>Ranges</code>.
+   * Extracts number ranges (e.g., start:end=value[,start:end=value]*).
    */
   @Override
   public RecipeSymbol.Builder visitNumberRanges(DirectivesParser.NumberRangesContext ctx) {
@@ -175,8 +165,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * This visitor method extracts the custom directive name specified. The custom
-   * directives are specified with a bang (!) at the start.
+   * Extracts a custom directive name (starting with '!').
    */
   @Override
   public RecipeSymbol.Builder visitEcommand(DirectivesParser.EcommandContext ctx) {
@@ -185,9 +174,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can consist of column specifiers. These are columns that the directive
-   * would operate on. When a token of type column is visited, it would generate a token
-   * type of type <code>ColumnName</code>.
+   * Extracts a column name token.
    */
   @Override
   public RecipeSymbol.Builder visitColumn(DirectivesParser.ColumnContext ctx) {
@@ -196,9 +183,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can consist of text field. These type of fields are enclosed within
-   * a single-quote or a double-quote. This visitor method extracts the string value
-   * within the quotes and creates a token type <code>Text</code>.
+   * Extracts a text token (enclosed in quotes).
    */
   @Override
   public RecipeSymbol.Builder visitText(DirectivesParser.TextContext ctx) {
@@ -208,8 +193,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can consist of numeric field. This visitor method extracts the
-   * numeric value <code>Numeric</code>.
+   * Extracts a numeric token.
    */
   @Override
   public RecipeSymbol.Builder visitNumber(DirectivesParser.NumberContext ctx) {
@@ -219,9 +203,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can consist of Bool field. The Bool field is represented as
-   * either true or false. This visitor method extract the bool value into a
-   * token type <code>Bool</code>.
+   * Extracts a boolean token.
    */
   @Override
   public RecipeSymbol.Builder visitBool(DirectivesParser.BoolContext ctx) {
@@ -230,9 +212,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive can include a expression or a condition to be evaluated. When
-   * such a token type is found, the visitor extracts the expression and generates
-   * a token type <code>Expression</code> to be added to the <code>TokenGroup</code>
+   * Extracts an expression or condition token.
    */
   @Override
   public RecipeSymbol.Builder visitCondition(DirectivesParser.ConditionContext ctx) {
@@ -247,8 +227,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * A Directive has name and in the parsing context it's called a command.
-   * This visitor methods extracts the command and creates a toke type <code>DirectiveName</code>
+   * Extracts a directive name (command).
    */
   @Override
   public RecipeSymbol.Builder visitCommand(DirectivesParser.CommandContext ctx) {
@@ -257,8 +236,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * This visitor methods extracts the list of columns specified. It creates a token
-   * type <code>ColumnNameList</code> to be added to <code>TokenGroup</code>.
+   * Extracts a list of column names.
    */
   @Override
   public RecipeSymbol.Builder visitColList(DirectivesParser.ColListContext ctx) {
@@ -272,8 +250,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * This visitor methods extracts the list of numeric specified. It creates a token
-   * type <code>NumericList</code> to be added to <code>TokenGroup</code>.
+   * Extracts a list of numeric values.
    */
   @Override
   public RecipeSymbol.Builder visitNumberList(DirectivesParser.NumberListContext ctx) {
@@ -287,8 +264,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * This visitor methods extracts the list of booleans specified. It creates a token
-   * type <code>BoolList</code> to be added to <code>TokenGroup</code>.
+   * Extracts a list of boolean values.
    */
   @Override
   public RecipeSymbol.Builder visitBoolList(DirectivesParser.BoolListContext ctx) {
@@ -302,8 +278,7 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
   }
 
   /**
-   * This visitor methods extracts the list of strings specified. It creates a token
-   * type <code>StringList</code> to be added to <code>TokenGroup</code>.
+   * Extracts a list of text values.
    */
   @Override
   public RecipeSymbol.Builder visitStringList(DirectivesParser.StringListContext ctx) {
@@ -317,6 +292,31 @@ public final class RecipeVisitor extends DirectivesBaseVisitor<RecipeSymbol.Buil
     return builder;
   }
 
+  /**
+   * Extracts a byte size argument.
+   */
+  @Override
+  public RecipeSymbol.Builder visitByteSizeArg(DirectivesParser.ByteSizeArgContext ctx) {
+    String raw = ctx.getText();
+    // ByteSize token class is expected to handle parsing from raw string to bytes
+    builder.addToken(new ByteSize(raw));
+    return builder;
+  }
+
+  /**
+   * Extracts a time duration argument.
+   */
+  @Override
+  public RecipeSymbol.Builder visitTimeDurationArg(DirectivesParser.TimeDurationArgContext ctx) {
+    String raw = ctx.getText();
+    // TimeDuration token class should convert raw input (e.g., "5s", "100ms") to millis internally
+    builder.addToken(new TimeDuration(raw));
+    return builder;
+  }
+
+  /**
+   * Retrieves the original source information for a parser context.
+   */
   private SourceInfo getOriginalSource(ParserRuleContext ctx) {
     int a = ctx.getStart().getStartIndex();
     int b = ctx.getStop().getStopIndex();

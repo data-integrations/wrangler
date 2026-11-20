@@ -31,6 +31,26 @@ More [here](wrangler-docs/upcoming-features.md) on upcoming features.
   * A new capability that allows CDAP Administrators to **restrict the directives** that are accessible to their users.
 More information on configuring can be found [here](wrangler-docs/exclusion-and-aliasing.md)
 
+## Byte Size and Time Duration Parsers
+
+### Overview
+
+This enhancement adds support for parsing byte size (e.g., "10KB", "1.5MB") and time duration (e.g., "5ms", "2.1s") units in CDAP Wrangler recipes. It includes a new `aggregate-stats` directive to compute aggregates over these units.
+
+### Usage
+
+#### Byte Size Parser
+- **Syntax**: `<number><unit>` (e.g., "10KB", "1.5MB", "100GB").
+- **Units**: B (bytes), KB (kilobytes), MB (megabytes), GB (gigabytes), TB (terabytes).
+- **Example**: Parse a column with byte sizes:
+
+- Converts values like "10KB" to bytes internally, outputs total in MB.
+
+#### Time Duration Parser
+- **Syntax**: `<number><unit>` (e.g., "5ms", "2.1s", "100us").
+- **Units**: ns (nanoseconds), us (microseconds), ms (milliseconds), s (seconds), m (minutes), h (hours).
+- **Example**: Parse a column with time durations:
+
 ## Demo Videos and Recipes
 
 Videos and Screencasts are best way to learn, so we have compiled simple, short screencasts that shows some of the features of Data Prep. Additional videos can be found [here](https://www.youtube.com/playlist?list=PLhmsf-NvXKJn-neqefOrcl4n7zU4TWmIr)
