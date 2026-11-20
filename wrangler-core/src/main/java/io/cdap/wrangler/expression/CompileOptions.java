@@ -16,11 +16,10 @@
 
 package io.cdap.wrangler.expression;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.cdap.wrangler.api.Arguments;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
-import io.cdap.wrangler.parser.MapArgumentsWithContext;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -52,13 +51,8 @@ public class CompileOptions {
     return jexlAllowlist;
   }
 
-  public static CompileOptions fromArguments(Arguments args) {
-    if (args instanceof MapArgumentsWithContext) {
-      DirectiveContext context = ((MapArgumentsWithContext) args).getDirectiveContext();
-      if (context != null) {
-        return new CompileOptions(context.isJexlAllowlistEnabled(), context.getJexlAllowlist());
-      }
-    }
-    return DEFAULT;
+  public static CompileOptions fromContext(DirectiveContext context) {
+    Preconditions.checkNotNull(context, "DirectiveContext cannot be null while initializing EL.");
+    return new CompileOptions(context.isJexlAllowlistEnabled(), context.getJexlAllowlist());
   }
 }

@@ -26,6 +26,7 @@ import io.cdap.wrangler.api.DirectiveParseException;
 import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipeParser;
 import io.cdap.wrangler.api.parser.UsageDefinition;
+import io.cdap.wrangler.expression.EL;
 import io.cdap.wrangler.registry.DirectiveInfo;
 import io.cdap.wrangler.registry.DirectiveRegistry;
 
@@ -72,6 +73,10 @@ public class GrammarBasedParser implements RecipeParser {
     try {
       List<Directive> result = new ArrayList<>();
 
+      // Makes the JEXL allowlist configuration available to EL for the directives
+      // that are initialized below.
+      EL.initialize(context);
+
       new GrammarWalker(new RecipeCompiler(), context).walk(recipe, (command, tokenGroup) -> {
         directiveIndex.getAndIncrement();
         DirectiveInfo info = registry.get(namespace, command);
@@ -84,7 +89,7 @@ public class GrammarBasedParser implements RecipeParser {
         try {
           Directive directive = info.instance();
           UsageDefinition definition = directive.define();
-          Arguments arguments = new MapArgumentsWithContext(definition, tokenGroup, context);
+          Arguments arguments = new MapArguments(definition, tokenGroup);
           directive.initialize(arguments);
           result.add(directive);
 
@@ -98,6 +103,8 @@ public class GrammarBasedParser implements RecipeParser {
       throw new RecipeException(e.getMessage(), e, directiveIndex.get());
     } catch (Exception e) {
       throw new RecipeException(e.getMessage(), e);
+    } finally {
+      EL.reset();
     }
   }
 }
