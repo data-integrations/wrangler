@@ -77,7 +77,7 @@ public class ConvertString {
     if (!StringUtils.isEmpty(repeatStr)) {
       removeRepeatCharPattern = Pattern.compile("(" + repeatStr + ")+");
     }
-    removeWhiteSpacesPattern = Pattern.compile("([\\s\\u0085\\p{Z}])\\1+");
+    removeWhiteSpacesPattern = Pattern.compile("([\\s\\u0085\\p{Z}\\u180E])\\1+");
   }
 
   /**
