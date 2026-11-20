@@ -16,9 +16,9 @@
 
 package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
 import java.io.Serializable;
+
+import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 /**
  * The TokenType class provides the enumerated types for different types of
@@ -79,7 +79,7 @@ public enum TokenType implements Serializable {
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
    * This type is associated with the rule that is a collection of {@code Boolean} values
-   * separated by comman(,). E.g.
+   * separated by comma(,). E.g.
    * <code>
    *   ColumnName[,ColumnName]*
    * </code>
@@ -88,7 +88,7 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of type {@code TextList} type.
-   * This type is associated with the comma separated text represented were each text
+   * This type is associated with the comma separated text represented where each text
    * is enclosed within a single quote (') or double quote (") and each text is separated
    * by comma (,). E.g.
    * <code>
@@ -152,5 +152,17 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents the enumerated type for the object of type {@code ByteSize}.
+   * This type is associated with the token that represents byte size values (e.g., "10KB", "150MB").
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for the object of type {@code TimeDuration}.
+   * This type is associated with the token that represents time duration values (e.g., "150ms", "2s").
+   */
+  TIME_DURATION
 }
