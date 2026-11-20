@@ -1,19 +1,3 @@
-/*
- * Copyright © 2017-2019 Cask Data, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
- */
-
 grammar Directives;
 
 options {
@@ -22,7 +6,7 @@ options {
 
 @lexer::header {
 /*
- * Copyright © 2017-2019 Cask Data, Inc.
+ * Copyright 2017-2019 Cask Data, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -46,7 +30,7 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)* 
  ;
 
 directive
@@ -64,8 +48,18 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSizeArg
+    | timeDurationArg
   )*?
   ;
+
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
 
 ifStatement
   : ifStat elseIfStat* elseStat? '}'
@@ -140,7 +134,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -195,7 +189,6 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
-
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
  */
@@ -247,7 +240,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -257,20 +249,36 @@ Number
  : Int ('.' Digit*)?
  ;
 
+fragment BYTE_UNIT
+ : ('B' | 'KB' | 'MB' | 'GB' | 'TB')
+ ;
+
+fragment TIME_UNIT
+ : ('ns' | 'us' | 'ms' | 's' | 'm' | 'h' | 'd')
+ ;
+
+BYTE_SIZE
+ : Digit+ BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Digit+ TIME_UNIT
+ ;
+
 Identifier
- : [a-zA-Z_\-] [a-zA-Z_0-9\-]*
+ : [a-zA-Z_\-] [a-zA-Z_0-9\-]* 
  ;
 
 Macro
- : [a-zA-Z_] [a-zA-Z_0-9]*
+ : [a-zA-Z_] [a-zA-Z_0-9]* 
  ;
 
 Column
- : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]*
+ : ':' [a-zA-Z_\-] [:a-zA-Z_0-9\-]* 
  ;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
+ : '\'' ( EscapeSequence | ~('\'') )* '\'' 
  | '"'  ( EscapeSequence | ~('"') )* '"'
  ;
 
@@ -304,7 +312,7 @@ Space
  ;
 
 fragment Int
- : '-'? [1-9] Digit* [L]*
+ : '-'? [1-9] Digit* [L]* 
  | '0'
  ;
 
