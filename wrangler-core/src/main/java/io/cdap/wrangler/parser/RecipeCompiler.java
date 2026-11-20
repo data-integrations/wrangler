@@ -16,19 +16,20 @@
 
 package io.cdap.wrangler.parser;
 
+import java.io.InputStream;
+import java.nio.file.Path;
+
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.DefaultErrorStrategy;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.apache.twill.filesystem.Location;
+
 import io.cdap.wrangler.api.CompileException;
 import io.cdap.wrangler.api.CompileStatus;
 import io.cdap.wrangler.api.Compiler;
 import io.cdap.wrangler.api.RecipeSymbol;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.tool.GrammarParserInterpreter;
-import org.apache.twill.filesystem.Location;
-
-import java.io.InputStream;
-import java.nio.file.Path;
 
 /**
  * Class description here.
@@ -58,30 +59,33 @@ public final class RecipeCompiler implements Compiler {
     }
   }
 
-  private CompileStatus compile(CharStream stream) throws CompileException {
+private CompileStatus compile(CharStream stream) throws CompileException {
     try {
-      SyntaxErrorListener errorListener = new SyntaxErrorListener();
-      DirectivesLexer lexer = new DirectivesLexer(stream);
-      lexer.removeErrorListeners();
-      lexer.addErrorListener(errorListener);
+        SyntaxErrorListener errorListener = new SyntaxErrorListener();
+        DirectivesLexer lexer = new DirectivesLexer(stream);
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(errorListener);
 
-      DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
-      parser.removeErrorListeners();
-      parser.addErrorListener(errorListener);
-      parser.setErrorHandler(new GrammarParserInterpreter.BailButConsumeErrorStrategy());
-      parser.setBuildParseTree(true);
-      ParseTree tree = parser.statements();
+        DirectivesParser parser = new DirectivesParser(new CommonTokenStream(lexer));
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        
+        // Use DefaultErrorStrategy for standard error handling
+        parser.setErrorHandler(new DefaultErrorStrategy());
+        
+        parser.setBuildParseTree(true);
+        ParseTree tree = parser.statements();
 
-      if (errorListener.hasErrors()) {
-        return new CompileStatus(true, errorListener.iterator());
-      }
+        if (errorListener.hasErrors()) {
+            return new CompileStatus(true, errorListener.iterator());
+        }
 
-      RecipeVisitor visitor = new RecipeVisitor();
-      visitor.visit(tree);
-      RecipeSymbol symbol = visitor.getCompiledUnit();
-      return new CompileStatus(symbol);
+        RecipeVisitor visitor = new RecipeVisitor();
+        visitor.visit(tree);
+        RecipeSymbol symbol = visitor.getCompiledUnit();
+        return new CompileStatus(symbol);
     } catch (StringIndexOutOfBoundsException e) {
-      throw new CompileException("Issue in compiling directives");
+        throw new CompileException("Issue in compiling directives");
     }
   }
 }

@@ -16,16 +16,6 @@
 
 package io.cdap.directives.validation;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import io.cdap.wrangler.TestingRig;
-import io.cdap.wrangler.api.Row;
-import io.cdap.wrangler.utils.Manifest;
-import io.cdap.wrangler.utils.Manifest.Standard;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,8 +31,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.utils.Manifest;
+import io.cdap.wrangler.utils.Manifest.Standard;
 
 /**
  * Tests for ValidateStandard and the manifest and schemas in the package.
@@ -50,32 +51,35 @@ import static org.junit.Assert.assertTrue;
 public class ValidateStandardTest {
 
   private static Map<String, Standard> getSpecsInArchive()
-    throws IOException, NoSuchAlgorithmException {
-    Map<String, Standard> schemas = new HashMap<>();
-    CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
-    if (src != null) {
-      File schemasRoot =
-        Paths.get(src.getLocation().getPath(), ValidateStandard.SCHEMAS_RESOURCE_PATH).toFile();
+    throws IOException, NoSuchAlgorithmException, java.net.URISyntaxException {
+  Map<String, Standard> schemas = new HashMap<>();
+  CodeSource src = ValidateStandard.class.getProtectionDomain().getCodeSource();
+  if (src != null) {
+    File schemasRoot = Paths
+      .get(src.getLocation().toURI())  // Now throws URISyntaxException
+      .resolve(ValidateStandard.SCHEMAS_RESOURCE_PATH)
+      .toFile();
 
-      if (!schemasRoot.isDirectory()) {
-        throw new IOException(
-          String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
-      }
-
-      for (File f : schemasRoot.listFiles()) {
-        if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
-          continue;
-        }
-
-        String hash = calcHash(new FileInputStream(f));
-        schemas.put(
-          FilenameUtils.getBaseName(f.getName()),
-          new Standard(hash, FilenameUtils.getExtension(f.getName())));
-      }
+    if (!schemasRoot.isDirectory()) {
+      throw new IOException(
+        String.format("Schemas root %s was not a directory", schemasRoot.getPath()));
     }
 
-    return schemas;
+    for (File f : schemasRoot.listFiles()) {
+      if (f.toPath().endsWith(ValidateStandard.MANIFEST_PATH)) {
+        continue;
+      }
+
+      String hash = calcHash(new FileInputStream(f));
+      schemas.put(
+        FilenameUtils.getBaseName(f.getName()),
+        new Standard(hash, FilenameUtils.getExtension(f.getName())));
+    }
   }
+
+  return schemas;
+}
+
 
   private static String calcHash(InputStream is) throws IOException, NoSuchAlgorithmException {
     byte[] bytes = IOUtils.toByteArray(is);

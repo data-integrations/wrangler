@@ -16,10 +16,10 @@
 
 package io.cdap.wrangler.dq;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Useful String conversion operations.
@@ -171,11 +171,19 @@ public class ConvertString {
    * @return the string removed all whiteSpaces
    */
   public String removeRepeatedWhitespaces(String input) {
-    if (StringUtils.isEmpty(input) || removeWhiteSpacesPattern == null) {
+    if (StringUtils.isEmpty(input)) {
       return input;
     }
+  
+    // Collapse repeated Unicode whitespace
     Matcher matcher = removeWhiteSpacesPattern.matcher(input);
-    return matcher.replaceAll("$1");
+    String cleaned = matcher.replaceAll("$1");
+  
+    // Additional fix: remove space(s) between brackets
+    cleaned = cleaned.replaceAll("\\[\\s+\\]", "[]");
+  
+    return cleaned;
   }
+  
 
 }

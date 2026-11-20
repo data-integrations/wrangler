@@ -16,6 +16,16 @@
 
 package io.cdap.wrangler.registry;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nullable;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import io.cdap.cdap.api.annotation.Description;
 import io.cdap.cdap.api.annotation.Name;
 import io.cdap.cdap.api.annotation.Plugin;
@@ -31,14 +41,6 @@ import io.cdap.wrangler.api.parser.ColumnName;
 import io.cdap.wrangler.api.parser.TokenType;
 import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.proto.Contexts;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
 
 /**
  * Tests {@link CompositeDirectiveRegistry}
@@ -134,7 +136,7 @@ public class CompositeDirectiveRegistryTest {
       iterator.next();
       count++;
     }
-    Assert.assertEquals(85, count);
+    Assert.assertEquals(86, count);
 
   }
 }
