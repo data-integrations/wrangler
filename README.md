@@ -21,7 +21,10 @@ are manually created.
 ## New Features
 
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
+  **Updates**
 
+  Completed the implementation of BYTE_SIZE and TIME_DURATION grammar rules as part of the wrangling assignment. All tests passed and the grammar was successfully integrated into the directives.g4 file.
+  
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
@@ -116,6 +119,8 @@ These directives are currently available:
 | [Diff Date](wrangler-docs/directives/diff-date.md)                              | Calculates the difference between two dates                      |
 | [Format Date](wrangler-docs/directives/format-date.md)                          | Custom patterns for date-time formatting                         |
 | [Format Unix Timestamp](wrangler-docs/directives/format-unix-timestamp.md)      | Formats a UNIX timestamp as a date                               |
+| [BYTE_SIZE]()                          | Calculates user friendly data size to bytes automatically treating new data size as a new data type                         |
+| [TIME_DURATION]()      | Calculates user friendly time duration to ms automatically treating new time vlaue as a new data type                               |
 | **DateTime Transformations**                                                    |                                                                  |
 | [Current DateTime](wrangler-docs/directives/current-datetime.md)                | Generates the current datetime using the given zone or UTC by default|
 | [Datetime To Timestamp](wrangler-docs/directives/datetime-to-timestamp.md)      | Converts a datetime value to timestamp with the given zone       |
