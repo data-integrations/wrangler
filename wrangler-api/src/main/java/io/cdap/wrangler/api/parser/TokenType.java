@@ -16,9 +16,9 @@
 
 package io.cdap.wrangler.api.parser;
 
-import io.cdap.wrangler.api.annotations.PublicEvolving;
-
 import java.io.Serializable;
+
+import io.cdap.wrangler.api.annotations.PublicEvolving;
 
 /**
  * The TokenType class provides the enumerated types for different types of
@@ -79,7 +79,7 @@ public enum TokenType implements Serializable {
   /**
    * Represents the enumerated type for the object of type {@code BoolList} type.
    * This type is associated with the rule that is a collection of {@code Boolean} values
-   * separated by comman(,). E.g.
+   * separated by comma(,). E.g.
    * <code>
    *   ColumnName[,ColumnName]*
    * </code>
@@ -88,7 +88,7 @@ public enum TokenType implements Serializable {
 
   /**
    * Represents the enumerated type for the object of type {@code TextList} type.
-   * This type is associated with the comma separated text represented were each text
+   * This type is associated with the comma separated text where each text
    * is enclosed within a single quote (') or double quote (") and each text is separated
    * by comma (,). E.g.
    * <code>
@@ -104,7 +104,6 @@ public enum TokenType implements Serializable {
    * <code>
    *   Numeric[,Numeric]*
    * </code>
-   *
    */
   NUMERIC_LIST,
 
@@ -141,7 +140,7 @@ public enum TokenType implements Serializable {
   /**
    * Represents the enumerated type for the object of type {@code Ranges} types.
    * This type is associated with a collection of range represented in the form shown
-   * below
+   * below.
    * <code>
    *   <start>:<end>=value[,<start>:<end>=value]*
    * </code>
@@ -152,5 +151,17 @@ public enum TokenType implements Serializable {
    * Represents the enumerated type for the object of type {@code String} with restrictions
    * on characters that can be present in a string.
    */
-  IDENTIFIER
+  IDENTIFIER,
+
+  /**
+   * Represents the enumerated type for byte size tokens.
+   * This type is associated with tokens that represent sizes in bytes, e.g. "10KB", "1.5MB".
+   */
+  BYTE_SIZE,
+
+  /**
+   * Represents the enumerated type for time duration tokens.
+   * This type is associated with tokens that represent durations, e.g. "150ms", "2s".
+   */
+  TIME_DURATION
 }

@@ -1,0 +1,57 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] Wrangler                                                           [pom]
+[INFO] Wrangler API                                                       [jar]
+[INFO] Wrangler REST Protocol Classes                                     [jar]
+[INFO] Wrangler Core                                                      [jar]
+[INFO] Wrangler Storage                                                   [jar]
+[INFO] Wrangler Service                                                   [jar]
+[INFO] Wrangler Testing Framework                                         [jar]
+[INFO] Wrangler Transform                                                 [jar]
+[INFO] 
+[INFO] ---------------------< io.cdap.wrangler:wrangler >----------------------
+[INFO] Building Wrangler 4.12.0-SNAPSHOT                                  [1/8]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ wrangler ---
+[INFO] Deleting C:\Users\LAKSHMI DURGA O\Projects\wrangler\target
+[INFO] 
+[INFO] --- apache-rat:0.10:check (rat-check) @ wrangler ---
+[INFO] 58 implicit excludes (use -debug for more details).
+[INFO] Exclude: cov-int/**
+[INFO] Exclude: *.md
+[INFO] Exclude: **/*.md
+[INFO] Exclude: **/*.json
+[INFO] Exclude: **/resources/**
+[INFO] Exclude: wrangler-demos/**
+[INFO] Exclude: **/com/example/**
+[INFO] Exclude: /**/icons/**
+[INFO] 9 resources included (use -debug for more details)
+[INFO] Rat check: Summary of files. Unapproved: 1 unknown: 1 generated: 0 approved: 6 licence.
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Wrangler 4.12.0-SNAPSHOT:
+[INFO] 
+[INFO] Wrangler ........................................... FAILURE [  1.648 s]
+[INFO] Wrangler API ....................................... SKIPPED
+[INFO] Wrangler REST Protocol Classes ..................... SKIPPED
+[INFO] Wrangler Core ...................................... SKIPPED
+[INFO] Wrangler Storage ................................... SKIPPED
+[INFO] Wrangler Service ................................... SKIPPED
+[INFO] Wrangler Testing Framework ......................... SKIPPED
+[INFO] Wrangler Transform ................................. SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.613 s
+[INFO] Finished at: 2025-04-13T16:07:04+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.rat:apache-rat-plugin:0.10:check (rat-check) on project wrangler: Too many files with unapproved license: 1 See RAT report in: C:\Users\LAKSHMI DURGA O\Projects\wrangler\target\rat.txt -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
