@@ -16,6 +16,8 @@
 
 package io.cdap.wrangler.dq;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.math.BigDecimal;
 import javax.annotation.Nullable;
 
