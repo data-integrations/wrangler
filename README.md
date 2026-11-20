@@ -1,3 +1,60 @@
+
+## Overview
+
+This update to the Wrangler project focuses on enhancing the system by adding support for handling BYTE_SIZE and TIME_DURATION token types. These tokens will be used in directive arguments to represent byte sizes (e.g., "10KB", "150MB") and time durations (e.g., "5ms", "1.2s"). This enhancement includes modifications to the grammar, API, core parser, and the implementation of a new directive class. Additionally, unit tests will be added to ensure correctness and stability.
+
+# Progress
+
+(a) Grammar Modifications (Directives.g4)
+
+Lexer rules for BYTE_SIZE and TIME_DURATION were successfully added.
+BYTE_SIZE handles byte size units like "KB", "MB", "GB", etc.
+TIME_DURATION handles time units like "ms", "s", "minutes", etc.
+Helper fragments, including BYTE_UNIT and TIME_UNIT, were also included for better granularity.
+Relevant parser rules were modified or newly created:
+byteSizeArg and timeDurationArg were added to handle BYTE_SIZE and TIME_DURATION tokens.
+ANTLR Java parser/lexer code has been regenerated using the build process (mvn compile), and the changes are functioning as expected.
+
+(b) API Updates (wrangler-api module)
+
+Created the ByteSize.java and TimeDuration.java classes, extending Token.
+These classes correctly parse token strings like "10KB" and "150ms" in their constructors.
+Methods like getBytes() (for ByteSize) and similar methods for TimeDuration have been implemented to return values in canonical units (e.g., bytes, milliseconds).
+BYTE_SIZE and TIME_DURATION token types have been added.
+Usage and token definitions have been updated to support these new token types as valid directive arguments.
+
+(c) Core Parser Updates (wrangler-core module)
+
+Visit methods (visitByteSizeArg, visitTimeDurationArg) have been added to handle the new parser rules.
+Updates to the TokenGroup to include the newly created token instances are also done.
+
+(d) New Directive Implementation (wrangler-core module)
+
+A new directive class has been created to perform aggregation.
+The directive accepts at least four arguments: source column names for byte sizes and time durations, and target column names for the aggregated results.
+The directive is able to accumulate totals for byte size and time duration, converting them to canonical units as necessary.
+It uses the ExecutorContext to manage the aggregation logic and returns a new Row containing the calculated totals.
+
+(e) Testing (wrangler-core module)
+
+Unit tests for the ByteSize and TimeDuration classes have been written to verify correct parsing and value retrieval in canonical units.
+Parser tests have been added in GrammarBasedParserTest.java and RecipeCompilerTest.java to ensure that recipes using the new syntax are parsed correctly, and that invalid syntax is rejected.
+Comprehensive unit tests for the new AggregateStats directive are being written to ensure correctness.
+
+# Current Status
+The grammar modifications and API updates are complete and functioning as expected.
+
+Core parser updates and the new directive implementation are mostly complete, but there are a few minor issues that need resolution before finalizing.
+
+Testing is ongoing, and some tests are still being written. However, the existing tests already cover a substantial portion of the new functionality.
+
+# Next Steps
+
+Resolve any remaining issues with the core parser and the new directive class.
+Finalize and complete all unit tests and parser tests for full coverage.
+Address any edge cases and fix any errors identified during testing.
+I am confident that all issues will be resolved before the project deadline, and I will continue to refine the implementation to ensure the best possible performance and correctness.
+
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
@@ -87,8 +144,7 @@ These directives are currently available:
 | [Write as CSV](wrangler-docs/directives/write-as-csv.md)                        | Converts a record into CSV format                                |
 | [Write as JSON](wrangler-docs/directives/write-as-json-map.md)                  | Converts the record into a JSON map                              |
 | [Write JSON Object](wrangler-docs/directives/write-as-json-object.md)           | Composes a JSON object based on the fields specified.            |
-| [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.             |
-| **Transformations**                                                    |                                                                  |
+                                                |                                                                  |
 | [Changing Case](wrangler-docs/directives/changing-case.md)                      | Changes the case of column values                                |
 | [Cut Character](wrangler-docs/directives/cut-character.md)                      | Selects parts of a string value                                  |
 | [Set Column](wrangler-docs/directives/set-column.md)                            | Sets the column value to the result of an expression execution   |
@@ -102,7 +158,12 @@ These directives are currently available:
 | [Split by Separator](wrangler-docs/directives/split-by-separator.md)            | Splits a column based on a separator into two columns            |
 | [Split Email Address](wrangler-docs/directives/split-email.md)                  | Splits an email ID into an account and its domain                |
 | [Split URL](wrangler-docs/directives/split-url.md)                              | Splits a URL into its constituents                               |
-| [Text Distance (Fuzzy String Match)](wrangler-docs/directives/text-distance.md) | Measures the difference between two sequences of characters      |
+| [Text Distance (Fuzzy String Match)](wrangler-docs/directives/text-distance.md) | Measures the difference between two sequences of 
+characters      |
+| [Format as Currency](wrangler-docs/directives/format-as-currency.md)            | Formats a number as currency as specified by locale.   
+
+| **Transformations**
+| [Aggregate Stats](wrangler-docs/directives/aggregate-stats.md)    
 | [Text Metric (Fuzzy String Match)](wrangler-docs/directives/text-metric.md)     | Measures the difference between two sequences of characters      |
 | [URL Decode](wrangler-docs/directives/url-decode.md)                            | Decodes from the `application/x-www-form-urlencoded` MIME format |
 | [URL Encode](wrangler-docs/directives/url-encode.md)                            | Encodes to the `application/x-www-form-urlencoded` MIME format   |
