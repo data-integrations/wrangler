@@ -36,11 +36,13 @@ public class JDBCDriverShim implements Driver {
 
   @Override
   public boolean acceptsURL(String url) throws SQLException {
+    JdbcConnectionValidator.validateUrl(url);
     return delegate.acceptsURL(url);
   }
 
   @Override
   public Connection connect(String url, Properties info) throws SQLException {
+    JdbcConnectionValidator.validateJdbcConnection(url, info);
     return delegate.connect(url, info);
   }
 
