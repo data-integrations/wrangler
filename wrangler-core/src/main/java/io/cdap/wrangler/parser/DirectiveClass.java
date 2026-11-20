@@ -31,11 +31,20 @@ public class DirectiveClass {
   private final ArtifactId artifactId;
   private final String className;
 
-  public DirectiveClass(String name, String className, DirectiveScope scope, @Nullable ArtifactId artifactId) {
+  // New fields for byte size and time duration
+  private final String byteSizeArg; // e.g., "10KB"
+  private final String timeDurationArg; // e.g., "150ms"
+
+  public DirectiveClass(String name, String className, DirectiveScope scope,
+      @Nullable ArtifactId artifactId,
+      @Nullable String byteSizeArg,
+      @Nullable String timeDurationArg) {
     this.name = name;
     this.className = className;
     this.scope = scope;
     this.artifactId = artifactId;
+    this.byteSizeArg = byteSizeArg;
+    this.timeDurationArg = timeDurationArg;
   }
 
   public String getName() {
@@ -55,13 +64,27 @@ public class DirectiveClass {
     return artifactId;
   }
 
+  // New getter for byte size argument
+  @Nullable
+  public String getByteSizeArg() {
+    return byteSizeArg;
+  }
+
+  // New getter for time duration argument
+  @Nullable
+  public String getTimeDurationArg() {
+    return timeDurationArg;
+  }
+
   @Override
   public String toString() {
     return "DirectiveClass{" +
-      "name='" + name + '\'' +
-      ", scope=" + scope +
-      ", artifactId=" + artifactId +
-      ", className='" + className + '\'' +
-      '}';
+        "name='" + name + '\'' +
+        ", scope=" + scope +
+        ", artifactId=" + artifactId +
+        ", className='" + className + '\'' +
+        ", byteSizeArg='" + byteSizeArg + '\'' +
+        ", timeDurationArg='" + timeDurationArg + '\'' +
+        '}';
   }
 }
