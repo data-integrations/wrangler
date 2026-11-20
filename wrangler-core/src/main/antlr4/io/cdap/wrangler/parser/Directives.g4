@@ -49,6 +49,7 @@ statements
  :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
  ;
 
+
 directive
  : command
   (   codeblock
@@ -64,6 +65,7 @@ directive
     | stringList
     | numberRanges
     | properties
+    
   )*?
   ;
 
@@ -140,8 +142,14 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | BYTE_SIZE
+ | TIME_DURATION
  ;
+
 
 ecommand
  : '!' Identifier
@@ -311,3 +319,19 @@ fragment Int
 fragment Digit
  : [0-9]
  ;
+BYTE_SIZE
+ : Int ('.' Digit*)? BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Int ('.' Digit*)? TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : ('B' | 'KB' | 'MB' | 'GB' | 'TB' | 'KiB' | 'MiB' | 'GiB')
+ ;
+
+fragment TIME_UNIT
+ : ('ns' | 'us' | 'ms' | 's' | 'm' | 'h')
+ ;
+
