@@ -1,3 +1,51 @@
+## 🚀 Enhancement: Byte Size & Time Duration Token Support
+
+Wrangler now supports **parsing of Byte Size** and **Time Duration** tokens directly in directives. This enables more natural handling of values like `10KB` or `500ms` without requiring custom parsing in user code.
+
+---
+
+### 🔤 Supported Tokens
+
+#### Byte Size Examples
+- `10KB`
+- `1.5MB`
+- `100B`
+
+These are parsed into bytes using binary units (e.g., 1KB = 1024 bytes).
+
+#### Time Duration Examples
+- `100ms`
+- `2s`
+- `1.5min`
+
+These are parsed into nanoseconds internally.
+
+---
+
+### ✅ What's Implemented
+
+- Added lexer and parser support for `BYTE_SIZE` and `TIME_DURATION` in `Directives.g4`
+- Created `ByteSize.java` and `TimeDuration.java` token classes
+- Each class exposes canonical methods like:
+  - `getBytes()` for `ByteSize`
+  - `getNanoseconds()` for `TimeDuration`
+- Included unit tests for accurate parsing and value conversion
+
+---
+
+### 📘 Example Usage (Parsing Only)
+
+In a custom directive or during directive parsing, these tokens can now be accepted as arguments and parsed using:
+
+```java
+ByteSize byteSize = new ByteSize("1.5MB");
+long bytes = byteSize.getBytes(); // 1572864
+
+TimeDuration time = new TimeDuration("500ms");
+long nanos = time.getNanoseconds(); // 500,000,000
+
+
+
 # Data Prep
 
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
