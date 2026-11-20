@@ -216,3 +216,46 @@ Cask is a trademark of Cask Data, Inc. All rights reserved.
 
 Apache, Apache HBase, and HBase are trademarks of The Apache Software Foundation. Used with
 permission. No endorsement by The Apache Software Foundation is implied by the use of these marks.
+
+
+## Byte Size and Time Duration Parsers
+
+The Wrangler library now supports parsing byte size and time duration units natively.
+
+### Byte Size Format
+Supported formats: `10KB`, `5MB`, `1GB` (case insensitive)
+- KB: Kilobytes (1024 bytes)
+- MB: Megabytes (1024 KB)
+- GB: Gigabytes (1024 MB)
+
+Example usage in directives:
+
+set-column :size '10MB'
+
+
+### Time Duration Format
+Supported formats: `100ms`, `5s`, `1m`, `2h` (case insensitive)
+- ns: nanoseconds
+- us: microseconds
+- ms: milliseconds
+- s: seconds
+- m: minutes
+- h: hours
+- d: days
+
+Example usage in directives:
+
+set-column :duration '500ms'
+
+
+### Aggregate Stats Directive
+The new `aggregate-stats` directive aggregates byte size and time duration columns with unit conversion.
+
+Syntax:
+aggregate-stats <size_column> <time_column> <output_size_col> <output_time_col> [size_unit] [time_unit] [aggregation_type]
+
+
+Supported aggregation types: `total` (default), `average`
+
+
+
