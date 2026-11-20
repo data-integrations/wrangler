@@ -1,5 +1,21 @@
 # Data Prep
 
+##  New Feature: Byte Size & Time Duration Parsers + AggregateStats Directive
+
+This enhancement adds native support in Wrangler for parsing:
+
+-  **Byte Sizes** like `10KB`, `1.5MB`, `2GB`, `512B`
+- **Time Durations** like `500ms`, `2s`, `1min`, `1h`
+
+###  New Directive: `aggregate-stats`
+
+This directive aggregates byte size and time duration columns and returns total/average results.
+
+**Usage:**
+```text
+aggregate-stats :data_transfer_size :response_time total_size_mb total_time_sec
+
+
 ![cm-available](https://cdap-users.herokuapp.com/assets/cm-available.svg)
 ![cdap-transform](https://cdap-users.herokuapp.com/assets/cdap-transform.svg)
 [![Build Status](https://travis-ci.org/cdapio/hydrator-plugins.svg?branch=develop)](https://travis-ci.org/cdapio/hydrator-plugins)
