@@ -16,11 +16,18 @@
 
 package io.cdap.wrangler.expression;
 
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
+import io.cdap.wrangler.api.DirectiveConfig;
+import io.cdap.wrangler.api.JexlConfiguration;
+import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.parser.ConfigDirectiveContext;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -193,5 +200,118 @@ public class ELTest {
     el = EL.compile("arithmetic:min(a,b)");
     execute = el.execute(new ELContext().add("a", d1).add("b", d2));
     Assert.assertEquals(d1, execute.getObject());
+  }
+
+  @Test
+  public void testDefaultCompileOptionsEnablesAllowlistAndBlocksReflection() {
+    Assert.assertTrue(CompileOptions.getDefaultCompileOptions().isAllowlistEnabled());
+    Assert.assertNotNull(CompileOptions.getDefaultCompileOptions().getJexlAllowlist());
+    Assert.assertFalse(CompileOptions.getDefaultCompileOptions().getJexlAllowlist().isEmpty());
+
+    List<String> disallowedExpressions = Arrays.asList(
+        "''.getClass()",
+        "s.getClass()",
+        "''.getClass().forName('java.lang.Runtime')",
+        "''.class",
+        "s.class",
+        "s['class']",
+        "{ : }.class",
+        "{'a': 1}.class",
+        "{ : }.class.forName('java.lang.Runtime')",
+        "(1).TYPE",
+        "true.TYPE",
+        "(1)['TYPE']",
+        "s.wait()",
+        "s.notify()",
+        "s.notifyAll()",
+        "s.class = null",
+        "s['class'] = null",
+        "math:forName('java.lang.Runtime')",
+        "math:getClassLoader()",
+        "string:forName('java.lang.ProcessBuilder')",
+        "date:newInstance()",
+        "bytes:forName('java.lang.Runtime')",
+        "arrays:toString()",
+        "bytes:toString()",
+        "new('java.lang.ProcessBuilder', 'id')",
+        "new('java.io.File', '/etc/passwd')",
+        "new('java.net.URL', 'http://example.com')",
+        "new('javax.script.ScriptEngineManager')",
+        "new('java.lang.String', 'abc')"
+    );
+
+    for (String expr : disallowedExpressions) {
+      try {
+        EL el = EL.compile(expr);
+        el.execute(new ELContext().add("s", "hello"));
+        Assert.fail("Expected ELPermissionException for disallowed expression: " + expr);
+      } catch (ELPermissionException expected) {
+        // expected
+      } catch (ELException e) {
+        Assert.fail("Expected ELPermissionException but got ELException for: " + expr + " (" + e.getMessage() + ")");
+      }
+    }
+  }
+
+  @Test
+  public void testBlockedDisallowedContextObjects() throws Exception {
+    Map<String, String> blockedCalls = new HashMap<>();
+    blockedCalls.put("rt.exec('id')", "Runtime.exec");
+    blockedCalls.put("th.getContextClassLoader()", "Thread.getContextClassLoader");
+    blockedCalls.put("pb.start()", "ProcessBuilder.start");
+    blockedCalls.put("cls.forName('java.lang.Runtime')", "Class.forName on Class.class");
+    blockedCalls.put("strCls.forName('java.lang.Runtime')", "Class.forName on String.class");
+    blockedCalls.put("strCls.classLoader", "Property get on Class<?>");
+    blockedCalls.put("strCls['classLoader'] = null", "Property set on Class<?>");
+    blockedCalls.put("objCls.getMethods()", "Class.getMethods on Object.class");
+
+    ELContext context = new ELContext()
+        .add("rt", Runtime.getRuntime())
+        .add("th", Thread.currentThread())
+        .add("pb", new ProcessBuilder("id"))
+        .add("cls", Class.class)
+        .add("strCls", String.class)
+        .add("objCls", Object.class);
+
+    for (Map.Entry<String, String> entry : blockedCalls.entrySet()) {
+      EL el = EL.compile(entry.getKey());
+      try {
+        el.execute(context);
+        Assert.fail("Expected ELPermissionException for " + entry.getValue());
+      } catch (ELPermissionException expected) {
+        // expected
+      }
+    }
+  }
+
+  @Test
+  public void testCompileOptionsBranchesAndAllowlistedWranglerTypes() throws Exception {
+    DirectiveConfig emptyListConfig =
+        new DirectiveConfig(null, null, new JexlConfiguration(true, Collections.emptyList()));
+    CompileOptions emptyOptions =
+        CompileOptions.fromContext(new ConfigDirectiveContext(emptyListConfig, true));
+    Assert.assertTrue(emptyOptions.isAllowlistEnabled());
+    Assert.assertTrue(emptyOptions.getJexlAllowlist().isEmpty());
+
+    DirectiveConfig nullListEnabledConfig =
+        new DirectiveConfig(null, null, new JexlConfiguration(true, null));
+    CompileOptions defaultFallbackOptions =
+        CompileOptions.fromContext(new ConfigDirectiveContext(nullListEnabledConfig, true));
+    Assert.assertTrue(defaultFallbackOptions.isAllowlistEnabled());
+    Assert.assertEquals(DefaultJexlAllowlist.get(), defaultFallbackOptions.getJexlAllowlist());
+
+    CompileOptions disabledOptions =
+        CompileOptions.fromContext(new ConfigDirectiveContext(nullListEnabledConfig, false));
+    Assert.assertFalse(disabledOptions.isAllowlistEnabled());
+    Assert.assertEquals(DefaultJexlAllowlist.get(), disabledOptions.getJexlAllowlist());
+
+    Row row = new Row("col", "val");
+    ELContext.Context ctx = new ELContext.Context("TRANSFORM", "stage");
+    EL el = EL.compile(
+        "bytes:toString(bytes:toBytes('ok')) == 'ok' && arrays:asList('a', 'b').contains('a') "
+            + "&& datetime:CurrentTimestamp().getZone().getId() != null "
+            + "&& this.width() == 1 && this.getFields().get(0).getFirst() == 'col' && ctx.name == 'stage'");
+    ELResult result = el.execute(new ELContext().add("this", row).add("ctx", ctx));
+    Assert.assertEquals(Boolean.TRUE, result.getBoolean());
   }
 }

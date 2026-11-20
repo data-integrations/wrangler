@@ -23,4 +23,8 @@ public class PreconditionException extends Exception {
   public PreconditionException(String message) {
     super(message);
   }
+
+  public PreconditionException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

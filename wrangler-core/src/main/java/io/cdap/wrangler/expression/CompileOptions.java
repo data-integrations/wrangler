@@ -18,6 +18,7 @@ package io.cdap.wrangler.expression;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
 
@@ -28,14 +29,20 @@ import javax.annotation.Nullable;
  * Holds options used during JEXL script compilation.
  */
 public class CompileOptions {
-  private static final CompileOptions DEFAULT = new CompileOptions(false, null);
+  private static final CompileOptions DEFAULT = new CompileOptions(true, DefaultJexlAllowlist.get());
 
   private final boolean allowlistEnabled;
   private final ImmutableList<JexlAllowlist> jexlAllowlist;
 
   private CompileOptions(boolean allowlistEnabled, @Nullable List<JexlAllowlist> jexlAllowlist) {
     this.allowlistEnabled = allowlistEnabled;
-    this.jexlAllowlist = jexlAllowlist != null ? ImmutableList.copyOf(jexlAllowlist) : null;
+    if (jexlAllowlist != null) {
+      this.jexlAllowlist = ImmutableList.copyOf(jexlAllowlist);
+    } else if (allowlistEnabled) {
+      this.jexlAllowlist = ImmutableList.copyOf(DefaultJexlAllowlist.get());
+    } else {
+      this.jexlAllowlist = null;
+    }
   }
 
   public static CompileOptions getDefaultCompileOptions() {

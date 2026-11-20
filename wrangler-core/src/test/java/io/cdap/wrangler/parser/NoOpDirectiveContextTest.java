@@ -17,6 +17,7 @@
 package io.cdap.wrangler.parser;
 
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
 import io.cdap.wrangler.api.Directive;
 import io.cdap.wrangler.api.RecipeParser;
 import org.junit.Assert;
@@ -43,6 +44,13 @@ public class NoOpDirectiveContextTest {
     RecipeParser parse = TestingRig.parse(recipe);
     List<Directive> directives = parse.parse();
     Assert.assertEquals(6, directives.size());
+  }
+
+  @Test
+  public void testJexlAllowlistEnabledByDefault() {
+    NoOpDirectiveContext context = new NoOpDirectiveContext();
+    Assert.assertTrue(context.isJexlAllowlistEnabled());
+    Assert.assertEquals(DefaultJexlAllowlist.get(), context.getJexlAllowlist());
   }
 
 }

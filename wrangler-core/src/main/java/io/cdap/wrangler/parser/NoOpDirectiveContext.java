@@ -16,8 +16,10 @@
 
 package io.cdap.wrangler.parser;
 
+import io.cdap.wrangler.api.DefaultJexlAllowlist;
 import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.JexlAllowlist;
+
 import java.util.List;
 
 /**
@@ -28,12 +30,12 @@ public class NoOpDirectiveContext implements DirectiveContext {
 
   @Override
   public List<JexlAllowlist> getJexlAllowlist() {
-    return null;
+    return DefaultJexlAllowlist.get();
   }
 
   @Override
   public boolean isJexlAllowlistEnabled() {
-    return false;
+    return true;
   }
 
   /**
