@@ -38,9 +38,6 @@ options {
  */
 }
 
-/**
- * Parser Grammar for recognizing tokens and constructs of the directives language.
- */
 recipe
  : statements EOF
  ;
@@ -64,6 +61,8 @@ directive
     | stringList
     | numberRanges
     | properties
+    | byteSize
+    | timeDuration
   )*?
   ;
 
@@ -140,7 +139,12 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String
+ | Number
+ | Column
+ | Bool
+ | byteSize
+ | timeDuration
  ;
 
 ecommand
@@ -195,6 +199,13 @@ identifierList
  : Identifier (',' Identifier)*
  ;
 
+byteSize
+ : Number Byte_Unit
+ ;
+
+timeDuration
+ : Number Time_Unit
+ ;
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -247,7 +258,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -272,6 +282,23 @@ Column
 String
  : '\'' ( EscapeSequence | ~('\'') )* '\''
  | '"'  ( EscapeSequence | ~('"') )* '"'
+ ;
+
+fragment Byte_Unit
+ : 'B'
+ | 'KB'
+ | 'MB'
+ | 'GB'
+ | 'TB'
+ | 'PB'
+ ;
+
+fragment Time_Unit
+ : 'ms'
+ | 's'
+ | 'm'
+ | 'h'
+ | 'd'
  ;
 
 EscapeSequence
