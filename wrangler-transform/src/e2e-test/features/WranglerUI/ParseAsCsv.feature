@@ -13,7 +13,7 @@
 # the License.
 
 @Wrangler
-Feature:  Wrangler - Run time scenarios for parse csv using UI
+Feature:  Wrangler - Run time scenarios for parse CSV using UI
 
   @BQ_SOURCE_CSV_TEST @BQ_SOURCE_TEST @BQ_SINK_TEST @BQ_CONNECTION
   Scenario: To verify User is able to run a pipeline using parse csv directive
