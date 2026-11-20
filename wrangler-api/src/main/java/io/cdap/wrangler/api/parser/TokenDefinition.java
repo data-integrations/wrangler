@@ -45,6 +45,8 @@ public final class TokenDefinition implements Serializable {
   private final String name;
   private final TokenType type;
   private final String label;
+  private final int byteSize;
+  private final int timeDuration;
 
   public TokenDefinition(String name, TokenType type, String label, int ordinal, boolean optional) {
     this.name = name;
@@ -52,6 +54,8 @@ public final class TokenDefinition implements Serializable {
     this.label = label;
     this.ordinal = ordinal;
     this.optional = optional;
+    this.byteSize = 0;
+    this.timeDuration = 0;
   }
 
   /**
