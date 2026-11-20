@@ -8,8 +8,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -31,8 +31,8 @@ options {
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations under
  * the License.
  */
@@ -46,49 +46,52 @@ recipe
  ;
 
 statements
- :  ( Comment | macro | directive ';' | pragma ';' | ifStatement)*
+ : ( Comment | macro | directive ';' | pragma ';' | ifStatement )*
  ;
 
 directive
  : command
-  (   codeblock
-    | identifier
-    | macro
-    | text
-    | number
-    | bool
-    | column
-    | colList
-    | numberList
-    | boolList
-    | stringList
-    | numberRanges
-    | properties
-  )*?
-  ;
+   (
+     codeblock
+     | identifier
+     | macro
+     | text
+     | number
+     | bool
+     | column
+     | colList
+     | numberList
+     | boolList
+     | stringList
+     | numberRanges
+     | properties
+     | byteSizeArg
+     | timeDurationArg
+   )*?
+ ;
 
 ifStatement
-  : ifStat elseIfStat* elseStat? '}'
-  ;
+ : ifStat elseIfStat* elseStat? '}'
+ ;
 
 ifStat
-  : 'if' expression '{' statements
-  ;
+ : 'if' expression '{' statements
+ ;
 
 elseIfStat
-  : '}' 'else' 'if' expression '{' statements
-  ;
+ : '}' 'else' 'if' expression '{' statements
+ ;
 
 elseStat
-  : '}' 'else' '{' statements
-  ;
+ : '}' 'else' '{' statements
+ ;
 
 expression
-  : '(' (~'(' | expression)* ')'
-  ;
+ : '(' (~'(' | expression)* ')'
+ ;
 
 forStatement
- : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{'  statements '}'
+ : 'for' '(' Identifier '=' expression ';' expression ';' expression ')' '{' statements '}'
  ;
 
 macro
@@ -116,11 +119,11 @@ identifier
  ;
 
 properties
- : 'prop' ':' OBrace (propertyList)+  CBrace
- | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start paranthesis"); }
- | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start paranthesis"); }
+ : 'prop' ':' OBrace (propertyList)+ CBrace
+ | 'prop' ':' OBrace OBrace (propertyList)+ CBrace { notifyErrorListeners("Too many start parenthesis"); }
+ | 'prop' ':' OBrace (propertyList)+ CBrace CBrace { notifyErrorListeners("Too many start parenthesis"); }
  | 'prop' ':' (propertyList)+ CBrace { notifyErrorListeners("Missing opening brace"); }
- | 'prop' ':' OBrace (propertyList)+  { notifyErrorListeners("Missing closing brace"); }
+ | 'prop' ':' OBrace (propertyList)+ { notifyErrorListeners("Missing closing brace"); }
  ;
 
 propertyList
@@ -132,7 +135,7 @@ property
  ;
 
 numberRanges
- : numberRange ( ',' numberRange)*
+ : numberRange ( ',' numberRange )*
  ;
 
 numberRange
@@ -140,7 +143,7 @@ numberRange
  ;
 
 value
- : String | Number | Column | Bool
+ : String | Number | Column | Bool | BYTE_SIZE | TIME_DURATION
  ;
 
 ecommand
@@ -167,6 +170,14 @@ bool
  : Bool
  ;
 
+byteSizeArg
+ : BYTE_SIZE
+ ;
+
+timeDurationArg
+ : TIME_DURATION
+ ;
+
 condition
  : OBrace (~CBrace | condition)* CBrace
  ;
@@ -176,25 +187,24 @@ command
  ;
 
 colList
- : Column (','  Column)+
+ : Column ( ',' Column )+
  ;
 
 numberList
- : Number (',' Number)+
+ : Number ( ',' Number )+
  ;
 
 boolList
- : Bool (',' Bool)+
+ : Bool ( ',' Bool )+
  ;
 
 stringList
- : String (',' String)+
+ : String ( ',' String )+
  ;
 
 identifierList
- : Identifier (',' Identifier)*
+ : Identifier ( ',' Identifier )*
  ;
-
 
 /*
  * Following are the Lexer Rules used for tokenizing the recipe.
@@ -247,7 +257,6 @@ BackSlash: '\\';
 Dollar   : '$';
 Tilde    : '~';
 
-
 Bool
  : 'true'
  | 'false'
@@ -270,30 +279,29 @@ Column
  ;
 
 String
- : '\'' ( EscapeSequence | ~('\'') )* '\''
- | '"'  ( EscapeSequence | ~('"') )* '"'
+ : '\'' ( EscapeSequence | ~('\'' ) )* '\''
+ | '"'  ( EscapeSequence | ~('"' ) )* '"'
  ;
 
 EscapeSequence
-   :   '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
-   |   UnicodeEscape
-   |   OctalEscape
-   ;
+ : '\\' ('b'|'t'|'n'|'f'|'r'|'"'|'\''|'\\')
+ | UnicodeEscape
+ | OctalEscape
+ ;
 
-fragment
-OctalEscape
-   :   '\\' ('0'..'3') ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7') ('0'..'7')
-   |   '\\' ('0'..'7')
-   ;
+fragment OctalEscape
+ : '\\' ('0'..'3') ('0'..'7') ('0'..'7')
+ | '\\' ('0'..'7') ('0'..'7')
+ | '\\' ('0'..'7')
+ ;
 
-fragment
-UnicodeEscape
-   :   '\\' 'u' HexDigit HexDigit HexDigit HexDigit
-   ;
+fragment UnicodeEscape
+ : '\\' 'u' HexDigit HexDigit HexDigit HexDigit
+ ;
 
-fragment
-   HexDigit : ('0'..'9'|'a'..'f'|'A'..'F') ;
+fragment HexDigit
+ : [0-9a-fA-F]
+ ;
 
 Comment
  : ('//' ~[\r\n]* | '/*' .*? '*/' | '--' ~[\r\n]* ) -> skip
@@ -310,4 +318,24 @@ fragment Int
 
 fragment Digit
  : [0-9]
+ ;
+
+/*
+ * NEW LEXER TOKENS
+ */
+
+BYTE_SIZE
+ : Int ('.' Digit+)? BYTE_UNIT
+ ;
+
+TIME_DURATION
+ : Int ('.' Digit+)? TIME_UNIT
+ ;
+
+fragment BYTE_UNIT
+ : [kKmMgGtTpPeE]? [bB]
+ ;
+
+fragment TIME_UNIT
+ : ( 'ms' | 's' | 'm' | 'h' | 'd' )
  ;
