@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+clickhouse-connect
+python-multipart
+pandas
+Flask
+flask-cors
+

@@ -23,6 +23,46 @@ are manually created.
 More [here](wrangler-docs/upcoming-features.md) on upcoming features.
 
   * **User Defined Directives, also known as UDD**, allow you to create custom functions to transform records within CDAP DataPrep or a.k.a Wrangler. CDAP comes with a comprehensive library of functions. There are however some omissions, and some specific cases for which UDDs are the solution. Additional information on how you can build your custom directives [here](wrangler-docs/custom-directive.md).
+
+## Parser Tokens
+Wrangler offers built-in token parsers that simplify common data transformation tasks by standardizing how certain units are interpreted.
+
+### BYTE_SIZE Parser
+The BYTE_SIZE parser interprets string representations of data sizes and converts them to bytes.
+
+Supported Units: B (Bytes), KB (Kilobytes), MB (Megabytes), GB (Gigabytes), TB (Terabytes), PB (Petabytes)
+
+Input Format: Must include a numeric value followed by a unit (e.g., "10B", "1.5KB", "2MB", "3.5GB")
+
+Functionality: Converts the input string into a byte value
+
+Example:
+
+java
+Copy code
+ByteSize size = new ByteSize("1.5GB");
+long bytes = size.getBytes(); // Returns 1610612736 (1.5 × 1024³)
+Error Handling: Throws exceptions for improperly formatted inputs (e.g., missing numbers or invalid units)
+
+### TIME_DURATION Parser
+The TIME_DURATION parser interprets string representations of time durations and converts them to nanoseconds.
+
+Supported Units: ms (milliseconds), s (seconds), m (minutes), h (hours), d (days)
+
+Input Format: Must include a numeric value followed by a unit (e.g., "10ms", "1.5s", "2m", "3.5h", "1d")
+
+Functionality: Converts the input string into a nanosecond value
+
+Example:
+
+java
+Copy code
+TimeDuration duration = new TimeDuration("1.5s");
+long nanoseconds = duration.getNanoseconds(); // Returns 1_500_000_000
+Error Handling: Throws exceptions for invalid or malformed inputs
+
+These parsers ensure a consistent and reliable way to interpret size and time-based values within your data pipelines.
+
     * Migrating directives from version 1.0 to version 2.0 [here](wrangler-docs/directive-migration.md)
     * Information about Grammar [here](wrangler-docs/grammar/grammar-info.md)
     * Various `TokenType` supported by system [here](../api/src/main/java/io/cdap/wrangler/api/parser/TokenType.java)

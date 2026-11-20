@@ -215,4 +215,52 @@ public class RecipeCompilerTest {
     Set<String> loadableDirectives = compile.getSymbols().getLoadableDirectives();
     Assert.assertEquals(4, loadableDirectives.size());
   }
+  
+  @Test
+  public void testAggregateStatsDirectiveCompilation() throws Exception {
+    String[] recipe = new String[] {
+      // Test basic syntax
+      "aggregate-stats :data_size :response_time :total_size :total_time MB s total;",
+      // Test with minimal arguments
+      "aggregate-stats :data_size :response_time :total_size :total_time;",
+      // Test with all byte units
+      "aggregate-stats :data_size :response_time :total_size :total_time B s total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time KB s total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time GB s total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time TB s total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time PB s total;",
+      // Test with all time units
+      "aggregate-stats :data_size :response_time :total_size :total_time MB ms total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time MB m total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time MB h total;",
+      "aggregate-stats :data_size :response_time :total_size :total_time MB d total;"
+    };
+    CompileStatus compile = TestingRig.compile(recipe);
+    Assert.assertTrue(compile.isSuccess());
+  }
+
+  @Test
+  public void testAggregateStatsInvalidSyntax() throws Exception {
+    String[] recipe = new String[] {
+      // Invalid byte unit
+      "aggregate-stats :data_size :response_time :total_size :total_time XB s total;"
+    };
+    CompileStatus compile = TestingRig.compile(recipe);
+    Assert.assertFalse(compile.isSuccess());
+
+    recipe = new String[] {
+      // Invalid time unit
+      "aggregate-stats :data_size :response_time :total_size :total_time MB xs total;"
+    };
+    compile = TestingRig.compile(recipe);
+    Assert.assertFalse(compile.isSuccess());
+
+    recipe = new String[] {
+      // Invalid aggregate type
+      "aggregate-stats :data_size :response_time :total_size :total_time MB s invalid;"
+    };
+    compile = TestingRig.compile(recipe);
+    Assert.assertFalse(compile.isSuccess());
+  }
+  
 }
