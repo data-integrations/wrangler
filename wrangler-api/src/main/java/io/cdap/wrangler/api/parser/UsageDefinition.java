@@ -117,8 +117,12 @@ public final class UsageDefinition implements Serializable {
           sb.append("'").append(token.name()).append("'");
         } else if (token.type().equals(TokenType.IDENTIFIER) || token.type().equals(TokenType.NUMERIC)) {
           sb.append(token.name());
+        } else if (token.type().equals(TokenType.BYTE_SIZE)) {
+          sb.append("<").append(token.name()).append(">");
+        } else if (token.type().equals(TokenType.TIME_DURATION)) {
+          sb.append("<").append(token.name()).append(">");
         } else if (token.type().equals(TokenType.BOOLEAN_LIST) || token.type().equals(TokenType.NUMERIC_LIST)
-          || token.type().equals(TokenType.TEXT_LIST)) {
+                || token.type().equals(TokenType.TEXT_LIST)) {
           sb.append(token.name()).append("[,").append(token.name()).append(" ...]*");
         } else if (token.type().equals(TokenType.EXPRESSION)) {
           sb.append("exp:{<").append(token.name()).append(">}");
