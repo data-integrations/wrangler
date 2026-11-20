@@ -111,7 +111,7 @@ public class RowRegexFilterTest {
     directives.add("filter-rows-on regex-not-match long .*2.*");
     rows = TestingRig.execute(directives.toArray(new String[directives.size()]), originalRows);
     Assert.assertEquals(1, rows.size());
-    Assert.assertEquals(new Short("2"), rows.get(0).getValue(3));
+    Assert.assertEquals(Short.valueOf("2"), rows.get(0).getValue(3));
 
     // test long support
     directives.remove(8);

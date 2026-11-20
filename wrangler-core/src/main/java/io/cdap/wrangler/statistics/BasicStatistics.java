@@ -40,7 +40,7 @@ public class BasicStatistics implements Statistics {
     ColumnMetric stats = new ColumnMetric();
 
     long startTime = System.currentTimeMillis();
-    Double count = new Double(0);
+    Double count = Double.valueOf(0);
     for (Row row : rows) {
       ++count;
       for (int i = 0; i < row.width(); ++i) {

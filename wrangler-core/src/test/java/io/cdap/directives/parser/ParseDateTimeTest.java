@@ -35,7 +35,7 @@ public class ParseDateTimeTest {
       "yyyy-MM-dd'T'HH:mm:ss[xxx]'['VV']'", "yyyyMMdd h:mm a"};
     String[] colNames = new String[]{"col1", "col2", "col3", "col4", "col5"};
     String[] dateTimes = new String[]{"03/30/2010 01:05", "2020-01-28T04:50:12", "2011-12-03T10:15:30+01:00",
-      "2011-12-03T10:15:30+01:00[Europe/Paris]", "19901212 10:12 AM"};
+      "2011-12-03T10:15:30+01:00[Europe/Paris]", "19901212 10:12 am"};
     String[] directives = new String[testPatterns.length];
     Row row = new Row();
     for (int i = 0; i < testPatterns.length; i++) {
