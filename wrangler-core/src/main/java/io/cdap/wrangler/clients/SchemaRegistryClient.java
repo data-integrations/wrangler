@@ -23,6 +23,7 @@ import com.google.gson.JsonSyntaxException;
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.cdap.internal.guava.reflect.TypeToken;
 import io.cdap.wrangler.api.ExecutorContext;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -208,9 +209,7 @@ public final class SchemaRegistryClient {
 
   private URI concat(URI uri, String extraPath)
     throws URISyntaxException, MalformedURLException {
-    String newPath = uri.getPath() + '/' + extraPath;
-    URI newUri = uri.resolve(newPath);
-    return newUri;
+    return OutboundUrlValidator.resolveSafeRelativePath(uri, extraPath);
   }
 
   private <T> T request(URL url, String method, Type classz) throws IOException, RestClientException {
@@ -222,6 +221,7 @@ public final class SchemaRegistryClient {
     HttpURLConnection connection = null;
     try {
       connection = (HttpURLConnection) url.openConnection();
+      connection.setInstanceFollowRedirects(false);
       connection.setRequestMethod(method);
 
       // connection.getResponseCode() implicitly calls getInputStream, so always set to true.
@@ -259,27 +259,33 @@ public final class SchemaRegistryClient {
       // Request, check status code and convert the response into object.
       int responseCode = connection.getResponseCode();
       if (responseCode == HttpURLConnection.HTTP_OK) {
-        InputStream is = connection.getInputStream();
-        T result =  gson.fromJson(new InputStreamReader(is), classz);
-        is.close();
-        return result;
+        try (InputStream is = connection.getInputStream()) {
+          return gson.fromJson(new InputStreamReader(is), classz);
+        }
       } else if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
         return null;
       } else if (responseCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
         InputStream es = connection.getErrorStream();
+        if (es == null) {
+          throw new RestClientException(responseCode, "HTTP status " + responseCode);
+        }
         Response message;
-        try {
-          message = gson.fromJson(new InputStreamReader(es), Response.class);
+        try (InputStream errorStream = es) {
+          message = gson.fromJson(new InputStreamReader(errorStream), Response.class);
         } catch (JsonSyntaxException | JsonIOException e) {
           throw new RestClientException(responseCode, e.getMessage());
-        } finally {
-          es.close();
+        }
+        if (message == null) {
+          throw new RestClientException(responseCode, "HTTP status " + responseCode);
         }
         throw new RestClientException(message.getStatus(), message.getMessage());
       } else {
-        InputStream es = connection.getErrorStream();
-        String response = IOUtils.toString(es, StandardCharsets.UTF_8);
-        es.close();
+        String response = "";
+        try (InputStream es = connection.getErrorStream()) {
+          if (es != null) {
+            response = IOUtils.toString(es, StandardCharsets.UTF_8);
+          }
+        }
         throw new RestClientException(responseCode, response);
       }
     } finally {

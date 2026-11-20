@@ -238,4 +238,30 @@ public class DataModelMapColumnTest {
     Assert.assertTrue(value instanceof Integer);
     Assert.assertEquals(1, ((Integer) value).intValue());
   }
+
+  @Test(expected = RecipeException.class)
+  public void testInitialize_blockedMetadataUrl_directiveException() throws Exception {
+    String[] directives = new String[]{
+      "data-model-map-column 'http://169.254.169.254/computeMetadata/v1' "
+        + "'google.com.datamodels.TEST_DATA_MODEL' 1 'TEST_MODEL' 'int_field' :dummy_col_1",
+    };
+    List<Row> rows = Arrays.asList(new Row("dummy_col_1", "1"));
+    TestingRig.execute(directives, rows);
+  }
+
+  @Test(expected = RecipeException.class)
+  public void testInitialize_cachedInternalUrlStillRejected_directiveException() throws Exception {
+    Schema.Parser parser = new Schema.Parser().setValidate(false);
+    AvroSchemaGlossary mockGlossary = Mockito.mock(AvroSchemaGlossary.class);
+    Mockito.when(mockGlossary.configure()).thenReturn(true);
+    Mockito.when(mockGlossary.get(Mockito.anyString(), Mockito.anyLong())).thenReturn(parser.parse(SCHEMA));
+    DataModelMapColumn.setGlossary("http://metadata.google.internal/v1", mockGlossary);
+
+    String[] directives = new String[]{
+      "data-model-map-column 'http://metadata.google.internal/v1' "
+        + "'google.com.datamodels.TEST_DATA_MODEL' 1 'TEST_MODEL' 'int_field' :dummy_col_1",
+    };
+    List<Row> rows = Arrays.asList(new Row("dummy_col_1", "1"));
+    TestingRig.execute(directives, rows);
+  }
 }

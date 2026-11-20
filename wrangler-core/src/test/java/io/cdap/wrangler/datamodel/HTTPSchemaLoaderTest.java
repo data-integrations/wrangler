@@ -19,6 +19,10 @@ import io.cdap.http.HandlerContext;
 import io.cdap.http.HttpHandler;
 import io.cdap.http.HttpResponder;
 import io.cdap.http.NettyHttpService;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.avro.Schema;
@@ -45,6 +49,7 @@ public class HTTPSchemaLoaderTest {
 
   @Before
   public void startService() throws Exception {
+    System.setProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY, "true");
     List<HttpHandler> handlers = new ArrayList<>();
     handlers.add(new HTTPSchemaLoaderTest.ServiceHandler());
     httpService = NettyHttpService.builder("datamodel-bucket")
@@ -55,6 +60,7 @@ public class HTTPSchemaLoaderTest {
 
   @After
   public void stopService() throws Exception {
+    System.clearProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY);
     httpService.stop();
   }
 
@@ -156,6 +162,30 @@ public class HTTPSchemaLoaderTest {
             + "}";
           responder.sendJson(HttpResponseStatus.OK, dataModel);
           break;
+        case "redirect_manifest.json":
+          HttpHeaders headers = new DefaultHttpHeaders();
+          headers.set(HttpHeaderNames.LOCATION,
+                      String.format("http://localhost:%d/test-bucket/manifest.json",
+                                    httpService.getBindAddress().getPort()));
+          responder.sendStatus(HttpResponseStatus.FOUND, headers);
+          break;
+        case "no_content_manifest.json":
+          responder.sendStatus(HttpResponseStatus.NO_CONTENT);
+          break;
+        case "manifest_malicious_standards.json":
+          manifest = ""
+            + "{\n"
+            + "  \"standards\": {\n"
+            + "    \"../../secret\": {\n"
+            + "      \"format\": \"avsc\"\n"
+            + "    },\n"
+            + "    \"//169.254.169.254/computeMetadata\": {\n"
+            + "      \"format\": \"avsc\"\n"
+            + "    }\n"
+            + "  }\n"
+            + "}";
+          responder.sendJson(HttpResponseStatus.OK, manifest);
+          break;
       }
     }
   }
@@ -218,6 +248,77 @@ public class HTTPSchemaLoaderTest {
     HTTPSchemaLoader client = new HTTPSchemaLoader(base, "manifest_invalid_data_model.json");
     SetValuedMap<String, Schema> glossary = client.load();
     Assert.assertTrue(glossary.isEmpty());
+  }
+
+  @Test
+  public void testBlockedSsrfUrlsAndPaths() {
+    System.clearProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY);
+    String[] blockedBaseUrls = new String[] {
+      String.format("http://localhost:%d/test-bucket", httpService.getBindAddress().getPort()),
+      "http://127.0.0.1:8080/test-bucket",
+      "http://169.254.169.254/computeMetadata/v1",
+      "http://metadata.google.internal/computeMetadata/v1",
+      "http://kubernetes.default.svc.cluster.local/api",
+      "file:///etc"
+    };
+    for (String url : blockedBaseUrls) {
+      try {
+        new HTTPSchemaLoader(url, "manifest.json");
+        Assert.fail("Expected HTTPSchemaLoader to reject URL: " + url);
+      } catch (IllegalArgumentException expected) {
+        // expected
+      }
+      Assert.assertFalse(DataModelGlossary.initialize(url));
+    }
+
+    System.setProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY, "true");
+    String validLocalBase = String.format("http://localhost:%d/test-bucket", httpService.getBindAddress().getPort());
+    try {
+      new HTTPSchemaLoader(validLocalBase, "//169.254.169.254/manifest.json");
+      Assert.fail("Expected malicious manifest path to be rejected");
+    } catch (IllegalArgumentException expected) {
+      // expected
+    }
+    try {
+      new HTTPSchemaLoader(validLocalBase, "../secret.json");
+      Assert.fail("Expected traversal manifest path to be rejected");
+    } catch (IllegalArgumentException expected) {
+      // expected
+    }
+  }
+
+  @Test(expected = IOException.class)
+  public void testLoad_dataModels_redirectNotFollowed() throws Exception {
+    String base = String.format("http://localhost:%d/errors", httpService.getBindAddress().getPort());
+    HTTPSchemaLoader client = new HTTPSchemaLoader(base, "redirect_manifest.json");
+    client.load();
+  }
+
+  @Test(expected = IOException.class)
+  public void testLoad_dataModels_noContentManifestThrowsIOException() throws Exception {
+    String base = String.format("http://localhost:%d/errors", httpService.getBindAddress().getPort());
+    HTTPSchemaLoader client = new HTTPSchemaLoader(base, "no_content_manifest.json");
+    client.load();
+  }
+
+  @Test
+  public void testLoad_dataModels_maliciousStandardKeysRejected() throws Exception {
+    String base = String.format("http://localhost:%d/errors", httpService.getBindAddress().getPort());
+    HTTPSchemaLoader client = new HTTPSchemaLoader(base, "manifest_malicious_standards.json");
+    SetValuedMap<String, Schema> glossary = client.load();
+    Assert.assertTrue(glossary.isEmpty());
+  }
+
+  @Test
+  public void testDataModelGlossaryPreservesExistingSingletonOnFailedReinit() {
+    String validBase = String.format("http://localhost:%d/test-bucket", httpService.getBindAddress().getPort());
+    Assert.assertTrue(DataModelGlossary.initialize(validBase));
+    Assert.assertNotNull(DataModelGlossary.getGlossary());
+    Assert.assertNotNull(DataModelGlossary.getGlossary().get(DATA_MODEL_NAME, 1L));
+
+    Assert.assertFalse(DataModelGlossary.initialize("http://169.254.169.254/computeMetadata/v1"));
+    Assert.assertNotNull(DataModelGlossary.getGlossary());
+    Assert.assertNotNull(DataModelGlossary.getGlossary().get(DATA_MODEL_NAME, 1L));
   }
 }
 

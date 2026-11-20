@@ -20,10 +20,14 @@ import com.google.gson.GsonBuilder;
 import io.cdap.wrangler.clients.RestClientException;
 import io.cdap.wrangler.utils.AvroSchemaLoader;
 import io.cdap.wrangler.utils.Manifest;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
 import org.apache.avro.Schema;
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +37,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -44,7 +47,6 @@ public final class HTTPSchemaLoader implements AvroSchemaLoader {
 
   private static final Logger LOG = LoggerFactory.getLogger(HTTPSchemaLoader.class);
   private static final String FORMAT = "avsc";
-  private static final String REQUEST_METHOD = "GET";
 
   private final Gson gson;
   private final String baseUrl;
@@ -56,9 +58,11 @@ public final class HTTPSchemaLoader implements AvroSchemaLoader {
   private String acceptEncoding;
 
   public HTTPSchemaLoader(String baseUrl, String manifestName) {
+    URI validatedBaseUri = OutboundUrlValidator.validateOutboundUrl(baseUrl);
+    OutboundUrlValidator.resolveSafeRelativePath(validatedBaseUri, manifestName);
     this.gson = new GsonBuilder().create();
-    this.baseUrl = baseUrl;
-    this.manifestName = manifestName;
+    this.baseUrl = validatedBaseUri.toString();
+    this.manifestName = manifestName.trim();
     this.connectionTimeout = 2000;
     this.readTimeout = 1000;
     this.acceptEncoding = "application/json";
@@ -136,43 +140,30 @@ public final class HTTPSchemaLoader implements AvroSchemaLoader {
   }
 
   private <R> R getRequest(URL url, Function<InputStream, R> callable) throws IOException, RestClientException {
-    HttpURLConnection connection = null;
-    try {
-      connection = (HttpURLConnection) url.openConnection();
-      connection.setRequestMethod(REQUEST_METHOD);
-      connection.setConnectTimeout(connectionTimeout);
-      connection.setReadTimeout(readTimeout);
-      connection.setUseCaches(false);
-      connection.setRequestProperty("Accept", acceptEncoding);
-
-      int responseCode = connection.getResponseCode();
-      switch (responseCode) {
-        case HttpURLConnection.HTTP_OK:
-          InputStream is = connection.getInputStream();
-          R result = callable.apply(is);
-          is.close();
-          return result;
-        case HttpURLConnection.HTTP_NO_CONTENT:
+    URI requestUri = OutboundUrlValidator.validateSyntaxAndHost(url.toString());
+    HttpGet httpGet = new HttpGet(requestUri);
+    httpGet.addHeader("Accept", acceptEncoding);
+    try (CloseableHttpClient client = OutboundUrlValidator.createSafeHttpClient(connectionTimeout, readTimeout);
+         CloseableHttpResponse response = client.execute(httpGet)) {
+      int responseCode = response.getStatusLine().getStatusCode();
+      if (responseCode == HttpURLConnection.HTTP_OK) {
+        HttpEntity entity = response.getEntity();
+        if (entity == null) {
           return null;
-        default:
-          String response = "";
-          InputStream es = connection.getErrorStream();
-          if (es != null) {
-            response = IOUtils.toString(es, StandardCharsets.UTF_8);
-            es.close();
-          }
-          throw new RestClientException(responseCode, response);
-      }
-    } finally {
-      if (connection != null) {
-        connection.disconnect();
+        }
+        try (InputStream is = entity.getContent()) {
+          return callable.apply(is);
+        }
+      } else if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+        return null;
+      } else {
+        throw new RestClientException(
+          responseCode, String.format("Request to %s failed with HTTP status %d.", url, responseCode));
       }
     }
   }
 
   private URI concat(URI uri, String extraPath) {
-    String separator = uri.getPath().endsWith("/") ? "" : "/";
-    String newPath = String.format("%s%s%s", uri.getPath(), separator, extraPath);
-    return uri.resolve(newPath);
+    return OutboundUrlValidator.resolveSafeRelativePath(uri, extraPath);
   }
 }

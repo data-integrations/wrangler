@@ -36,12 +36,13 @@ import io.cdap.wrangler.api.parser.UsageDefinition;
 import io.cdap.wrangler.datamodel.HTTPSchemaLoader;
 import io.cdap.wrangler.utils.AvroSchemaGlossary;
 import io.cdap.wrangler.utils.ColumnConverter;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
 import org.apache.avro.Schema;
 
 import java.math.RoundingMode;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A directive for mapping a column to a field within a data model. Mapping entails
@@ -62,7 +63,7 @@ public class DataModelMapColumn implements Directive, Lineage {
   private static final String TARGET_FIELD = "target-field";
   private static final String COLUMN = "column";
   private static final String DATA_MODEL_URL = "data-model-url";
-  private static Map<String, AvroSchemaGlossary> glossaryCache = new HashMap<>();
+  private static Map<String, AvroSchemaGlossary> glossaryCache = new ConcurrentHashMap<>();
 
   private String column;
   private String targetFieldName;
@@ -93,8 +94,18 @@ public class DataModelMapColumn implements Directive, Lineage {
   @Override
   public void initialize(Arguments args) throws DirectiveParseException {
     String dataModelUrl = ((Text) args.value(DATA_MODEL_URL)).value();
+    try {
+      OutboundUrlValidator.validateSyntaxAndHost(dataModelUrl);
+    } catch (IllegalArgumentException e) {
+      throw new DirectiveParseException(NAME, e.getMessage(), e);
+    }
     if (!glossaryCache.containsKey(dataModelUrl)) {
-      AvroSchemaGlossary glossary = new AvroSchemaGlossary(new HTTPSchemaLoader(dataModelUrl, "manifest.json"));
+      AvroSchemaGlossary glossary;
+      try {
+        glossary = new AvroSchemaGlossary(new HTTPSchemaLoader(dataModelUrl, "manifest.json"));
+      } catch (IllegalArgumentException e) {
+        throw new DirectiveParseException(NAME, e.getMessage(), e);
+      }
       if (!glossary.configure()) {
         throw new DirectiveParseException(NAME, String.format("Unable to load data models from %s.", dataModelUrl));
       }

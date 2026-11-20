@@ -22,7 +22,7 @@ import io.cdap.wrangler.utils.AvroSchemaGlossary;
  */
 public class DataModelGlossary {
 
-  private static AvroSchemaGlossary glossary;
+  private static volatile AvroSchemaGlossary glossary;
 
   /**
    * Initializes the data model glossary with the data models located at the url. All available
@@ -43,13 +43,18 @@ public class DataModelGlossary {
    *          false for all other errors.
    */
   public static boolean initialize(String dataModelUrl) {
-    HTTPSchemaLoader schemaLoader = new HTTPSchemaLoader(dataModelUrl, "manifest.json");
-    if (glossary == null) {
-      glossary = new AvroSchemaGlossary(schemaLoader);
-    } else {
-      glossary.setAvroSchemaLoader(schemaLoader);
+    HTTPSchemaLoader schemaLoader;
+    try {
+      schemaLoader = new HTTPSchemaLoader(dataModelUrl, "manifest.json");
+    } catch (IllegalArgumentException e) {
+      return false;
     }
-    return glossary.configure();
+    AvroSchemaGlossary candidate = new AvroSchemaGlossary(schemaLoader);
+    if (!candidate.configure()) {
+      return false;
+    }
+    glossary = candidate;
+    return true;
   }
 
   /**

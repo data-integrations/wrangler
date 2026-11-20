@@ -178,4 +178,9 @@ public class SchemaRegistryClientTest {
   public void testGetWrongSchemaIdVersions() throws Exception {
     client.getVersions("c0", "foo1");
   }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testGetSchemaRejectsPathTraversalInNamespaceOrId() throws Exception {
+    client.getSchema("../../internal", "foo", 1);
+  }
 }

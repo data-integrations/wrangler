@@ -24,9 +24,14 @@ import io.cdap.http.HttpHandler;
 import io.cdap.http.HttpResponder;
 import io.cdap.http.NettyHttpService;
 import io.cdap.wrangler.TestingRig;
+import io.cdap.wrangler.api.RecipeException;
 import io.cdap.wrangler.api.RecipePipeline;
 import io.cdap.wrangler.api.Row;
+import io.cdap.wrangler.utils.OutboundUrlValidator;
+import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.junit.After;
 import org.junit.Assert;
@@ -53,6 +58,7 @@ public class InvokeHttpTest {
 
   @Before
   public void startService() throws Exception {
+    System.setProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY, "true");
     List<HttpHandler> handlers = new ArrayList<>();
     handlers.add(new ServiceHandler());
     httpService = NettyHttpService.builder("Services")
@@ -84,6 +90,14 @@ public class InvokeHttpTest {
       response.put("c", c);
       response.put("HeaderC", headerC);
       responder.sendJson(HttpResponseStatus.OK, GSON.toJson(response));
+    }
+
+    @POST
+    @Path("redirect")
+    public void redirect(FullHttpRequest request, HttpResponder responder) {
+      HttpHeaders headers = new DefaultHttpHeaders();
+      headers.set(HttpHeaderNames.LOCATION, baseURL + "/service");
+      responder.sendStatus(HttpResponseStatus.FOUND, headers);
     }
 
     private Map<String, Object> postRequest(FullHttpRequest request) throws JsonParseException {
@@ -155,8 +169,63 @@ public class InvokeHttpTest {
     Assert.assertTrue(executor.errors().size() == 2);
   }
 
+  @Test
+  public void testHttpInvokeBlocksSsrfTargetsByDefault() throws Exception {
+    System.clearProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY);
+    List<Row> rows = Arrays.asList(
+      new Row("a", "1").add("b", 2.0)
+    );
+    String[] blockedUrls = new String[] {
+      baseURL + "/service",
+      "http://127.0.0.1:8080/service",
+      "http://169.254.169.254/computeMetadata/v1/",
+      "http://metadata.google.internal/computeMetadata/v1/",
+      "http://cdap-master.default.svc.cluster.local:11015/v3/namespaces",
+      "http://10.0.0.1/internal",
+      "file:///etc/passwd"
+    };
+    for (String target : blockedUrls) {
+      try {
+        TestingRig.execute(new String[] {"invoke-http " + target + " a,b"}, rows);
+        Assert.fail("Expected invoke-http to reject target URL: " + target);
+      } catch (RecipeException expected) {
+        // expected
+      }
+    }
+
+    System.setProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY, "true");
+    String[] alwaysBlockedUrls = new String[] {
+      "http://169.254.169.254/computeMetadata/v1/",
+      "http://metadata.google.internal/computeMetadata/v1/",
+      "http://cdap-master.default.svc.cluster.local:11015/v3/namespaces"
+    };
+    for (String target : alwaysBlockedUrls) {
+      try {
+        TestingRig.execute(new String[] {"invoke-http " + target + " a,b"}, rows);
+        Assert.fail("Expected invoke-http to reject metadata/cluster URL even with opt-in: " + target);
+      } catch (RecipeException expected) {
+        // expected
+      }
+    }
+  }
+
+  @Test
+  public void testHttpInvokeDoesNotFollowRedirects() throws Exception {
+    String[] directives = new String[] {
+      "invoke-http " + (baseURL + "/redirect ") + "a,b"
+    };
+    List<Row> rows = Arrays.asList(
+      new Row("a", "1").add("b", 2.0)
+    );
+    RecipePipeline executor = TestingRig.execute(directives);
+    rows = executor.execute(rows);
+    Assert.assertEquals(0, rows.size());
+    Assert.assertEquals(1, executor.errors().size());
+  }
+
   @After
   public void stopService() throws Exception {
+    System.clearProperty(OutboundUrlValidator.ALLOW_PRIVATE_NETWORKS_PROPERTY);
     httpService.stop();
   }
 
