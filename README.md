@@ -61,6 +61,13 @@ Videos and Screencasts are best way to learn, so we have compiled simple, short 
   * [Parsing CSV Files and Extracting Column Values](wrangler-demos/parsing-csv-extracting-column-values.md)
   * [Parsing HL7 CCDA XML Files](wrangler-demos/parsing-hl7-ccda-xml-files.md)
 
+## ByteSize and TimeDuration Parsers
+
+Wrangler now supports native parsing of values like "10MB", "150ms", etc.
+
+**Directive Example:**
+
+
 ## Available Directives
 
 These directives are currently available:
