@@ -1,0 +1,20 @@
+# AI Prompts Used During Development
+
+1. I have been given this assignment as a part of the selection process for a company. I want you to help me complete it and provide explanations at each step.
+
+2. What are the next steps after cloning the repo?
+
+3. This is my directives.g4 file — make the required changes in it.
+
+4. I am getting a compilation failure: "package ... does not exist" — how do I fix it?
+
+5. The type ByteSize must implement the inherited abstract method Token.toJson()
+
+6. This is my GrammarBasedParser.java file — please review it and suggest fixes.
+
+7. How do I extract values from a custom Row class in Wrangler?
+
+8. Here's my `Row.java` — how can I dynamically get column names and values?
+
+9. Please review all my files once again and guide me to final submission.
+
