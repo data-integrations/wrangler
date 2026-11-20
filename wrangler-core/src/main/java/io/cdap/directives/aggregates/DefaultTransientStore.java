@@ -32,6 +32,51 @@ import java.util.Set;
  * The life-time of variables set in this store is within a boundary of record
  * being processed.
  */
+public class AggregateStats implements Directive {
+  private String sizeCol, timeCol, outSizeCol, outTimeCol;
+
+  @Override
+  public UsageDefinition define() {
+    return UsageDefinition.builder()
+      .define("sizeCol", TokenType.COLUMN_NAME)
+      .define("timeCol", TokenType.COLUMN_NAME)
+      .define("outSizeCol", TokenType.COLUMN_NAME)
+      .define("outTimeCol", TokenType.COLUMN_NAME)
+      .build();
+  }
+
+  @Override
+  public void initialize(Arguments args) {
+    sizeCol = ((ColumnName) args.value("sizeCol")).value();
+    timeCol = ((ColumnName) args.value("timeCol")).value();
+    outSizeCol = ((ColumnName) args.value("outSizeCol")).value();
+    outTimeCol = ((ColumnName) args.value("outTimeCol")).value();
+  }
+
+  @Override
+  public List<Row> execute(List<Row> rows, ExecutorContext context) {
+    long totalSize = 0;
+    long totalTime = 0;
+
+    for (Row row : rows) {
+      Object sizeObj = row.getValue(sizeCol);
+      Object timeObj = row.getValue(timeCol);
+
+      ByteSize size = new ByteSize(sizeObj.toString());
+      TimeDuration time = new TimeDuration(timeObj.toString());
+
+      totalSize += size.getBytes();
+      totalTime += time.getMillis();
+    }
+
+    Row out = new Row();
+    out.add(outSizeCol, totalSize / (1024.0 * 1024)); // convert to MB
+    out.add(outTimeCol, totalTime / 1000.0); // convert to seconds
+
+    return Collections.singletonList(out);
+  }
+}
+
 public class DefaultTransientStore implements TransientStore {
   private final Map<String, Object> global = new HashMap<>();
   private final Map<String, Object> local = new HashMap<>();
