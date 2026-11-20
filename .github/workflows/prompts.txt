@@ -1,0 +1,3 @@
+Prompt: Generate a ByteSize Java class that converts KB, MB, GB to bytes.
+Prompt: Create ANTLR grammar rules for BYTE_SIZE and TIME_DURATION.
+Prompt: How to create an aggregate directive in CDAP Wrangler.
