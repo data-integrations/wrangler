@@ -47,8 +47,10 @@ public class XmlToJsonTest {
 
     rows = TestingRig.execute(directives, rows);
     Assert.assertEquals(1, rows.size());
-    Assert.assertEquals("{\"tagid\":3.03246306303E19}", rows.get(0).getValue("body_1_Data").toString());
-    Assert.assertEquals("{\"tagid\":3.03246306303E19}", rows.get(0).getValue("body_2_Data").toString());
+    // Newer org.json (checked with 20260814) parses XML numbers with an exponent as BigDecimal, which prints
+    // "E+" (same value as the old Double "E19").
+    Assert.assertEquals("{\"tagid\":3.03246306303E+19}", rows.get(0).getValue("body_1_Data").toString());
+    Assert.assertEquals("{\"tagid\":3.03246306303E+19}", rows.get(0).getValue("body_2_Data").toString());
     Assert.assertEquals("{\"tagid\":\"303246306303E8\"}", rows.get(0).getValue("body_3_Data").toString());
   }
 }
