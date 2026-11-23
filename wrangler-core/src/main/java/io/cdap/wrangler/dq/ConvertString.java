@@ -53,10 +53,11 @@ public class ConvertString {
     , '\u205F' + "" // MEDIUM MATHEMATICAL SPACE
     , '\u3000' + "" // IDEOGRAPHIC SPACE
   };
+  private static final Pattern REMOVE_WHITE_SPACES_PATTERN =
+    Pattern.compile("([\\s\\u0085\\u180E\\p{Z}])\\1+");
 
   private String repeatChar = null;
   private Pattern removeRepeatCharPattern = null;
-  private Pattern removeWhiteSpacesPattern = null;
 
   /**
    * This constructor is used to some cases but except removing a specify repeated String
@@ -77,7 +78,6 @@ public class ConvertString {
     if (!StringUtils.isEmpty(repeatStr)) {
       removeRepeatCharPattern = Pattern.compile("(" + repeatStr + ")+");
     }
-    removeWhiteSpacesPattern = Pattern.compile("([\\s\\u0085\\u180E\\p{Z}])\\1+");
   }
 
   /**
@@ -171,10 +171,10 @@ public class ConvertString {
    * @return the string removed all whiteSpaces
    */
   public String removeRepeatedWhitespaces(String input) {
-    if (StringUtils.isEmpty(input) || removeWhiteSpacesPattern == null) {
+    if (StringUtils.isEmpty(input)) {
       return input;
     }
-    Matcher matcher = removeWhiteSpacesPattern.matcher(input);
+    Matcher matcher = REMOVE_WHITE_SPACES_PATTERN.matcher(input);
     return matcher.replaceAll("$1");
   }
 
