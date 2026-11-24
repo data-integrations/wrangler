@@ -38,6 +38,7 @@ import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.wrangler.proto.BadRequestException;
 import io.cdap.wrangler.proto.ConflictException;
 import io.cdap.wrangler.proto.NotFoundException;
+import io.cdap.wrangler.proto.StatusCodeException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -185,6 +186,8 @@ public class ConnectionDiscoverer {
           throw new RetryableException("Connection service is not available with status " + responseCode);
         case HttpURLConnection.HTTP_BAD_REQUEST:
           throw new BadRequestException(getError(urlConn));
+        case HttpURLConnection.HTTP_FORBIDDEN:
+          throw new StatusCodeException(getError(urlConn), HttpURLConnection.HTTP_FORBIDDEN);
         case HttpURLConnection.HTTP_NOT_FOUND:
           throw new NotFoundException(getError(urlConn));
         case HttpURLConnection.HTTP_CONFLICT:

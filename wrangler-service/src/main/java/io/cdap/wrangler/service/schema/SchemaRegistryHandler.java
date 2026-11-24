@@ -21,6 +21,7 @@ import io.cdap.cdap.api.annotation.TransactionControl;
 import io.cdap.cdap.api.annotation.TransactionPolicy;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
+import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.spi.data.transaction.TransactionRunners;
 import io.cdap.wrangler.dataset.schema.SchemaDescriptor;
 import io.cdap.wrangler.dataset.schema.SchemaRegistry;
@@ -66,6 +67,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
                      @QueryParam("id") String id, @QueryParam("name") String name,
                      @QueryParam("description") String description, @QueryParam("type") String type) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.UPDATE);
       if (id == null || id.isEmpty()) {
         throw new BadRequestException("Schema id must be specified.");
       }
@@ -120,6 +122,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   public void upload(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.UPDATE);
       byte[] bytes;
       ByteBuffer content = request.getContent();
       if (content != null && content.hasRemaining()) {
@@ -158,6 +161,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.UPDATE);
       NamespacedId namespacedId = new NamespacedId(ns, id);
       TransactionRunners.run(getContext(), context -> {
         SchemaRegistry registry = SchemaRegistry.get(context);
@@ -184,6 +188,7 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   public void delete(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                      @PathParam("id") String id, @PathParam("version") long version) {
     respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.UPDATE);
       TransactionRunners.run(getContext(), context -> {
         SchemaRegistry registry = SchemaRegistry.get(context);
         registry.remove(new NamespacedId(ns, id), version);
@@ -205,10 +210,13 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder, @PathParam("context") String namespace,
                   @PathParam("id") String id, @PathParam("version") long version) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      SchemaRegistry registry = SchemaRegistry.get(context);
-      return new ServiceResponse<>(registry.getEntry(new NamespacedId(ns, id), version));
-    }));
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
+      return TransactionRunners.run(getContext(), context -> {
+        SchemaRegistry registry = SchemaRegistry.get(context);
+        return new ServiceResponse<>(registry.getEntry(new NamespacedId(ns, id), version));
+      });
+    });
   }
 
   /**
@@ -224,10 +232,13 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      SchemaRegistry registry = SchemaRegistry.get(context);
-      return new ServiceResponse<>(registry.getEntry(new NamespacedId(ns, id)));
-    }));
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
+      return TransactionRunners.run(getContext(), context -> {
+        SchemaRegistry registry = SchemaRegistry.get(context);
+        return new ServiceResponse<>(registry.getEntry(new NamespacedId(ns, id)));
+      });
+    });
   }
 
   /**
@@ -242,9 +253,12 @@ public class SchemaRegistryHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   public void versions(HttpServiceRequest request, HttpServiceResponder responder,
                        @PathParam("context") String namespace, @PathParam("id") String id) {
-    respond(request, responder, namespace, ns -> TransactionRunners.run(getContext(), context -> {
-      SchemaRegistry registry = SchemaRegistry.get(context);
-      return new ServiceResponse<>(registry.getVersions(new NamespacedId(ns, id)));
-    }));
+    respond(request, responder, namespace, ns -> {
+      accessEnforcer.enforceNamespace(ns.getName(), StandardPermission.GET);
+      return TransactionRunners.run(getContext(), context -> {
+        SchemaRegistry registry = SchemaRegistry.get(context);
+        return new ServiceResponse<>(registry.getVersions(new NamespacedId(ns, id)));
+      });
+    });
   }
 }

@@ -26,6 +26,8 @@ import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
 import io.cdap.cdap.internal.io.SchemaTypeAdapter;
+import io.cdap.cdap.proto.security.StandardPermission;
+import io.cdap.wrangler.dataset.recipe.RecipeNotFoundException;
 import io.cdap.wrangler.dataset.recipe.RecipePageRequest;
 import io.cdap.wrangler.dataset.recipe.RecipeRow;
 import io.cdap.wrangler.proto.BadRequestException;
@@ -76,6 +78,8 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("context") String namespace) {
     respond(responder, namespace, ns -> {
       RecipeId recipeId = RecipeId.builder(ns).build();
+      accessEnforcer.enforceRecipe(recipeId.getNamespace().getName(), recipeId.getRecipeId(),
+                                   StandardPermission.CREATE);
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.createRecipe(recipeId, RecipeRow.builder(recipe).build());
       metrics.gauge(NUMBER_RECIPE_SAVED_METRIC, recipe.getDirectives().size());
@@ -91,6 +95,7 @@ public class RecipeHandler extends AbstractWranglerHandler {
                         @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns -> {
       RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
+      accessEnforcer.enforceRecipe(id.getNamespace().getName(), id.getRecipeId(), StandardPermission.GET);
       responder.sendJson(recipeStore.getRecipeById(id));
     });
   }
@@ -102,7 +107,15 @@ public class RecipeHandler extends AbstractWranglerHandler {
                         @PathParam("context") String namespace,
                         @PathParam("recipe-name") String recipeName) {
     respond(responder, namespace, ns -> {
-      responder.sendJson(recipeStore.getRecipeByName(ns, recipeName));
+      Recipe recipe;
+      try {
+        recipe = recipeStore.getRecipeByName(ns, recipeName);
+      } catch (RecipeNotFoundException e) {
+        accessEnforcer.enforceRecipe(ns.getName(), StandardPermission.LIST);
+        throw e;
+      }
+      accessEnforcer.enforceRecipe(ns.getName(), recipe.getRecipeId().getRecipeId(), StandardPermission.GET);
+      responder.sendJson(recipe);
     });
   }
 
@@ -110,12 +123,13 @@ public class RecipeHandler extends AbstractWranglerHandler {
   @TransactionPolicy(value = TransactionControl.EXPLICIT)
   @Path("v2/contexts/{context}/recipes")
   public void listRecipes(HttpServiceRequest request, HttpServiceResponder responder,
-                          @PathParam("context") String namespace,
-                          @QueryParam("pageSize") Integer pageSize,
-                          @QueryParam("pageToken") String pageToken,
-                          @QueryParam("sortBy")String sortBy,
-                          @QueryParam("sortOrder") String sortOrder) {
+                           @PathParam("context") String namespace,
+                           @QueryParam("pageSize") Integer pageSize,
+                           @QueryParam("pageToken") String pageToken,
+                           @QueryParam("sortBy")String sortBy,
+                           @QueryParam("sortOrder") String sortOrder) {
     respond(responder, namespace, ns -> {
+      accessEnforcer.enforceRecipe(ns.getName(), StandardPermission.LIST);
       RecipePageRequest pageRequest = RecipePageRequest.builder(ns)
         .setPageSize(pageSize)
         .setPageToken(pageToken)
@@ -133,7 +147,9 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("context") String namespace,
                            @PathParam("recipe-id") String recipeId) {
     respond(responder, namespace, ns-> {
-      recipeStore.deleteRecipe(RecipeId.builder(ns).setRecipeId(recipeId).build());
+      RecipeId id = RecipeId.builder(ns).setRecipeId(recipeId).build();
+      accessEnforcer.enforceRecipe(id.getNamespace().getName(), id.getRecipeId(), StandardPermission.DELETE);
+      recipeStore.deleteRecipe(id);
       responder.sendStatus(HttpURLConnection.HTTP_OK);
     });
   }
@@ -146,6 +162,8 @@ public class RecipeHandler extends AbstractWranglerHandler {
                            @PathParam("recipe-id") String recipeIdString) {
     respond(responder, namespace, ns-> {
       RecipeId recipeId = RecipeId.builder(ns).setRecipeId(recipeIdString).build();
+      accessEnforcer.enforceRecipe(recipeId.getNamespace().getName(), recipeId.getRecipeId(),
+                                   StandardPermission.UPDATE);
       Recipe recipe = buildRecipeFromRequest(request, recipeId);
       recipeStore.updateRecipe(recipeId, RecipeRow.builder(recipe).build());
       responder.sendStatus(HttpURLConnection.HTTP_OK);
