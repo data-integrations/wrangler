@@ -40,6 +40,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Set up JDK 11
+        if: github.ref_name != 'release/4.10' && github.base_ref != 'release/4.10'
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          overwrite-settings: false
       - name: Cache
         uses: actions/cache@v4
         with:
