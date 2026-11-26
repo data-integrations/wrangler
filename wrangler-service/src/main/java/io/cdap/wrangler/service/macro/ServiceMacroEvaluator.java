@@ -43,7 +43,7 @@ public class ServiceMacroEvaluator implements MacroEvaluator {
   public String lookup(String property) throws InvalidMacroException {
     String val = arguments.get(property);
     if (val == null) {
-      throw new InvalidMacroException(String.format("Argument '%s' is not defined.", property));
+      throw new InvalidMacroException("Failed to resolve macro argument.");
     }
     return val;
   }
@@ -60,7 +60,7 @@ public class ServiceMacroEvaluator implements MacroEvaluator {
       SecureStoreData secureStoreData = context.get(namespace, arguments[0]);
       return Bytes.toString(secureStoreData.get());
     } catch (Exception e) {
-      throw new InvalidMacroException("Failed to resolve macro '" + macroFunction + "(" + arguments[0] + ")'", e);
+      throw new InvalidMacroException("Failed to resolve macro '" + macroFunction + "'.");
     }
   }
 }

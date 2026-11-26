@@ -256,7 +256,17 @@ public class ConnectionHandler extends AbstractWranglerHandler {
           return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
         });
       });
-      return new ConnectionResponse<>(connections, getDefaultConnection(connections, connectionTypeConfig));
+      List<Connection> usableConnections = new ArrayList<>();
+      for (Connection conn : connections) {
+        try {
+          accessEnforcer.enforceConnection(ns.getName(), conn.getId(), StandardPermission.USE);
+          usableConnections.add(conn);
+        } catch (io.cdap.cdap.security.spi.authorization.UnauthorizedException e) {
+          // Omit connections the caller cannot use so their properties are not exposed.
+        }
+      }
+      return new ConnectionResponse<>(usableConnections,
+                                      getDefaultConnection(usableConnections, connectionTypeConfig));
     });
   }
 
@@ -312,7 +322,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void get(HttpServiceRequest request, HttpServiceResponder responder,
                   @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
       return getConnection(new NamespacedId(ns, id));
     });
   }
@@ -330,7 +340,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void properties(HttpServiceRequest request, HttpServiceResponder responder,
                          @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
       return getConnection(new NamespacedId(ns, id)).getProperties();
     });
   }
@@ -379,7 +389,7 @@ public class ConnectionHandler extends AbstractWranglerHandler {
   public void clone(HttpServiceRequest request, HttpServiceResponder responder,
                     @PathParam("context") String namespace, @PathParam("id") String id) {
     respond(request, responder, namespace, ns -> {
-      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.GET);
+      accessEnforcer.enforceConnection(ns.getName(), id, StandardPermission.USE);
       Connection connection = getConnection(new NamespacedId(ns, id));
       ConnectionMeta clone = ConnectionMeta.builder(connection)
         .setName(connection.getName() + "_Clone")
