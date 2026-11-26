@@ -67,6 +67,7 @@ import io.cdap.wrangler.service.bigquery.BigQueryHandler;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.common.WranglerAccessEnforcer;
 import io.cdap.wrangler.service.connections.ConnectionHandler;
+import io.cdap.wrangler.service.connections.ConnectionResponse;
 import io.cdap.wrangler.service.connections.ConnectionTypeConfig;
 import io.cdap.wrangler.service.database.DatabaseHandler;
 import io.cdap.wrangler.service.directive.ConnectionDiscoverer;
@@ -361,15 +362,15 @@ public class WranglerAuthEnforcementTest {
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.get(request, createMockResponder(status), TEST_NS, "c1"));
-    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.GET),
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.properties(request, createMockResponder(status), TEST_NS, "c1"));
-    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.GET),
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.clone(request, createMockResponder(status), TEST_NS, "c1"));
-    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.GET),
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.update(request, createMockResponder(status), TEST_NS, "c1"));
@@ -444,6 +445,42 @@ public class WranglerAuthEnforcementTest {
     assertEndpointStatus(HttpURLConnection.HTTP_OK,
                          status -> allowHandler.delete(userConnReq, createMockResponder(status), TEST_NS,
                                                        "MixedCase_Missing"));
+
+    // 5. Verify list() omits connections when caller has LIST but lacks USE
+    ContextAccessEnforcer listOnlyEnforcer = new ContextAccessEnforcer() {
+      @Override
+      public void enforce(EntityId entity, Permission permission) throws AccessException {
+        if (permission != StandardPermission.LIST) {
+          throw new UnauthorizedException("Access denied for " + entity + " with " + permission);
+        }
+      }
+
+      @Override
+      public void enforce(EntityId entity, Set<? extends Permission> permissions) throws AccessException {
+        for (Permission permission : permissions) {
+          enforce(entity, permission);
+        }
+      }
+
+      @Override
+      public void enforceOnParent(EntityType entityType, EntityId parentId, Permission permission)
+        throws AccessException {
+        if (permission != StandardPermission.LIST) {
+          throw new UnauthorizedException("Access denied on parent " + parentId + " with " + permission);
+        }
+      }
+
+      @Override
+      public Set<? extends EntityId> isVisible(Set<? extends EntityId> entities) {
+        return entities;
+      }
+    };
+    ConnectionHandler listOnlyHandler = createConnectionHandler(config, listOnlyEnforcer, true);
+    AtomicInteger listStatus = new AtomicInteger();
+    AtomicReference<Object> listBody = new AtomicReference<>();
+    listOnlyHandler.list(request, createMockResponder(listStatus, listBody), TEST_NS, "*");
+    Assert.assertEquals(HttpURLConnection.HTTP_OK, listStatus.get());
+    Assert.assertTrue(((ConnectionResponse<?>) listBody.get()).getValues().isEmpty());
   }
 
   @Test
