@@ -18,6 +18,7 @@ package io.cdap.wrangler.service.common;
 
 import com.google.gson.JsonSyntaxException;
 import io.cdap.cdap.api.NamespaceSummary;
+import io.cdap.cdap.api.macro.InvalidMacroException;
 import io.cdap.cdap.api.service.http.AbstractSystemHttpServiceHandler;
 import io.cdap.cdap.api.service.http.HttpServiceRequest;
 import io.cdap.cdap.api.service.http.HttpServiceResponder;
@@ -174,6 +175,10 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
         new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (InvalidMacroException e) {
+      // Return a static message without logging the exception message or cause so resolved
+      // nested macro values cannot leak into HTTP responses or server logs.
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>("Failed to evaluate macro."));
     } catch (UnauthorizedException e) {
       responder.sendJson(e.getStatusCode(), new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
@@ -297,6 +302,10 @@ public class AbstractWranglerHandler extends AbstractSystemHttpServiceHandler {
           new ServiceResponse<>(e.getErrorRecords(), false, e.getMessage()));
     } catch (JsonSyntaxException e) {
       responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>(e.getMessage()));
+    } catch (InvalidMacroException e) {
+      // Return a static message without logging the exception message or cause so resolved
+      // nested macro values cannot leak into HTTP responses or server logs.
+      responder.sendJson(HttpURLConnection.HTTP_BAD_REQUEST, new ServiceResponse<Void>("Failed to evaluate macro."));
     } catch (UnauthorizedException e) {
       responder.sendJson(e.getStatusCode(), new ServiceResponse<Void>(e.getMessage()));
     } catch (Throwable t) {
