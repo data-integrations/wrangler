@@ -18,9 +18,11 @@ package io.cdap.wrangler.service.macro;
 
 import io.cdap.cdap.api.common.Bytes;
 import io.cdap.cdap.api.macro.InvalidMacroException;
+import io.cdap.cdap.api.macro.MacroParserOptions;
 import io.cdap.cdap.api.security.store.SecureStoreData;
 import io.cdap.cdap.api.security.store.SecureStoreMetadata;
 import io.cdap.cdap.api.service.http.SystemHttpServiceContext;
+import io.cdap.cdap.internal.app.runtime.plugin.MacroParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,7 +45,7 @@ public class ServiceMacroEvaluatorTest {
       evaluator.evaluate("secure", secretValue);
       Assert.fail("Expected InvalidMacroException");
     } catch (InvalidMacroException e) {
-      Assert.assertFalse(e.getMessage().contains(secretValue));
+      Assert.assertEquals("Failed to resolve macro 'secure'.", e.getMessage());
       Assert.assertNull(e.getCause());
     }
   }
@@ -58,7 +60,52 @@ public class ServiceMacroEvaluatorTest {
       evaluator.lookup(secretValue);
       Assert.fail("Expected InvalidMacroException");
     } catch (InvalidMacroException e) {
-      Assert.assertFalse(e.getMessage().contains(secretValue));
+      Assert.assertEquals("Failed to resolve macro argument.", e.getMessage());
+      Assert.assertNull(e.getCause());
+    }
+  }
+
+  @Test
+  public void testUnsupportedFunctionDoesNotReflectFunctionName() {
+    String secretValue = "super-secret-value-123";
+    SystemHttpServiceContext context = createContext(Collections.emptyMap(), Collections.emptyMap());
+
+    ServiceMacroEvaluator evaluator = new ServiceMacroEvaluator("default", context);
+    try {
+      evaluator.evaluate(secretValue, "arg");
+      Assert.fail("Expected InvalidMacroException");
+    } catch (InvalidMacroException e) {
+      Assert.assertEquals("Unsupported macro function.", e.getMessage());
+      Assert.assertNull(e.getCause());
+    }
+  }
+
+  @Test
+  public void testNestedSecureMacrosDoNotLeakSecretThroughMacroParser() {
+    String secretValue = "super-secret-value-123";
+    SystemHttpServiceContext context = createContext(
+      Collections.emptyMap(), Collections.singletonMap("my-key", secretValue));
+    ServiceMacroEvaluator evaluator = new ServiceMacroEvaluator("default", context);
+    MacroParserOptions options = MacroParserOptions.builder()
+      .setFunctionWhitelist("secure")
+      .setEscaping(false)
+      .build();
+    MacroParser parser = new MacroParser(evaluator, options);
+
+    try {
+      parser.parse("${secure(${secure(my-key)})}");
+      Assert.fail("Expected InvalidMacroException");
+    } catch (InvalidMacroException e) {
+      Assert.assertEquals("Failed to resolve macro 'secure'.", e.getMessage());
+      Assert.assertNull(e.getCause());
+    }
+
+    try {
+      parser.parse("${${secure(my-key)}}");
+      Assert.fail("Expected InvalidMacroException");
+    } catch (InvalidMacroException e) {
+      Assert.assertEquals("Failed to resolve macro argument.", e.getMessage());
+      Assert.assertNull(e.getCause());
     }
   }
 

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -59,6 +60,11 @@ import javax.ws.rs.QueryParam;
 
 /**
  * This service exposes REST APIs for managing the lifecycle of a connection in the connection store.
+ *
+ * <p>Because this legacy handler is deprecated, read endpoints ({@code get}, {@code properties},
+ * {@code clone}) require {@link StandardPermission#USE}, {@code list} omits connections the caller
+ * cannot {@code USE}, and {@code updateProp} redacts returned properties when the caller lacks
+ * {@code USE}.
  */
 @Deprecated
 public class ConnectionHandler extends AbstractWranglerHandler {
@@ -256,15 +262,9 @@ public class ConnectionHandler extends AbstractWranglerHandler {
           return type.equalsIgnoreCase(ALL_TYPES) || input.getType().name().equalsIgnoreCase(type);
         });
       });
-      List<Connection> usableConnections = new ArrayList<>();
-      for (Connection conn : connections) {
-        try {
-          accessEnforcer.enforceConnection(ns.getName(), conn.getId(), StandardPermission.USE);
-          usableConnections.add(conn);
-        } catch (io.cdap.cdap.security.spi.authorization.UnauthorizedException e) {
-          // Omit connections the caller cannot use so their properties are not exposed.
-        }
-      }
+      List<Connection> usableConnections = connections.stream()
+        .filter(conn -> accessEnforcer.isConnectionAuthorized(ns.getName(), conn.getId(), StandardPermission.USE))
+        .collect(Collectors.toList());
       return new ConnectionResponse<>(usableConnections,
                                       getDefaultConnection(usableConnections, connectionTypeConfig));
     });
@@ -371,7 +371,11 @@ public class ConnectionHandler extends AbstractWranglerHandler {
           .putProperty(key, value)
           .build();
         store.update(namespacedId, updatedMeta);
-        return new ServiceResponse<>(updatedMeta.getProperties());
+        Map<String, String> responseProps = accessEnforcer.isConnectionAuthorized(ns.getName(), id,
+                                                                                  StandardPermission.USE)
+          ? updatedMeta.getProperties()
+          : Collections.emptyMap();
+        return new ServiceResponse<>(responseProps);
       });
     });
   }
