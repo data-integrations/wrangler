@@ -16,76 +16,108 @@
 
 package io.cdap.wrangler;
 
+import io.cdap.wrangler.api.DirectiveContext;
 import io.cdap.wrangler.api.Row;
-import org.apache.commons.jexl3.scripting.JexlScriptEngine;
+import io.cdap.wrangler.expression.CompileOptions;
+import io.cdap.wrangler.expression.EL;
+import io.cdap.wrangler.expression.ELPermissionException;
+import io.cdap.wrangler.parser.NoOpDirectiveContext;
+import org.apache.commons.jexl3.JexlBuilder;
+import org.apache.commons.jexl3.JexlContext;
+import org.apache.commons.jexl3.JexlEngine;
+import org.apache.commons.jexl3.JexlException;
+import org.apache.commons.jexl3.JexlScript;
+import org.apache.commons.jexl3.MapContext;
+import org.apache.commons.jexl3.introspection.JexlSandbox;
 
-import javax.script.Bindings;
-import javax.script.CompiledScript;
-import javax.script.ScriptContext;
-import javax.script.ScriptException;
-import javax.script.SimpleBindings;
-import javax.script.SimpleScriptContext;
+import java.util.Objects;
 
 /**
  * A precondition expression that filters data into the directives.
  */
 public class Precondition {
   private final String condition;
-  private final CompiledScript script;
-  // SimpleScriptContext is pretty expensive to construct due to all PrintWriter creation, so let's cache it
-  private final ThreadLocal<ScriptContext> contextCache = ThreadLocal.withInitial(this::createContext);
+  private final JexlScript script;
+  private final boolean allowlistEnabled;
 
+  /**
+   * Compiles a JEXL precondition expression without allowlist enforcement.
+   * Intended for compile-time syntax validation where runtime directive config is unavailable.
+   *
+   * @param condition the JEXL precondition expression
+   * @throws PreconditionException if compilation fails
+   */
   public Precondition(String condition) throws PreconditionException {
+    this(condition, new NoOpDirectiveContext());
+  }
+
+  /**
+   * Compiles a JEXL precondition expression using the JEXL allowlist configuration from the given context.
+   *
+   * @param condition the JEXL precondition expression
+   * @param context   the directive context holding JEXL allowlist configuration
+   * @throws PreconditionException if compilation fails
+   * @throws ELPermissionException if compilation violates JEXL sandbox permissions
+   */
+  public Precondition(String condition, DirectiveContext context) throws PreconditionException {
+    Objects.requireNonNull(condition, "Precondition expression must not be null.");
     this.condition = condition;
-    JexlScriptEngine engine = new JexlScriptEngine();
+    CompileOptions options = CompileOptions.fromContext(context);
+    this.allowlistEnabled = options.isAllowlistEnabled();
+    JexlSandbox sandbox = EL.createSandbox(options.getJexlAllowlist(), allowlistEnabled);
+    JexlEngine engine = new JexlBuilder()
+      .sandbox(sandbox)
+      .silent(false)
+      .cache(1024)
+      .strict(true)
+      .create();
     try {
-      script = engine.compile(condition);
-    } catch (ScriptException e) {
-      if (e.getCause() != null) {
-        throw new PreconditionException(e.getCause().getMessage());
-      } else {
-        throw new PreconditionException(e.getMessage());
-      }
+      script = engine.createScript(condition);
+    } catch (JexlException e) {
+      EL.checkJexlPermissionViolation(e, condition, allowlistEnabled);
+      throw toPreconditionException(e);
+    } catch (RuntimeException e) {
+      throw toPreconditionException(e);
     }
   }
 
-  public ScriptContext createContext() {
-    ScriptContext parent = script.getEngine().getContext();
-
-    SimpleScriptContext context = new SimpleScriptContext();
-    context.setBindings(parent.getBindings(ScriptContext.GLOBAL_SCOPE),
-                         ScriptContext.GLOBAL_SCOPE);
-    context.setWriter(parent.getWriter());
-    context.setReader(parent.getReader());
-    context.setErrorWriter(parent.getErrorWriter());
-    return context;
-  }
-
+  /**
+   * Evaluates the compiled JEXL precondition expression against the given row.
+   *
+   * @param row the row providing column bindings for the precondition expression
+   * @return {@code true} if the row satisfies the precondition, {@code false} otherwise
+   * @throws PreconditionException if evaluation fails or does not produce a boolean result
+   * @throws ELPermissionException if evaluation violates JEXL sandbox permissions
+   */
   public boolean apply(Row row) throws PreconditionException {
-    Bindings bindings = new SimpleBindings();
+    JexlContext jexlContext = new MapContext();
     for (int i = 0; i < row.width(); ++i) {
-      bindings.put(row.getColumn(i), row.getValue(i));
+      jexlContext.set(row.getColumn(i), row.getValue(i));
     }
 
+    Object result;
     try {
-      ScriptContext scriptContext = contextCache.get();
-      scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-      Object result = script.eval(scriptContext);
-      if (!(result instanceof Boolean)) {
-        throw new PreconditionException(
-          String.format("Precondition '%s' does not result in true or false.", condition)
-        );
-      }
-      return (Boolean) result;
-    } catch (ScriptException e) {
-      // Generally JexlException wraps the original exception, so it's good idea
-      // to check if there is a inner exception, if there is wrap it in 'DirectiveExecutionException'
-      // else just print the error message.
-      if (e.getCause() != null) {
-        throw new PreconditionException(e.getCause().getMessage());
-      } else {
-        throw new PreconditionException(e.getMessage());
-      }
+      result = script.execute(jexlContext);
+    } catch (JexlException e) {
+      EL.checkJexlPermissionViolation(e, condition, allowlistEnabled);
+      throw toPreconditionException(e);
+    } catch (RuntimeException e) {
+      throw toPreconditionException(e);
     }
+
+    if (!(result instanceof Boolean)) {
+      throw new PreconditionException(
+        String.format("Precondition '%s' does not result in true or false.", condition)
+      );
+    }
+    return (Boolean) result;
+  }
+
+  private static PreconditionException toPreconditionException(RuntimeException e) {
+    // Generally JexlException wraps the original exception, so check if there is an inner exception.
+    if (e.getCause() != null && e.getCause().getMessage() != null) {
+      return new PreconditionException(e.getCause().getMessage());
+    }
+    return new PreconditionException(e.getMessage() != null ? e.getMessage() : e.toString());
   }
 }

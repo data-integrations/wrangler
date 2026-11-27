@@ -189,25 +189,42 @@ public final class EL {
    */
   private static ELException handleJexlException(
       JexlException e, String expression, boolean allowlistEnabled) {
-    JexlInfo info = e.getInfo();
-    Object detail = (info == null || info.getDetail() == null) ? expression : info.getDetail();
-    int line = info == null ? 0 : info.getLine();
-    int column = info == null ? 0 : info.getColumn();
-    String baseErrorMessage = String.format(
-        "Error encountered while evaluating '%s', at line '%d' and column '%d'.",
-        detail, line, column);
+    checkJexlPermissionViolation(e, expression, allowlistEnabled);
+    return new ELException(
+        String.format("%s Make sure the JEXL transformation is valid.",
+                      formatJexlErrorMessage(e, expression)),
+        e);
+  }
 
+  /**
+   * Throws an {@link ELPermissionException} if the given {@link JexlException} represents a
+   * JEXL sandbox permission violation while allowlisting is enabled.
+   *
+   * @param e                the JEXL exception to handle
+   * @param expression       the source expression being evaluated
+   * @param allowlistEnabled whether the JEXL allowlist sandbox is enabled
+   * @throws ELPermissionException if the exception is caused by a JEXL sandbox permission violation
+   */
+  public static void checkJexlPermissionViolation(
+      JexlException e, String expression, boolean allowlistEnabled) {
     if (isJexlPermissionViolation(e, allowlistEnabled)) {
       throw new ELPermissionException(
           String.format(
               "%s Make sure the JEXL transformation is valid and uses only allowlisted classes, "
                   + "methods, and properties.",
-              baseErrorMessage),
+              formatJexlErrorMessage(e, expression)),
           e);
     }
+  }
 
-    return new ELException(
-        String.format("%s Make sure the JEXL transformation is valid.", baseErrorMessage), e);
+  private static String formatJexlErrorMessage(JexlException e, String expression) {
+    JexlInfo info = e.getInfo();
+    Object detail = (info == null || info.getDetail() == null) ? expression : info.getDetail();
+    int line = info == null ? 0 : info.getLine();
+    int column = info == null ? 0 : info.getColumn();
+    return String.format(
+        "Error encountered while evaluating '%s', at line '%d' and column '%d'.",
+        detail, line, column);
   }
 
   private static boolean isJexlPermissionViolation(JexlException e, boolean allowlistEnabled) {

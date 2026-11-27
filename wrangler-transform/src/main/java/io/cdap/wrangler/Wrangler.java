@@ -403,7 +403,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       if (PRECONDITION_LANGUAGE_JEXL.equalsIgnoreCase(config.getPreconditionLanguage())
         && checkPreconditionNotEmpty(false)) {
         try {
-          condition = new Precondition(config.getPreconditionJEXL());
+          condition = new Precondition(config.getPreconditionJEXL(), getDirectiveContext(context));
         } catch (Exception e) {
           String errorReason = "Failed to evaluate precondition due to an invalid JEXL expression.";
           throw WranglerErrorUtil.getProgramFailureExceptionDetailsFromChain(e, errorReason, null,
@@ -643,9 +643,7 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       directives = String.format("#pragma load-directives %s;%s", config.getUDDs(), config.getDirectives());
     }
 
-    DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
-    boolean jexlAllowlistEnabled = context != null && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
-    DirectiveContext directiveContext = new ConfigDirectiveContext(directiveConfig, jexlAllowlistEnabled);
+    DirectiveContext directiveContext = getDirectiveContext(context);
 
     try {
       return new GrammarBasedParser(context.getNamespace(), new MigrateToV2(directives).migrate(),
@@ -655,6 +653,12 @@ public class Wrangler extends Transform<StructuredRecord, StructuredRecord> impl
       throw WranglerErrorUtil.getProgramFailureExceptionDetailsFromChain(e, errorReason, null,
           ErrorType.USER);
     }
+  }
+
+  private DirectiveContext getDirectiveContext(StageContext context) {
+    DirectiveConfig directiveConfig = getSystemDirectiveConfigFromRuntimeArgs(context);
+    boolean jexlAllowlistEnabled = context != null && Feature.WRANGLER_JEXL_ALLOWLIST.isEnabled(context);
+    return new ConfigDirectiveContext(directiveConfig, jexlAllowlistEnabled);
   }
 
   /**

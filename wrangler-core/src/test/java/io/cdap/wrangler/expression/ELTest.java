@@ -16,6 +16,7 @@
 
 package io.cdap.wrangler.expression;
 
+import org.apache.commons.jexl3.JexlException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -193,5 +194,30 @@ public class ELTest {
     el = EL.compile("arithmetic:min(a,b)");
     execute = el.execute(new ELContext().add("a", d1).add("b", d2));
     Assert.assertEquals(d1, execute.getObject());
+  }
+
+  @Test
+  public void testCheckJexlPermissionViolation() {
+    JexlException.Method methodEx = new JexlException.Method(null, "exec");
+    JexlException.Property propEx = new JexlException.Property(null, "secret");
+    JexlException.Variable varEx = new JexlException.Variable(null, "missing", true);
+
+    EL.checkJexlPermissionViolation(methodEx, "a.exec()", false);
+    EL.checkJexlPermissionViolation(propEx, "a.secret", false);
+    EL.checkJexlPermissionViolation(varEx, "missing == 1", true);
+
+    for (JexlException ex : new JexlException[]{methodEx, propEx}) {
+      try {
+        EL.checkJexlPermissionViolation(ex, "a.x", true);
+        Assert.fail("Expected ELPermissionException for " + ex.getClass().getSimpleName());
+      } catch (ELPermissionException e) {
+        Assert.assertSame(ex, e.getCause());
+        Assert.assertTrue(e.getMessage().contains(
+            "Error encountered while evaluating 'a.x', at line '0' and column '0'."));
+        Assert.assertTrue(e.getMessage().contains(
+            "Make sure the JEXL transformation is valid and uses only allowlisted classes, "
+                + "methods, and properties."));
+      }
+    }
   }
 }
