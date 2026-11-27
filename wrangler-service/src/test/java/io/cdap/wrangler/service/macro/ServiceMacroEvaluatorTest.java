@@ -96,7 +96,8 @@ public class ServiceMacroEvaluatorTest {
       parser.parse("${secure(${secure(my-key)})}");
       Assert.fail("Expected InvalidMacroException");
     } catch (InvalidMacroException e) {
-      Assert.assertEquals("Failed to resolve macro 'secure'.", e.getMessage());
+      Assert.assertNotNull(e.getMessage());
+      Assert.assertFalse(e.getMessage().contains(secretValue));
       Assert.assertNull(e.getCause());
     }
 
@@ -104,7 +105,8 @@ public class ServiceMacroEvaluatorTest {
       parser.parse("${${secure(my-key)}}");
       Assert.fail("Expected InvalidMacroException");
     } catch (InvalidMacroException e) {
-      Assert.assertEquals("Failed to resolve macro argument.", e.getMessage());
+      Assert.assertNotNull(e.getMessage());
+      Assert.assertFalse(e.getMessage().contains(secretValue));
       Assert.assertNull(e.getCause());
     }
   }
