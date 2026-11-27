@@ -55,6 +55,7 @@ import io.cdap.wrangler.dataset.workspace.ConfigStore;
 import io.cdap.wrangler.dataset.workspace.WorkspaceDataset;
 import io.cdap.wrangler.proto.Namespace;
 import io.cdap.wrangler.proto.NamespacedId;
+import io.cdap.wrangler.proto.ServiceResponse;
 import io.cdap.wrangler.proto.StatusCodeException;
 import io.cdap.wrangler.proto.connection.Connection;
 import io.cdap.wrangler.proto.connection.ConnectionType;
@@ -67,6 +68,7 @@ import io.cdap.wrangler.service.bigquery.BigQueryHandler;
 import io.cdap.wrangler.service.common.AbstractWranglerHandler;
 import io.cdap.wrangler.service.common.WranglerAccessEnforcer;
 import io.cdap.wrangler.service.connections.ConnectionHandler;
+import io.cdap.wrangler.service.connections.ConnectionResponse;
 import io.cdap.wrangler.service.connections.ConnectionTypeConfig;
 import io.cdap.wrangler.service.database.DatabaseHandler;
 import io.cdap.wrangler.service.directive.ConnectionDiscoverer;
@@ -111,6 +113,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 
 /**
  * Unit tests for RBAC authorization enforcement and system namespace validation across Wrangler HTTP handlers.
@@ -361,15 +364,15 @@ public class WranglerAuthEnforcementTest {
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.get(request, createMockResponder(status), TEST_NS, "c1"));
-    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.GET),
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.properties(request, createMockResponder(status), TEST_NS, "c1"));
-    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.GET),
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.clone(request, createMockResponder(status), TEST_NS, "c1"));
-    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.GET),
+    Assert.assertEquals(new EnforceCall(new ConnectionEntityId(TEST_NS, "c1"), StandardPermission.USE),
                         denyEnforcer.getLastCall());
 
     assertEndpointForbidden(status -> handler.update(request, createMockResponder(status), TEST_NS, "c1"));
@@ -444,6 +447,107 @@ public class WranglerAuthEnforcementTest {
     assertEndpointStatus(HttpURLConnection.HTTP_OK,
                          status -> allowHandler.delete(userConnReq, createMockResponder(status), TEST_NS,
                                                        "MixedCase_Missing"));
+
+    // 5. Verify list() omits connections when caller has LIST but lacks USE
+    ContextAccessEnforcer listOnlyEnforcer =
+      new RecordingAccessEnforcer(permission -> permission == StandardPermission.LIST);
+    ConnectionHandler listOnlyHandler = createConnectionHandler(config, listOnlyEnforcer, true);
+    AtomicInteger listStatus = new AtomicInteger();
+    AtomicReference<Object> listBody = new AtomicReference<>();
+    listOnlyHandler.list(request, createMockResponder(listStatus, listBody), TEST_NS, "*");
+    Assert.assertEquals(HttpURLConnection.HTTP_OK, listStatus.get());
+    Assert.assertTrue(((ConnectionResponse<?>) listBody.get()).getValues().isEmpty());
+  }
+
+  @Test
+  public void testConnectionHandlerListFilteringUpdatePropRedactionAndFailClosed() throws Exception {
+    String listNs = "list_filter_ns";
+    Connection deniedDefault = new Connection(
+      new NamespacedId(new Namespace(listNs, 1L), "denied_default"),
+      ConnectionType.GCS, "Denied Default", "", 0L, 0L,
+      Collections.singletonMap("secret", "denied-val"), false);
+    Connection allowedConn = new Connection(
+      new NamespacedId(new Namespace(listNs, 1L), "allowed_conn"),
+      ConnectionType.GCS, "Allowed Conn", "", 0L, 0L,
+      Collections.singletonMap("bucket", "allowed-val"), false);
+    ConnectionTypeConfig listConfig = new ConnectionTypeConfig(
+      Collections.emptySet(), Arrays.asList(deniedDefault, allowedConn), "denied_default");
+
+    // 1. Mixed allowed/denied USE: only allowed_conn is returned and unauthorized default is omitted
+    RecordingAccessEnforcer partialEnforcer = new RecordingAccessEnforcer(false) {
+      @Override
+      public void enforce(EntityId entity, Permission permission) throws AccessException {
+        super.enforce(entity, permission);
+        if (new ConnectionEntityId(listNs, "denied_default").equals(entity)
+            && StandardPermission.USE.equals(permission)) {
+          throw new UnauthorizedException("Denied USE on denied_default");
+        }
+      }
+    };
+    ConnectionHandler partialHandler = createConnectionHandler(listConfig, partialEnforcer, true);
+    HttpServiceRequest request = createMockRequest("{}");
+
+    AtomicInteger status = new AtomicInteger();
+    AtomicReference<Object> body = new AtomicReference<>();
+    partialHandler.list(request, createMockResponder(status, body), listNs, "*");
+    Assert.assertEquals(HttpURLConnection.HTTP_OK, status.get());
+    @SuppressWarnings("unchecked")
+    List<Connection> values = new ArrayList<>(((ConnectionResponse<Connection>) body.get()).getValues());
+    Assert.assertEquals(1, values.size());
+    Assert.assertEquals("allowed_conn", values.get(0).getId());
+    Assert.assertNull(GSON.toJsonTree(body.get()).getAsJsonObject().get("default"));
+
+    // 2. Create a user connection and verify updateProp redacts properties without USE
+    ConnectionHandler allowAllHandler = createConnectionHandler(listConfig, new RecordingAccessEnforcer(false), true);
+    HttpServiceRequest userConnReq = createMockRequest(
+      "{\"name\":\"User Secret\",\"type\":\"GCS\",\"properties\":{\"secret\":\"user-secret-val\"}}");
+    assertEndpointStatus(HttpURLConnection.HTTP_OK,
+                         s -> allowAllHandler.create(userConnReq, createMockResponder(s), listNs));
+
+    RecordingAccessEnforcer updateOnlyEnforcer =
+      new RecordingAccessEnforcer(permission -> permission == StandardPermission.UPDATE);
+    ConnectionHandler updateOnlyHandler = createConnectionHandler(listConfig, updateOnlyEnforcer, true);
+    AtomicInteger updatePropStatus = new AtomicInteger();
+    AtomicReference<Object> updatePropBody = new AtomicReference<>();
+    updateOnlyHandler.updateProp(request, createMockResponder(updatePropStatus, updatePropBody),
+                                 listNs, "user_secret", "k", "v");
+    Assert.assertEquals(HttpURLConnection.HTTP_OK, updatePropStatus.get());
+    Assert.assertEquals(Collections.singletonList(Collections.emptyMap()),
+                        ((ServiceResponse<?>) updatePropBody.get()).getValues());
+
+    // 3. Contrast: with USE allowed on all connections, all connections, default, and updateProp properties return
+    AtomicInteger allowStatus = new AtomicInteger();
+    AtomicReference<Object> allowBody = new AtomicReference<>();
+    allowAllHandler.list(request, createMockResponder(allowStatus, allowBody), listNs, "*");
+    Assert.assertEquals(HttpURLConnection.HTTP_OK, allowStatus.get());
+    Assert.assertEquals(3, ((ConnectionResponse<?>) allowBody.get()).getValues().size());
+    Assert.assertEquals("denied_default",
+                        GSON.toJsonTree(allowBody.get()).getAsJsonObject().get("default").getAsString());
+
+    AtomicInteger allowUpdateStatus = new AtomicInteger();
+    AtomicReference<Object> allowUpdateBody = new AtomicReference<>();
+    allowAllHandler.updateProp(request, createMockResponder(allowUpdateStatus, allowUpdateBody),
+                               listNs, "user_secret", "k2", "v2");
+    Assert.assertEquals(HttpURLConnection.HTTP_OK, allowUpdateStatus.get());
+    @SuppressWarnings("unchecked")
+    Map<String, String> returnedProps =
+      (Map<String, String>) ((ServiceResponse<?>) allowUpdateBody.get()).getValues().iterator().next();
+    Assert.assertEquals("user-secret-val", returnedProps.get("secret"));
+    Assert.assertEquals("v2", returnedProps.get("k2"));
+
+    // 4. Non-UnauthorizedException AccessException on USE fails closed with 500
+    RecordingAccessEnforcer failingUseEnforcer = new RecordingAccessEnforcer(false) {
+      @Override
+      public void enforce(EntityId entity, Permission permission) throws AccessException {
+        super.enforce(entity, permission);
+        if (StandardPermission.USE.equals(permission)) {
+          throw new AccessException("auth backend unavailable");
+        }
+      }
+    };
+    ConnectionHandler failingUseHandler = createConnectionHandler(listConfig, failingUseEnforcer, true);
+    assertEndpointStatus(HttpURLConnection.HTTP_INTERNAL_ERROR,
+                         s -> failingUseHandler.list(request, createMockResponder(s), listNs, "*"));
   }
 
   @Test
@@ -1451,17 +1555,21 @@ public class WranglerAuthEnforcementTest {
   }
 
   private static class RecordingAccessEnforcer implements ContextAccessEnforcer {
-    private final boolean denyAll;
+    private final Predicate<Permission> isAllowed;
     private final List<EnforceCall> calls = new ArrayList<>();
 
     private RecordingAccessEnforcer(boolean denyAll) {
-      this.denyAll = denyAll;
+      this(permission -> !denyAll);
+    }
+
+    private RecordingAccessEnforcer(Predicate<Permission> isAllowed) {
+      this.isAllowed = isAllowed;
     }
 
     @Override
     public void enforce(EntityId entity, Permission permission) throws AccessException {
       calls.add(new EnforceCall(entity, permission));
-      if (denyAll) {
+      if (!isAllowed.test(permission)) {
         throw new UnauthorizedException("Access denied for " + entity + " with " + permission);
       }
     }
@@ -1477,7 +1585,7 @@ public class WranglerAuthEnforcementTest {
     public void enforceOnParent(EntityType entityType, EntityId parentId, Permission permission)
       throws AccessException {
       calls.add(new EnforceCall(parentId, permission, entityType));
-      if (denyAll) {
+      if (!isAllowed.test(permission)) {
         throw new UnauthorizedException("Access denied on parent " + parentId + " with " + permission);
       }
     }

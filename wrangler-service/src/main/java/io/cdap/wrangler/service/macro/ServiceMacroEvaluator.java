@@ -43,7 +43,8 @@ public class ServiceMacroEvaluator implements MacroEvaluator {
   public String lookup(String property) throws InvalidMacroException {
     String val = arguments.get(property);
     if (val == null) {
-      throw new InvalidMacroException(String.format("Argument '%s' is not defined.", property));
+      // Omit the property name so resolved nested secure macro values cannot leak in errors.
+      throw new InvalidMacroException("Failed to resolve macro argument.");
     }
     return val;
   }
@@ -51,7 +52,8 @@ public class ServiceMacroEvaluator implements MacroEvaluator {
   @Override
   public String evaluate(String macroFunction, String... arguments) throws InvalidMacroException {
     if (!SECURE_FUNCTION.equals(macroFunction)) {
-      throw new InvalidMacroException(String.format("%s is not a supported macro function.", macroFunction));
+      // Omit macroFunction so resolved nested secure macro values cannot leak in errors.
+      throw new InvalidMacroException("Unsupported macro function.");
     }
     if (arguments.length != 1) {
       throw new InvalidMacroException("Secure macro function only supports 1 argument.");
@@ -60,7 +62,8 @@ public class ServiceMacroEvaluator implements MacroEvaluator {
       SecureStoreData secureStoreData = context.get(namespace, arguments[0]);
       return Bytes.toString(secureStoreData.get());
     } catch (Exception e) {
-      throw new InvalidMacroException("Failed to resolve macro '" + macroFunction + "(" + arguments[0] + ")'", e);
+      // Omit the macro argument and underlying cause so nested secure macro values cannot leak.
+      throw new InvalidMacroException("Failed to resolve macro '" + macroFunction + "'.");
     }
   }
 }

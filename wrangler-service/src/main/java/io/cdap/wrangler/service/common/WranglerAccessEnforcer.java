@@ -24,6 +24,7 @@ import io.cdap.cdap.proto.id.InstanceId;
 import io.cdap.cdap.proto.id.NamespaceId;
 import io.cdap.cdap.proto.security.StandardPermission;
 import io.cdap.cdap.security.spi.authorization.ContextAccessEnforcer;
+import io.cdap.cdap.security.spi.authorization.UnauthorizedException;
 import io.cdap.wrangler.proto.id.DirectiveConfigEntityId;
 import io.cdap.wrangler.proto.id.RecipeEntityId;
 import io.cdap.wrangler.proto.id.WorkspaceEntityId;
@@ -170,6 +171,19 @@ public class WranglerAccessEnforcer {
    */
   public void enforceConnection(String namespace, String connectionId, StandardPermission permission) {
     contextAccessEnforcer.enforce(new ConnectionEntityId(namespace, connectionId), permission);
+  }
+
+  /**
+   * Returns {@code true} if the caller has {@code permission} on the connection, or {@code false}
+   * if authorization is denied. Non-authorization {@code AccessException} failures still propagate.
+   */
+  public boolean isConnectionAuthorized(String namespace, String connectionId, StandardPermission permission) {
+    try {
+      enforceConnection(namespace, connectionId, permission);
+      return true;
+    } catch (UnauthorizedException e) {
+      return false;
+    }
   }
 
   /**
